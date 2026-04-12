@@ -27,38 +27,38 @@ export interface SceneFolder {
 
 export interface Scene {
   id: string;
-  name: string;           // 场景名称
-  location: string;       // 地点描述
-  time: string;           // 时间设定 (白天/夜晚/黄昏等)
-  atmosphere: string;     // 氛围描述 (紧张/温馨/神秘等)
+  name: string;           // CảnhTên
+  location: string;       // Vị trí Mô tả
+  time: string;           // Thời gian cài đặt (Ban ngày/Ban đêm/Hoàng hôv.v.)
+  atmosphere: string;     // Khí quyển Mô tả (lo lắng/Sự ấm áp/bí ẩn, v.v.)
   projectId?: string;     // Associated project (optional)
-  visualPrompt?: string;  // 完整的视觉提示词
-  referenceImage?: string; // 生成的场景概念图 URL
+  visualPrompt?: string;  // Hoàn thành lời nhắc trực quan
+  referenceImage?: string; // Tạo'CảURL bản đồ khái niệm nh
   referenceImageBase64?: string; // Base64 for persistence
   styleId?: string;       // Visual style preset ID
   folderId?: string | null; // Folder ID for organization
   // Enhanced fields (inspired by AniKuku)
-  tags?: string[];        // 环境标签 如 #木柱 #窗棱 #古建筑
-  notes?: string;         // 地点备注 (剧情说明，与location分开)
-  status?: 'draft' | 'linked'; // 状态: draft=草稿, linked=已关联剧本
-  linkedEpisodeId?: string;    // 关联的剧集ID
+  tags?: string[];        // Nhãn môi trường như #cột gỗ #cạnh cửa sổ #tòa nhà cổ
+  notes?: string;         // Ghi chú vị trí (Ô Giải thích，tách biệt khỏi vị trí)
+  status?: 'draft' | 'linked'; // Trạng thái: draft=Bản nháp, linked=Đã liên kết với Kịch bản
+  linkedEpisodeId?: string;    // ID tập liên quan
   createdAt: number;
   updatedAt: number;
   
-  // === 视角变体支持 ===
-  parentSceneId?: string;     // 父场景 ID（如果是视角变体）
-  viewpointId?: string;       // 视角 ID（如 'dining', 'sofa' 等）
-  viewpointName?: string;     // 视角名称（如 '餐桌区', '沙发区' 等）
-  shotIds?: string[];         // 关联的分镜 ID 列表
-  isViewpointVariant?: boolean; // 是否是视角变体
+  // === Góc nhìn biến thể Hỗ trợ ===
+  parentSceneId?: string;     // Phụ huynh Cảnh ID（Nếu là Góc nhìcác biến thể）
+  viewpointId?: string;       // Góc nhìn ID（Chẳng hạn như 'dining', 'sofa' Đợi đã）
+  viewpointName?: string;     // Góc nhìnTên（Chẳng hạn như 'khu vực bàn ăn', 'khu vực ghế sofa' Đợi đã）
+  shotIds?: string[];         // liên kết tiến sĩân cảdanh sách ID
+  isViewpointVariant?: boolean; // Có phải Góc nhìcác biến thể
   
-  // === 专业场景设计字段 ===
-  architectureStyle?: string;  // 建筑风格
-  colorPalette?: string;       // 色彩基调
-  eraDetails?: string;         // 时代特征
-  lightingDesign?: string;     // 光影设计
-  keyProps?: string[];         // 关键道具
-  spatialLayout?: string;      // 空间布局
+  // === C chuyên nghiệpảlĩnh vực thiết kế ===
+  architectureStyle?: string;  // Kiến trúcPhong cách
+  colorPalette?: string;       // Màu sắgiai điệu c
+  eraDetails?: string;         // Đặc điểm của thời đại
+  lightingDesign?: string;     // Ánh sáthiết kế
+  keyProps?: string[];         // đạo cụ chính
+  spatialLayout?: string;      // bố trí không gian
 }
 
 export type SceneGenerationStatus = 'idle' | 'generating' | 'completed' | 'error';
@@ -80,7 +80,7 @@ interface SceneState {
   generatingSceneId: string | null;
   generationPrefs: SceneGenerationPrefs;
   generationPrefsByProject: Record<string, SceneGenerationPrefs>;
-  // 联合图自动生成任务跟踪 (parentSceneId → 状态)
+  // Đồ thị chung T tự độngạoTheo dõi tác vụ (parentSceneId → Trạng thái)
   contactSheetTasks: Record<string, { status: 'generating' | 'splitting' | 'saving' | 'done' | 'error'; progress: number; message?: string }>;
 }
 
@@ -105,7 +105,7 @@ interface SceneActions {
   setGenerationStatus: (status: SceneGenerationStatus, error?: string) => void;
   setGeneratingScene: (id: string | null) => void;
   setGenerationPrefs: (prefs: Partial<SceneGenerationPrefs>) => void;
-  // 联合图任务管理
+  // Quản lý nhiệm vụ đồ thị chung
   setContactSheetTask: (parentSceneId: string, task: { status: 'generating' | 'splitting' | 'saving' | 'done' | 'error'; progress: number; message?: string } | null) => void;
   
   // Project scoping helpers
@@ -528,23 +528,23 @@ export const useSceneCount = (): number => {
 // ==================== Preset Time Options ====================
 
 export const TIME_PRESETS = [
-  { id: 'day', label: '白天', prompt: 'daytime, bright sunlight' },
-  { id: 'night', label: '夜晚', prompt: 'nighttime, moonlight, stars' },
-  { id: 'dawn', label: '黎明', prompt: 'dawn, early morning light, soft orange glow' },
-  { id: 'dusk', label: '黄昏', prompt: 'dusk, golden hour, sunset colors' },
-  { id: 'overcast', label: '阴天', prompt: 'overcast sky, soft diffused light' },
-  { id: 'storm', label: '暴风雨', prompt: 'stormy weather, dark clouds, dramatic lighting' },
+  { id: 'day', label: 'Ban ngày', prompt: 'daytime, bright sunlight' },
+  { id: 'night', label: 'Ban đêm', prompt: 'nighttime, moonlight, stars' },
+  { id: 'dawn', label: 'Bình minh', prompt: 'dawn, early morning light, soft orange glow' },
+  { id: 'dusk', label: 'Hoàng hôn', prompt: 'dusk, golden hour, sunset colors' },
+  { id: 'overcast', label: 'ngày nhiều mây', prompt: 'overcast sky, soft diffused light' },
+  { id: 'storm', label: 'cơn bão', prompt: 'stormy weather, dark clouds, dramatic lighting' },
 ] as const;
 
 // ==================== Preset Atmosphere Options ====================
 
 export const ATMOSPHERE_PRESETS = [
-  { id: 'peaceful', label: '平静', prompt: 'peaceful, serene, calm atmosphere' },
-  { id: 'tense', label: '紧张', prompt: 'tense, suspenseful, uneasy atmosphere' },
-  { id: 'romantic', label: '浪漫', prompt: 'romantic, warm, intimate atmosphere' },
-  { id: 'mysterious', label: '神秘', prompt: 'mysterious, enigmatic, foggy atmosphere' },
-  { id: 'cheerful', label: '欢快', prompt: 'cheerful, lively, vibrant atmosphere' },
-  { id: 'melancholic', label: '忧郁', prompt: 'melancholic, sad, somber atmosphere' },
-  { id: 'epic', label: '史诗', prompt: 'epic, grand, majestic atmosphere' },
-  { id: 'horror', label: '恐怖', prompt: 'horror, creepy, unsettling atmosphere' },
+  { id: 'peaceful', label: 'bình tĩnh', prompt: 'peaceful, serene, calm atmosphere' },
+  { id: 'tense', label: 'lo lắng', prompt: 'tense, suspenseful, uneasy atmosphere' },
+  { id: 'romantic', label: 'lãng mạn', prompt: 'romantic, warm, intimate atmosphere' },
+  { id: 'mysterious', label: 'bí ẩn', prompt: 'mysterious, enigmatic, foggy atmosphere' },
+  { id: 'cheerful', label: 'vui vẻ', prompt: 'cheerful, lively, vibrant atmosphere' },
+  { id: 'melancholic', label: 'u sầu', prompt: 'melancholic, sad, somber atmosphere' },
+  { id: 'epic', label: 'sử thi', prompt: 'epic, grand, majestic atmosphere' },
+  { id: 'horror', label: 'kinh dị', prompt: 'horror, creepy, unsettling atmosphere' },
 ] as const;

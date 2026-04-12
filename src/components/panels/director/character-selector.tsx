@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 角色库选择弹窗组件 (Character Selector)
- * 从角色库中选择角色关联到分镜
+ * \u89d2\u8272\u5e93\u9009\u62e9\u5f39cửa sổ\u7ec4\u4ef6 (Character Selector)
+ * từ\u89d2\u8272\u5e93trong\u9009\u62e9\u89d2\u8272\u5173\u8054Đến\u5206\u955c
  */
 
 import React, { useState, useMemo } from "react";
@@ -46,7 +46,7 @@ export function CharacterSelector({
       : !activeProjectId
         ? []
         : characters.filter((c) => c.projectId === activeProjectId);
-    // 按 id 去重（项目复制会产生同 id 角色，保留首次出现的）
+    // \u6309 id \u53bb\u91cd（\u9879\u76eesao chép\u4f1a\u4ea7\u751f\u540c id \u89d2\u8272，\u4fdd\u7559\u9996lần\u51fa\u73b0của）
     const seen = new Set<string>();
     return list.filter((c) => {
       if (seen.has(c.id)) return false;
@@ -67,7 +67,7 @@ export function CharacterSelector({
     }
   };
 
-  // 只统计在角色库中存在的角色（过滤无效ID）
+  // \u53ea\u7edf\u8ba1\u5728\u89d2\u8272\u5e93trong\u5b58\u5728của\u89d2\u8272（\u8fc7\u6ee4không có\u6548ID）
   const selectedCharacters = visibleCharacters.filter(c => selectedIds.includes(c.id));
   const validSelectedCount = selectedCharacters.length;
 
@@ -80,17 +80,17 @@ export function CharacterSelector({
         >
           <Users className="h-3 w-3" />
           {validSelectedCount > 0 ? (
-            <span>已选 {validSelectedCount} 个</span>
+            <span>Đã rồi\u9009 {validSelectedCount} một</span>
           ) : (
-            <span>角色库</span>
+            <span>\u89d2\u8272\u5e93</span>
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-2" align="start">
-        <p className="text-sm font-medium mb-2">选择角色</p>
+        <p className="text-sm font-medium mb-2">\u9009\u62e9\u89d2\u8272</p>
         {visibleCharacters.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-4">
-            角色库为空，请先创建角色
+            \u89d2\u8272\u5e93cho\u7a7a，\u8bf7đầu tiên\u521b\u5efa\u89d2\u8272
           </p>
         ) : (
           <div className="max-h-[280px] overflow-y-auto space-y-1">
@@ -127,7 +127,7 @@ export function CharacterSelector({
                   {/* Variation list: show when selected and has available variations */}
                   {isSelected && availableVariations.length > 0 && onChangeVariation && (
                     <div className="ml-8 mr-1 mb-1 space-y-0.5">
-                      {/* 基础定妆照 */}
+                      {/* \u57fa\u7840\u5b9a\u5986\u7167 */}
                       <button
                         onClick={(e) => { e.stopPropagation(); onChangeVariation(char.id, undefined); }}
                         className={cn(
@@ -136,16 +136,16 @@ export function CharacterSelector({
                         )}
                       >
                         {thumbnail ? (
-                          <img src={thumbnail} alt="基础定妆照" className="w-8 h-8 rounded object-cover shrink-0 border border-muted-foreground/10" />
+                          <img src={thumbnail} alt="\u57fa\u7840\u5b9a\u5986\u7167" className="w-8 h-8 rounded object-cover shrink-0 border border-muted-foreground/10" />
                         ) : (
                           <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
                             <User className="h-3 w-3" />
                           </div>
                         )}
-                        <span className="flex-1 text-[11px] truncate">基础定妆照</span>
+                        <span className="flex-1 text-[11px] truncate">\u57fa\u7840\u5b9a\u5986\u7167</span>
                         {!selectedVarId && <Check className="h-3 w-3 text-primary shrink-0" />}
                       </button>
-                      {/* 变体列表 */}
+                      {/* thay đổi\u4f53danh sách */}
                       {availableVariations.map((v) => (
                         <button
                           key={v.id}

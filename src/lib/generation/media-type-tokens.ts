@@ -2,21 +2,21 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Media-Type Tokens — 摄影参数 × 媒介类型翻译层
+ * Media-Type Tokens — \u6444\u5f71Tham số × Lò vừaại\u7ffb\u8bd1\u5c42
  *
- * 核心职责：根据视觉风格的 mediaType，将物理摄影 promptToken 翻译为
- * 该媒介能驾驭的等效表达。
+ * cốt lõi\u804c\u8d23：\u6839\u636eTầm nhìn Phong cáchcủa mediaType，\u5c06\u7269\u7406\u6444\u5f71 promptToken \u7ffb\u8bd1cho
+ * \u8be5\u5a92\u4ecb\u80fd\u9a7e\u9a6dcủaĐợi đã\u6548\u8868\u8fbe。
  *
- * 翻译策略：
- * - cinematic  → 直通，保留全部物理摄影词汇
- * - animation  → 虚拟摄像机语义适配（轨道→视差平移、景深→层次模糊）
- * - stop-motion → 微缩实拍约束（轨道→微型滑轨、景深→微距镜头）
- * - graphic    → 跳过物理参数，灯光→色彩/情绪/节奏描述
+ * \u7ffb\u8bd1Chiến lược：
+ * - cinematic  → \u76f4\u901a，Giữ Tất cả\u7269\u7406\u6444\u5f71\u8bcd\u6c47
+ * - animation  → \u865a\u62df\u6444\u50cf\u673a\u8bed\u4e49\u9002\u914d（Quỹ đạo→\u89c6\u5dee\u5e73\u79fb、độ sâu trường ảnh→\u5c42lần\u6a21\u7cca）
+ * - stop-motion → \u5fae\u7f29Bắn thậtkhoảng\u675f（Quỹ đạo→\u5fae\u578bRay trượt、độ sâu trường ảnh→Vĩ môCảnh quay）
+ * - graphic    → bỏ qua\u7269\u7406Tham số，đèn→Màu sắc/cảm xúc/Nhịp điệu Mô tả
  */
 
 import type { MediaType } from '@/lib/constants/visual-styles';
 
-// ==================== 字段类型 ====================
+// ==================== từ\u6bb5Loại ====================
 
 export type CinematographyField =
   | 'cameraRig'
@@ -34,19 +34,19 @@ export type CinematographyField =
   | 'focalLength'
   | 'photographyTechnique';
 
-// ==================== 翻译表 ====================
+// ==================== \u7ffb\u8bd1\u8868 ====================
 
 /**
- * 每种非-cinematic 媒介的字段级翻译表。
+ * \u6bcf\u79cd\u975e-cinematic \u5a92\u4ecbcủatừ\u6bb5\u7ea7\u7ffb\u8bd1\u8868。
  * - key = preset id
- * - value = 替换后的 promptToken（空字符串 = 静默跳过）
+ * - value = thay thế\u540ecủa promptToken（\u7a7achuỗi = \u9759\u9ed8bỏ qua）
  *
- * 不在表中的 preset id → 沿用原始 token（兼容未来新增预设）
+ * \u4e0d\u5728\u8868trongcủa preset id → \u6cbfsử dụngnguyên bản token（\u517c\u5bb9tương laiMới\u9884\u8bbe）
  */
 type FieldOverrides = Record<string, string>;
 
 /**
- * 'skip' 表示该字段在该媒介下整体跳过（返回空字符串）
+ * 'skip' thể hiện\u8be5từ\u6bb5\u5728\u8be5\u5a92\u4ecb\u4e0b\u6574\u4f53bỏ qua（Quay lại\u7a7achuỗi）
  */
 type FieldStrategy = FieldOverrides | 'skip';
 
@@ -80,8 +80,8 @@ const ANIMATION_TABLE: MediaTranslationTable = {
     'pull-focus':   'focus tracking subject movement,',
   },
   // lightingStyle / lightingDirection / colorTemperature / movementSpeed / playbackSpeed
-  // → 概念相通，不做翻译，沿用原始 token
-  // cameraAngle / focalLength / photographyTechnique → 虚拟摄像机可直接使用
+  // → khái niệm\u76f8\u901a，\u4e0d\u505a\u7ffb\u8bd1，\u6cbfsử dụngnguyên bản token
+  // cameraAngle / focalLength / photographyTechnique → \u865a\u62df\u6444\u50cf\u673a\u53efSử dụng trực tiếp
 };
 
 // ---------- stop-motion ----------
@@ -123,7 +123,7 @@ const STOP_MOTION_TABLE: MediaTranslationTable = {
 // ---------- graphic ----------
 
 const GRAPHIC_TABLE: MediaTranslationTable = {
-  // 物理摄影参数 → 全部跳过
+  // \u7269\u7406\u6444\u5f71Tham số → Tất cảbỏ qua
   cameraRig:       'skip',
   movementSpeed:   'skip',
   depthOfField:    'skip',
@@ -132,7 +132,7 @@ const GRAPHIC_TABLE: MediaTranslationTable = {
   cameraAngle:             'skip',
   focalLength:             'skip',
   photographyTechnique:    'skip',
-  // 灯光风格 → 转译为色彩/情绪
+  // Chiếu sángPhong cách → \u8f6c\u8bd1choMàu sắc/cảm xúc
   lightingStyle: {
     'high-key':    'bright palette, open composition,',
     'low-key':     'dark tones, heavy contrast areas,',
@@ -143,7 +143,7 @@ const GRAPHIC_TABLE: MediaTranslationTable = {
     candlelight:   'warm golden amber tint,',
     moonlight:     'cool blue-silver tint,',
   },
-  // 色温 → 色调倾向
+  // Nhiệt độ màu → Tông màuXu hướng
   colorTemperature: {
     warm:          'warm orange-amber tones,',
     neutral:       'balanced neutral palette,',
@@ -152,7 +152,7 @@ const GRAPHIC_TABLE: MediaTranslationTable = {
     'blue-hour':   'twilight blue-purple cast,',
     mixed:         'mixed warm and cool accents,',
   },
-  // 播放速度 → 节奏描述
+  // Phátốc độ → Nhịp điệu Mô tả
   playbackSpeed: {
     'slow-motion-4x': 'slow deliberate pacing,',
     'slow-motion-2x': 'slow pacing,',
@@ -162,25 +162,25 @@ const GRAPHIC_TABLE: MediaTranslationTable = {
   },
 };
 
-// ---------- 汇总查找 ----------
+// ---------- \u6c47\u603b\u67e5\u627e ----------
 
 const TRANSLATION_TABLES: Partial<Record<MediaType, MediaTranslationTable>> = {
   animation:      ANIMATION_TABLE,
   'stop-motion':  STOP_MOTION_TABLE,
   graphic:        GRAPHIC_TABLE,
-  // cinematic 不需要翻译表
+  // cinematic \u4e0d\u9700\u8981\u7ffb\u8bd1\u8868
 };
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 将摄影参数 token 翻译为当前媒介类型的等效表达。
+ * \u5c06\u6444\u5f71Tham số token \u7ffb\u8bd1chohiện tạiLò vừaạtôi làĐợi đã\u6548\u8868\u8fbe。
  *
- * @param mediaType   - 当前视觉风格的媒介类型
- * @param field       - 摄影参数维度
- * @param presetId    - 预设 ID（如 'dolly', 'shallow'）
- * @param originalToken - 原始 promptToken（来自预设数据）
- * @returns 翻译后的 token；空字符串表示该参数在此媒介下不适用
+ * @param mediaType   - hiện tạiTầm nhìn Phong cáchcủaLò vừaại
+ * @param field       - \u6444\u5f71Tham số\u7ef4\u5ea6
+ * @param presetId    - \u9884\u8bbe ID（Chẳng hạn như 'dolly', 'shallow'）
+ * @param originalToken - nguyên bản promptToken（\u6765\u81ea\u9884\u8bbe\u6570\u636e）
+ * @returns \u7ffb\u8bd1\u540ecủa token；\u7a7achuỗithể hiệnThếam số\u5728\u6b64\u5a92\u4ecb\u4e0b\u4e0d\u9002sử dụng
  */
 export function translateToken(
   mediaType: MediaType,
@@ -188,7 +188,7 @@ export function translateToken(
   presetId: string,
   originalToken: string,
 ): string {
-  // cinematic → 直通
+  // cinematic → \u76f4\u901a
   if (mediaType === 'cinematic') return originalToken;
 
   const table = TRANSLATION_TABLES[mediaType];
@@ -196,19 +196,19 @@ export function translateToken(
 
   const strategy = table[field];
 
-  // 该字段无特殊处理 → 沿用原始 token
+  // \u8be5từ\u6bb5không có\u7279\u6b8a\u5904\u7406 → \u6cbfsử dụngnguyên bản token
   if (strategy === undefined) return originalToken;
 
-  // 整体跳过
+  // \u6574\u4f53bỏ qua
   if (strategy === 'skip') return '';
 
-  // 查表替换
+  // \u67e5\u8868thay thế
   const override = strategy[presetId];
   return override !== undefined ? override : originalToken;
 }
 
 /**
- * 判断某个字段在当前媒介下是否被跳过（UI 可用此决定是否显示灰色）
+ * \u5224\u65ad\u67d0mộttừ\u6bb5\u5728hiện tại\u5a92\u4ecb\u4e0b\u662f\u5426\u88abbỏ qua（UI Có sẵn\u6b64\u51b3\u5b9a\u662f\u5426\u663e\u793a\u7070\u8272）
  */
 export function isFieldSkipped(mediaType: MediaType, field: CinematographyField): boolean {
   if (mediaType === 'cinematic') return false;
@@ -217,7 +217,7 @@ export function isFieldSkipped(mediaType: MediaType, field: CinematographyField)
 }
 
 /**
- * 获取媒介类型的简要指导说明（用于 AI 校准 system prompt）
+ * \u83b7\u53d6Lò vừaạtôi là\u7b80\u8981\u6307\u5bfcGiải thích（sử dụng\u4e8e AI \u6821\u51c6 system prompt）
  */
 export function getMediaTypeGuidance(mediaType: MediaType): string {
   switch (mediaType) {

@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 情绪标签选择组件
- * 支持多选、有序排列，用于控制视频生成的氛围和语气
+ * Thẻ cảm xúc\u9009\u62e9\u7ec4\u4ef6
+ * \u652f\u6301Nhiều lựa chọn、Có\u5e8f\u6392Cột，sử dụng\u4e8e\u63a7\u5236\u89c6\u9891\u751f\u6210bầu không khívà\u8bed\u6c14
  */
 
 import { useState } from "react";
@@ -25,7 +25,7 @@ interface EmotionTagsProps {
   disabled?: boolean;
 }
 
-// 获取标签信息
+// \u83b7\u53d6nhãnthông tin
 function getTagInfo(tagId: EmotionTag) {
   const allTags = [
     ...EMOTION_PRESETS.basic,
@@ -38,22 +38,22 @@ function getTagInfo(tagId: EmotionTag) {
 export function EmotionTags({ value, onChange, disabled }: EmotionTagsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // 添加标签
+  // \u6dfb\u52a0nhãn
   const addTag = (tagId: EmotionTag) => {
     if (!value.includes(tagId)) {
       onChange([...value, tagId]);
     }
   };
 
-  // 移除标签
+  // Xóanhãn
   const removeTag = (tagId: EmotionTag) => {
     onChange(value.filter(t => t !== tagId));
   };
 
-  // 检查是否已选中
+  // \u68c0\u67e5ĐúngKHÔNGĐã rồiđã chọn
   const isSelected = (tagId: EmotionTag) => value.includes(tagId);
 
-  // 渲染标签分类
+  // kết xuấtnhãn\u5206\u7c7b
   const renderTagGroup = (
     title: string, 
     tags: readonly { id: string; label: string; emoji: string }[]
@@ -93,7 +93,7 @@ export function EmotionTags({ value, onChange, disabled }: EmotionTagsProps) {
 
   return (
     <div className="space-y-2">
-      {/* 已选标签（有序显示） */}
+      {/* Đã rồi\u9009nhãn（Có\u5e8f\u663e\u793a） */}
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5 items-center">
           {value.map((tagId, index) => {
@@ -121,7 +121,7 @@ export function EmotionTags({ value, onChange, disabled }: EmotionTagsProps) {
         </div>
       )}
 
-      {/* 添加标签按钮 */}
+      {/* \u6dfb\u52a0nhãn\u6309\u94ae */}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -131,31 +131,31 @@ export function EmotionTags({ value, onChange, disabled }: EmotionTagsProps) {
             className="h-7 text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
-            添加情绪标签
+            \u6dfb\u52a0Thẻ cảm xúc
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-3" align="start">
           <div className="space-y-3">
-            <p className="text-sm font-medium">选择情绪标签</p>
+            <p className="text-sm font-medium">\u9009\u62e9Thẻ cảm xúc</p>
             <p className="text-xs text-muted-foreground">
-              按顺序添加标签，视频将按此顺序呈现情绪变化
+              theo thứ tự\u6dfb\u52a0nhãn，\u89c6\u9891\u5c06\u6309\u6b64\u987a\u5e8f\u5448\u73b0cảm xúcthay đổi
             </p>
-            {renderTagGroup("基础情绪", EMOTION_PRESETS.basic)}
-            {renderTagGroup("氛围情绪", EMOTION_PRESETS.atmosphere)}
-            {renderTagGroup("语气情绪", EMOTION_PRESETS.tone)}
+            {renderTagGroup("\u57fa\u7840cảm xúc", EMOTION_PRESETS.basic)}
+            {renderTagGroup("khí sắc", EMOTION_PRESETS.atmosphere)}
+            {renderTagGroup("giọng điệu", EMOTION_PRESETS.tone)}
           </div>
         </PopoverContent>
       </Popover>
 
-      {/* 提示文字 */}
+      {/* \u63d0\u793a\u6587từ */}
       {value.length === 0 && (
         <p className="text-xs text-muted-foreground">
-          添加情绪标签控制视频氛围和说话语气
+          \u6dfb\u52a0Thẻ cảm xúc\u63a7\u5236\u89c6\u9891bầu không khívànói\u8bed\u6c14
         </p>
       )}
       {value.length > 1 && (
         <p className="text-xs text-muted-foreground">
-          情绪将按 {value.map((t, i) => getTagInfo(t)?.label).filter(Boolean).join(" → ")} 顺序变化
+          cảm xúc\u5c06\u6309 {value.map((t, i) => getTagInfo(t)?.label).filter(Boolean).join(" → ")} \u987a\u5e8fthay đổi
         </p>
       )}
     </div>

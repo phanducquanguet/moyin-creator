@@ -4,15 +4,15 @@
 "use client";
 
 /**
- * StyleCard - 风格卡片组件
- * 默认风格和自定义风格共用
+ * StyleCard - gió\u683c\u5361\u7247\u7ec4\u4ef6
+ * \u9ed8\u8ba4gió\u683cvà\u81ea\u5b9a\u4e49gió\u683ctổng cộngsử dụng
  */
 
 import { cn } from "@/lib/utils";
 import { LocalImage } from "@/components/ui/local-image";
 import type { StyleCategory } from "@/lib/constants/visual-styles";
 
-// 风格分类色块（与 StylePicker 一致）
+// gió\u683c\u5206\u7c7b\u8272\u5757（với StylePicker một\u81f4）
 const CATEGORY_COLORS: Record<string, string> = {
   '3d': 'bg-blue-500/20 text-blue-600',
   '2d': 'bg-green-500/20 text-green-600',
@@ -23,15 +23,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   '3d': '3D',
   '2d': '2D',
-  'real': '真人',
-  'stop_motion': '定格',
+  'real': 'người thật',
+  'stop_motion': 'khung đóng băng',
 };
 
 interface StyleCardProps {
   name: string;
   description?: string;
-  category?: StyleCategory;     // 内置风格分类（用于色块显示）
-  referenceImages?: string[];   // 自定义风格参考图
+  category?: StyleCategory;     // bên trong\u7f6egió\u683c\u5206\u7c7b（sử dụng\u4e8e\u8272\u5757\u663e\u793a）
+  referenceImages?: string[];   // \u81ea\u5b9a\u4e49gió\u683cHình ảnh tham khảo
   isCustom?: boolean;
   isSelected?: boolean;
   onClick?: () => void;
@@ -48,7 +48,7 @@ export function StyleCard({
   onClick,
   onDoubleClick,
 }: StyleCardProps) {
-  // 自定义风格用第一张参考图
+  // \u81ea\u5b9a\u4e49gió\u683csử dụngKhông.một mảnhHình ảnh tham khảo
   const customImage = isCustom ? referenceImages?.[0] : undefined;
 
   return (
@@ -62,7 +62,7 @@ export function StyleCard({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      {/* 缩略图区域 */}
+      {/* hình thu nhỏQuận\u57df */}
       <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         {customImage ? (
           <LocalImage
@@ -71,7 +71,7 @@ export function StyleCard({
             className="w-full h-full object-cover"
           />
         ) : category ? (
-          /* 内置风格：色块占位 + 分类标签 */
+          /* bên trong\u7f6egió\u683c：\u8272\u5757\u5360\u4f4d + \u5206\u7c7bnhãn */
           <div className={cn(
             "w-full h-full flex flex-col items-center justify-center",
             CATEGORY_COLORS[category] || 'bg-muted/30'
@@ -80,18 +80,18 @@ export function StyleCard({
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-            无参考图
+            không cóHình ảnh tham khảo
           </div>
         )}
-        {/* 自定义标记 */}
+        {/* \u81ea\u5b9a\u4e49\u6807\u8bb0 */}
         {isCustom && (
           <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] bg-primary/80 text-primary-foreground">
-            自定义
+            \u81ea\u5b9a\u4e49
           </div>
         )}
       </div>
 
-      {/* 信息区域 */}
+      {/* thông tinQuận\u57df */}
       <div className="p-2 space-y-0.5">
         <div className="text-sm font-medium truncate">{name}</div>
         {description && (

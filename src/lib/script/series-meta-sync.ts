@@ -2,11 +2,11 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Series Meta Sync — 剧级元数据工具模块
+ * Series Meta Sync — Mô-đun công cụ siêu dữ liệu ở cấp độ kịch
  *
- * 1. populateSeriesMetaFromImport: 首次导入时从解析结果 + AI 分析构建 SeriesMeta
- * 2. buildSeriesContextSummary: 从 SeriesMeta 构建紧凑的 AI 注入上下文摘要
- * 3. syncToSeriesMeta: 校准完成后回写丰富数据到 SeriesMeta
+ * 1. populateSeriesMetaFromImport: đầu tiên NhậTừ kết quả phân tích + AI Ph khi pân tích build SeriesMeta
+ * 2. buildSeriesContextSummary: Xây dựng bản tóm tắt ngữ cảnh nhỏ gọn được AI đưa vào từ SeriesMeta
+ * 3. syncToSeriesMeta: Sau khi hiệu chỉnh xong, ghi dữ liệu phong phú trở lại SeriesMeta
  */
 
 import type {
@@ -21,11 +21,11 @@ import type {
 } from '@/types/script';
 import type { ScriptStructureAnalysis } from './script-normalizer';
 
-// ==================== 1. 首次导入填充 ====================
+// ==================== 1. Lần đầu Nhậđệm p ====================
 
 /**
- * 从导入结果构建 SeriesMeta
- * 优先使用 AI 分析结果，不足时从 background + scriptData 补全
+ * Từ Nhậxây dựng kết quả p SeriesMeta
+ * Ưu tiên cho AI Ph.ân tích kết quả，Nếu không đủ, hãy hoàn thành từ nền + scriptData
  */
 export function populateSeriesMetaFromImport(
   background: ProjectBackground,
@@ -33,20 +33,20 @@ export function populateSeriesMetaFromImport(
   aiAnalysis?: ScriptStructureAnalysis | null,
   importSettings?: { styleId?: string; promptLanguage?: PromptLanguage }
 ): SeriesMeta {
-  // 验证标题不是集标题（如"第一集 初遇"）
-  const isEpTitle = (t: string) => /^第[一二三四五六七八九十百千\d]+集/.test(t);
+  // Xác minh tiêu đề không được đặt tiêu đề（Chẳng hạn như"Tập 1 Cuộc gặp gỡ đầu tiên"）
+  const isEpTitle = (t: string) => /^Không.[Một, hai, ba, bốn, năm, sáu, bảy, tám, chín, một trăm nghìn\d]+bộ/.test(t);
   const rawTitle = background.title || scriptData.title || '';
-  const safeTitle = (rawTitle && !isEpTitle(rawTitle)) ? rawTitle : '未命名';
+  const safeTitle = (rawTitle && !isEpTitle(rawTitle)) ? rawTitle : 'Chưa đặt tên';
 
   const meta: SeriesMeta = {
-    // 故事核心
+    // Cốt lõi câu chuyện
     title: safeTitle,
     outline: background.outline || aiAnalysis?.generatedOutline || undefined,
     logline: aiAnalysis?.logline || undefined,
     centralConflict: aiAnalysis?.centralConflict || undefined,
     themes: aiAnalysis?.themes || background.themes || undefined,
 
-    // 世界观
+    // thế giới quan
     era: background.era || aiAnalysis?.era || undefined,
     genre: background.genre || aiAnalysis?.genre || undefined,
     timelineSetting: background.timelineSetting || undefined,
@@ -54,21 +54,21 @@ export function populateSeriesMetaFromImport(
     keyItems: aiAnalysis?.keyItems?.map(i => ({ name: i.name, desc: i.description })) || undefined,
     worldNotes: background.worldSetting || undefined,
 
-    // 角色体系 — 优先用 scriptData.characters（已过正则解析+校准），AI 的 characters 作为补充
+    // Nhân vậhệ thống t — Thích sử dụng scriptData.characters（Đã vượt qua phân tích cú pháp + hiệu chuẩn thường xuyên），Nhân vật AI như một phần bổ sung
     characters: scriptData.characters || [],
     factions: aiAnalysis?.factions || undefined,
 
-    // 视觉系统 — 直接使用用户在导入面板选择的风格
+    // Tầm nhìnHệ thống — Sử dụng Ng trực tiếpười dùng ở NhậPhong c được chọn bởi p panelách
     styleId: importSettings?.styleId,
     recurringLocations: undefined,
     colorPalette: undefined,
 
-    // 制作设定 — promptLanguage 从用户选择直接映射
-    language: scriptData.language || '中文',
+    // Cài đặt sản xuất — nhắcNgôn ngữ từ Người dùng chọn ánh xạ trực tiếp
+    language: scriptData.language || 'Tiếng Trung',
     promptLanguage: importSettings?.promptLanguage,
   };
 
-  // 如果 AI 分析提取了角色但 scriptData 没有（紧凑格式解析失败的情况），用 AI 的
+  // Nếu AI Ph.ân tích chiết xuất Nhân vật nhưng scriptData thì không（Nhỏ gọnĐịnh dạng phân tíchThất bạtình huống của tôi），Sử dụng AI
   if (meta.characters.length === 0 && aiAnalysis?.characters?.length) {
     meta.characters = aiAnalysis.characters.map((c, i) => ({
       id: `char_${i + 1}`,
@@ -79,10 +79,10 @@ export function populateSeriesMetaFromImport(
       keyActions: c.keyActions,
       tags: c.faction ? [c.faction] : undefined,
     }));
-    console.log(`[populateSeriesMeta] AI 角色作为主数据源: ${meta.characters.length} 个`);
+    console.log(`[populateSeriesMeta] AI Nhân vật làm nguồn dữ liệu chính: ${meta.characters.length} một`);
   }
 
-  // 如果 AI 提取了阵营信息但角色没有 faction tag，补充 faction
+  // Nếu AI trích xuất thông tin trại nhưng Nhân vậkhông có thẻ phe phái，Phe bổ sung
   if (!meta.factions?.length && aiAnalysis?.characters?.length) {
     const factionMap = new Map<string, string[]>();
     for (const c of aiAnalysis.characters) {
@@ -97,7 +97,7 @@ export function populateSeriesMetaFromImport(
     }
   }
 
-  console.log('[populateSeriesMeta] 剧级数据已构建:', {
+  console.log('[populateSeriesMeta] Dữ liệu cấp độ kịch đã được xây dựng:', {
     title: meta.title,
     characters: meta.characters.length,
     factions: meta.factions?.length || 0,
@@ -110,90 +110,90 @@ export function populateSeriesMetaFromImport(
   return meta;
 }
 
-// ==================== 2. AI 上下文注入摘要 ====================
+// ==================== 2. Tóm tắt nội dung AI ====================
 
 /**
- * 从 SeriesMeta 构建紧凑的 AI 上下文注入摘要
- * 用于注入到所有 AI 调用的 system prompt 中
+ * Xây dựng các bản tóm tắt được đưa vào ngữ cảnh AI nhỏ gọn từ SeriesMeta
+ * để tiêm vào Tất cả Trong lời nhắc hệ thống được AI gọi
  */
 export function buildSeriesContextSummary(meta: SeriesMeta | null): string {
   if (!meta) return '';
 
   const parts: string[] = [];
 
-  // 基本信息行
+  // Dòng thông tin cơ bản
   const infoLine = [
-    `作品《${meta.title}》`,
+    `hoạt động《${meta.title}》`,
     meta.era || '',
     meta.genre || '',
     meta.timelineSetting || '',
   ].filter(Boolean).join('，');
-  parts.push(`[剧级知识] ${infoLine}`);
+  parts.push(`[Kiến thức cấp độ kịch] ${infoLine}`);
 
-  // 核心冲突
+  // xung đột cốt lõi
   if (meta.centralConflict) {
-    parts.push(`核心冲突：${meta.centralConflict}`);
+    parts.push(`xung đột cốt lõi：${meta.centralConflict}`);
   }
 
-  // 角色列表（紧凑格式）
+  // Nhân vậdanh sách t（Nhỏ gọnĐịnh dạng）
   if (meta.characters.length > 0) {
     const charSummary = meta.characters
-      .slice(0, 15) // 最多 15 个避免过长
+      .slice(0, 15) // Tối đa 15 để tránh độ dài quá mức
       .map(c => {
         const info = [c.name];
-        if (c.age) info.push(`${c.age}岁`);
+        if (c.age) info.push(`${c.age}tuổi`);
         if (c.role) info.push(c.role.substring(0, 20));
         return info.join(',');
       })
       .join('; ');
-    parts.push(`角色：${charSummary}`);
+    parts.push(`Nhân vật：${charSummary}`);
   }
 
-  // 阵营
+  // trại
   if (meta.factions?.length) {
     const factionSummary = meta.factions
       .map(f => `${f.name}[${f.members.slice(0, 4).join(',')}]`)
       .join('; ');
-    parts.push(`阵营：${factionSummary}`);
+    parts.push(`trại：${factionSummary}`);
   }
 
-  // 力量体系
+  // hệ thống điện
   if (meta.powerSystem) {
-    parts.push(`力量体系：${meta.powerSystem}`);
+    parts.push(`hệ thống điện：${meta.powerSystem}`);
   }
 
-  // 关键物品
+  // mục chính
   if (meta.keyItems?.length) {
     const itemsSummary = meta.keyItems
       .slice(0, 5)
       .map(i => `${i.name}(${i.desc.substring(0, 15)})`)
       .join(', ');
-    parts.push(`关键物品：${itemsSummary}`);
+    parts.push(`mục chính：${itemsSummary}`);
   }
 
-  // 地理
+  // Địa lý
   if (meta.geography?.length) {
     const geoSummary = meta.geography
       .slice(0, 5)
       .map(g => `${g.name}(${g.desc.substring(0, 15)})`)
       .join(', ');
-    parts.push(`地理：${geoSummary}`);
+    parts.push(`Địa lý：${geoSummary}`);
   }
 
   return parts.join('\n');
 }
 
-// ==================== 3. 校准回写 ====================
+// ==================== 3. Viết lại hiệu chuẩn ====================
 
 export type CalibrationSyncType = 'character' | 'scene' | 'shot';
 
 /**
- * 校准完成后回写数据到 SeriesMeta
+ * Sau khi hiệu chỉnh xong, ghi dữ liệu trở lại SeriesMeta
  *
- * @param meta 当前 SeriesMeta
- * @param syncType 校准类型
- * @param results 校准结果数据
- * @returns 更新后的 partial SeriesMeta（用于 updateSeriesMeta）
+ * @thông số meta hiện tại SeriesMeta
+ * @param syncType hiệu chuẩnLoại
+ * @dữ liệu kết quả hiệu chuẩn kết quả param
+ * @returns Cập nhậmột phần SeriesMeta sau t（để cập nhậtSeriesMeta）
  */
 export function syncToSeriesMeta(
   meta: SeriesMeta,
@@ -208,7 +208,7 @@ export function syncToSeriesMeta(
 
   switch (syncType) {
     case 'character': {
-      // 角色校准后：回写 identityAnchors, visualPrompt, negativePrompt, consistencyElements
+      // Nhân vậtSau khi hiệu chuẩn：Viết lại danh tínhAnchors, visualPrompt, NegativePrompt, unityElements
       if (results.characters?.length) {
         const updatedChars = meta.characters.map(existing => {
           const calibrated = results.characters!.find(c =>
@@ -217,7 +217,7 @@ export function syncToSeriesMeta(
           );
           if (!calibrated) return existing;
 
-          // 只回写 AI 校准产出的字段，不覆盖用户手动编辑的
+          // Chỉ ghi lại đầu ra của trường bằng hiệu chỉnh AI，Không che Người dùngManualChỉnh sửcủa một
           return {
             ...existing,
             identityAnchors: calibrated.identityAnchors || existing.identityAnchors,
@@ -225,22 +225,22 @@ export function syncToSeriesMeta(
             visualPromptZh: calibrated.visualPromptZh || existing.visualPromptZh,
             negativePrompt: calibrated.negativePrompt || existing.negativePrompt,
             consistencyElements: calibrated.consistencyElements || existing.consistencyElements,
-            // 补充基础字段（如果之前为空）
+            // Bổ sung Cơ bảnfield（nếu trước đó nó trống rỗng）
             appearance: existing.appearance || calibrated.appearance,
             gender: existing.gender || calibrated.gender,
             age: existing.age || calibrated.age,
           };
         });
         updates.characters = updatedChars;
-        console.log(`[syncToSeriesMeta:character] 回写 ${results.characters.length} 个角色校准结果`);
+        console.log(`[syncToSeriesMeta:character] viết lại ${results.characters.length} Nhân vậtKết quả hiệu chuẩn`);
       }
       break;
     }
 
     case 'scene': {
-      // 场景校准后：识别常驻场景（≥2集出现），更新地理
+      // CảSau khi hiệu chuẩn：Xác định cư dân Cảnh（≥Xuất hiện trong 2 tập），Cập nhậtĐịa lý
       if (results.scenes?.length) {
-        // 常驻场景：episodeNumbers >= 2
+        // Cư dân Cảnh：episodeNumbers >= 2
         const recurring = results.scenes.filter(s =>
           s.episodeNumbers && s.episodeNumbers.length >= 2
         );
@@ -256,11 +256,11 @@ export function syncToSeriesMeta(
               ...(meta.recurringLocations || []),
               ...newRecurring,
             ];
-            console.log(`[syncToSeriesMeta:scene] 新增 ${newRecurring.length} 个常驻场景`);
+            console.log(`[syncToSeriesMeta:scene] Mới ${newRecurring.length} cư dân Cảnh`);
           }
         }
 
-        // 更新地理设定：从场景的 eraDetails 中提取新地名
+        // Cập nhậtCài đặt địa lý：Từ CảTrích xuất tên địa điểm mới từ thời đạiChi tiết của nh
         const existingGeoNames = new Set(
           (meta.geography || []).map(g => g.name)
         );
@@ -274,14 +274,14 @@ export function syncToSeriesMeta(
         }
         if (newGeo.length > 0) {
           updates.geography = [...(meta.geography || []), ...newGeo];
-          console.log(`[syncToSeriesMeta:scene] 新增 ${newGeo.length} 个地理设定`);
+          console.log(`[syncToSeriesMeta:scene] Mới ${newGeo.length} cài đặt địa lý`);
         }
       }
       break;
     }
 
     case 'shot': {
-      // 分镜校准后：追加新关键物品（只追加不覆盖）
+      // Phân cảSau khi hiệu chuẩn：Thêm các mục chính mới（Chỉ nối thêm, không ghi đè）
       if (results.keyItems?.length) {
         const existingItemNames = new Set(
           (meta.keyItems || []).map(i => i.name)
@@ -291,7 +291,7 @@ export function syncToSeriesMeta(
         );
         if (newItems.length > 0) {
           updates.keyItems = [...(meta.keyItems || []), ...newItems];
-          console.log(`[syncToSeriesMeta:shot] 新增 ${newItems.length} 个关键物品`);
+          console.log(`[syncToSeriesMeta:shot] Mới ${newItems.length} mục chính`);
         }
       }
       break;

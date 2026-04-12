@@ -53,10 +53,10 @@ import { VISUAL_STYLE_PRESETS, getStyleTokens, getStylesByCategory, type VisualS
 import { StylePicker } from "@/components/ui/style-picker";
 
 const EXAMPLE_PROMPTS = [
-  "一只可爱的小猫在草地上玩耍，追逐蝴蝶",
-  "两个好朋友在公园里散步，分享快乐时光",
-  "小兔子和小熊在森林里冒险，发现神秘的宝藏",
-  "一个小女孩在海边堆沙堡，海浪轻轻拍打",
+  "một\u53ea\u53ef\u7231của\u5c0f\u732b\u5728\u8349\u5730\u4e0a\u73a9\u800d，\u8ffd\u9010\u8774\u8776",
+  "\u4e24một\u597d\u670b\u53cb\u5728công viên\u91cc\u6563\u6b65，\u5206\u4eabNhanh\u4e50\u65f6\u5149",
+  "\u5c0f\u5154\u5b50và\u5c0f\u718a\u5728rừng\u91cc\u5192\u9669，khám phábí ẩncủa\u5b9d\u85cf",
+  "mộtmột\u5c0f\u5973\u5b69\u5728bờ biển\u5806\u6c99\u5821，sóng biển\u8f7b\u8f7b\u62cd\u6253",
 ];
 
 type StyleId = VisualStyleId | "random";
@@ -299,7 +299,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       if (data.type === "character") {
         // Check if already added
         if (selectedCharacters.some(c => c.characterId === data.characterId)) {
-          toast.info("该角色已添加");
+          toast.info("\u8be5\u89d2\u8272Đã rồi\u6dfb\u52a0");
           return;
         }
 
@@ -311,7 +311,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         };
 
         setSelectedCharacters(prev => [...prev, newChar]);
-        toast.success(`已添加角色: ${data.characterName}`);
+        toast.success(`Đã rồi\u6dfb\u52a0\u89d2\u8272: ${data.characterName}`);
       }
     } catch (err) {
       // Not a valid character drop
@@ -352,9 +352,9 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
     let fullPrompt = prompt;
     if (selectedCharacters.length > 0) {
       const characterDescriptions = selectedCharacters
-        .map(c => `角色"${c.characterName}": ${c.visualTraits || '由AI根据名字设计'}`)
+        .map(c => `\u89d2\u8272"${c.characterName}": ${c.visualTraits || '\u7531AI\u6839\u636etêntừ\u8bbe\u8ba1'}`)
         .join("; ");
-      fullPrompt = `${prompt}\n\n包含以下角色: ${characterDescriptions}`;
+      fullPrompt = `${prompt}\n\bao gồm\u4ee5\u4e0b\u89d2\u8272: ${characterDescriptions}`;
     }
     return fullPrompt;
   };
@@ -396,7 +396,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
   const handleSubmit = async () => {
     if (!prompt.trim()) {
-      toast.error("请输入剧本描述");
+      toast.error("\u8bf7\u8f93\u5165\u5267\u672c\u63cf\u8ff0");
       return;
     }
 
@@ -408,21 +408,21 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         const actualStyleTokens = getSelectedStyleTokens();
         const rawCharacterImages = getCharacterReferenceImages();
         const characterDescriptions = selectedCharacters.map(
-          c => `${c.characterName}: ${c.visualTraits || '由AI根据名字设计'}`
+          c => `${c.characterName}: ${c.visualTraits || '\u7531AI\u6839\u636etêntừ\u8bbe\u8ba1'}`
         );
 
         // Upload base64 images to get HTTP URLs (API only accepts URLs)
         let characterReferenceImages: string[] = [];
         if (rawCharacterImages.length > 0) {
-          toast.info('正在上传角色参考图...');
+          toast.info('\u6b63\u5728\u4e0a\u4f20\u89d2\u8272Hình ảnh tham khảo...');
           try {
             characterReferenceImages = await uploadMultipleImages(rawCharacterImages);
             if (characterReferenceImages.length > 0) {
-              toast.success(`成功上传 ${characterReferenceImages.length} 张角色参考图`);
+              toast.success(`\u6210\u529f\u4e0a\u4f20 ${characterReferenceImages.length} \u5f20\u89d2\u8272Hình ảnh tham khảo`);
             }
           } catch (uploadError) {
             console.warn('[ScreenplayInput] Failed to upload character images:', uploadError);
-            toast.warning('角色参考图上传失败，将不使用角色参考图');
+            toast.warning('\u89d2\u8272Hình ảnh tham khảo\u4e0a\u4f20\u5931\u8d25，\u5c06\u4e0dsử dụng\u89d2\u8272Hình ảnh tham khảo');
           }
         }
 
@@ -448,7 +448,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
     // Legacy workflow: Check API keys for chat
     const chatReady = isFeatureConfigured('script_analysis') || checkChatKeys().isAllConfigured;
     if (!chatReady) {
-      toast.error('请在设置中配置「剧本分析/对话」的服务映射');
+      toast.error('\u8bf7\u5728\u8bbe\u7f6eTrung bình Cấu hình「\u5267\u672c\u5206\u6790/\u5bf9\u8bdd」của\u670d\u52a1\u6620\u5c04');
       return;
     }
 
@@ -492,12 +492,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       // DirectorStore will be updated via onScreenplayGenerated callback
       useDirectorStore.getState().onScreenplayGenerated(screenplay);
       
-      toast.success("剧本生成成功！");
+      toast.success("\u5267\u672c\u751f\u6210\u6210\u529f！");
     } catch (error) {
       const err = error as Error;
       console.error("[ScreenplayInput] Generation failed:", err);
       setScreenplayError(err.message);
-      toast.error(`剧本生成失败: ${err.message}`);
+      toast.error(`\u5267\u672c\u751f\u6210\u5931\u8d25: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -511,9 +511,9 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
     <div className="space-y-4">
       {/* Prompt input */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">描述你想创作的视频</label>
+        <label className="text-sm font-medium">\u63cf\u8ff0\u4f60\u60f3\u521b\u4f5ccủa\u89c6\u9891</label>
         <Textarea
-          placeholder="例如：一只可爱的小猫在草地上玩耍..."
+          placeholder="Ví dụ：một\u53ea\u53ef\u7231của\u5c0f\u732b\u5728\u8349\u5730\u4e0a\u73a9\u800d..."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-[100px] resize-none"
@@ -523,7 +523,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
       {/* Example prompts */}
       <div className="space-y-2">
-        <label className="text-xs text-muted-foreground">示例提示</label>
+        <label className="text-xs text-muted-foreground">Ví dụ\u63d0\u793a</label>
         <div className="flex flex-wrap gap-1">
           {EXAMPLE_PROMPTS.map((example, i) => (
             <button
@@ -542,26 +542,26 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       <div className="grid grid-cols-2 gap-3">
         {/* Aspect ratio */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">画面比例</Label>
+          <Label className="text-sm font-medium">bức tranh\u6bd4\u4f8b</Label>
           <Select
             value={aspectRatio}
             onValueChange={(v) => setAspectRatio(v as AspectRatio)}
             disabled={isSubmitting}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="选择比例" />
+              <SelectValue placeholder="\u9009\u62e9\u6bd4\u4f8b" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="16:9">
                 <span className="flex items-center gap-2">
                   <Monitor className="h-3 w-3" />
-                  16:9 横屏
+                  16:9 \u6a2a\u5c4f
                 </span>
               </SelectItem>
               <SelectItem value="9:16">
                 <span className="flex items-center gap-2">
                   <Smartphone className="h-3 w-3" />
-                  9:16 竖屏
+                  9:16 \u7ad6\u5c4f
                 </span>
               </SelectItem>
             </SelectContent>
@@ -570,7 +570,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
         {/* Resolution */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">分辨率</Label>
+          <Label className="text-sm font-medium">\u5206\u8fa8\u7387</Label>
           <Select
             value={resolution}
             onValueChange={(v) => {
@@ -585,14 +585,14 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
             disabled={isSubmitting}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="选择分辨率" />
+              <SelectValue placeholder="\u9009\u62e9\u5206\u8fa8\u7387" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2K">
-                2K (最多 {SCENE_LIMITS['2K']} 场景)
+                2K (nhất {SCENE_LIMITS['2K']} \u573a\u666f)
               </SelectItem>
               <SelectItem value="4K">
-                4K (最多 {SCENE_LIMITS['4K']} 场景)
+                4K (nhất {SCENE_LIMITS['4K']} \u573a\u666f)
               </SelectItem>
             </SelectContent>
           </Select>
@@ -604,10 +604,10 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         {/* Scene count */}
         <div className="space-y-1.5">
           <Label className="text-sm font-medium flex items-center gap-2">
-            场景数量
+            \u573a\u666f\u6570\u91cf
             {!isSceneCountValid && (
               <span className="text-xs text-destructive font-normal">
-                超出上限
+                vượt ra\u4e0a\u9650
               </span>
             )}
           </Label>
@@ -617,12 +617,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
             disabled={isSubmitting}
           >
             <SelectTrigger className={`w-full ${!isSceneCountValid ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="选择场景数量" />
+              <SelectValue placeholder="\u9009\u62e9\u573a\u666f\u6570\u91cf" />
             </SelectTrigger>
             <SelectContent>
               {getMaxSceneOptions().map((n) => (
                 <SelectItem key={n} value={String(n)}>
-                  {n} 个场景
+                  {n} một\u573a\u666f
                 </SelectItem>
               ))}
             </SelectContent>
@@ -631,12 +631,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
         {/* Style selection */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">视觉风格</Label>
+          <Label className="text-sm font-medium">\u89c6\u89c9gió\u683c</Label>
           <StylePicker
             value={styleId === "random" ? "" : styleId}
             onChange={(id) => setStyleId(id as StyleId)}
             disabled={isSubmitting}
-            placeholder="选择风格（留空为随机）"
+            placeholder="\u9009\u62e9gió\u683c（Để trốngcho\u968f\u673a）"
           />
         </div>
       </div>
@@ -656,11 +656,11 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium flex items-center gap-1">
             <Users className="h-4 w-4" />
-            角色库选择
+            \u89d2\u8272\u5e93\u9009\u62e9
           </Label>
           {selectedCharacters.length > 0 && (
             <span className="text-xs text-muted-foreground">
-              {selectedCharacters.length} 个
+              {selectedCharacters.length} một
             </span>
           )}
         </div>
@@ -685,18 +685,18 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
               </PopoverTrigger>
               <PopoverContent className="w-64 p-0" align="start">
                 <div className="p-2 border-b">
-                  <p className="text-sm font-medium">选择角色</p>
+                  <p className="text-sm font-medium">\u9009\u62e9\u89d2\u8272</p>
                 </div>
                 {visibleCharacters.length === 0 ? (
                   <div className="p-4 text-center">
                     <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">角色库为空</p>
+                    <p className="text-sm text-muted-foreground mb-2">\u89d2\u8272\u5e93cho\u7a7a</p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={goToCharacterLibrary}
                     >
-                      去创建角色
+                      \u53bb\u521b\u5efa\u89d2\u8272
                     </Button>
                   </div>
                 ) : (
@@ -769,18 +769,18 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-0" align="start">
                   <div className="p-2 border-b">
-                    <p className="text-sm font-medium">选择角色</p>
+                    <p className="text-sm font-medium">\u9009\u62e9\u89d2\u8272</p>
                   </div>
                   {visibleCharacters.length === 0 ? (
                     <div className="p-4 text-center">
                       <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-2">角色库为空</p>
+                      <p className="text-sm text-muted-foreground mb-2">\u89d2\u8272\u5e93cho\u7a7a</p>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={goToCharacterLibrary}
                       >
-                        去创建角色
+                        \u53bb\u521b\u5efa\u89d2\u8272
                       </Button>
                     </div>
                   ) : (
@@ -825,7 +825,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       {/* Reference images */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">参考图片（可选）</label>
+          <label className="text-sm font-medium">Hình ảnh tham khảo\u7247（Tùy chọn）</label>
           <span className="text-xs text-muted-foreground">{images.length}/3</span>
         </div>
 
@@ -870,9 +870,9 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
           <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
           <div className="text-xs text-yellow-600 dark:text-yellow-400">
-            <p className="font-medium">API 未配置</p>
+            <p className="font-medium">API Chưa được định cấu hình</p>
             <p className="text-yellow-600/80 dark:text-yellow-400/80">
-              请在设置中为「剧本分析/对话」配置服务映射
+              \u8bf7\u5728\u8bbe\u7f6etrongcho「\u5267\u672c\u5206\u6790/\u5bf9\u8bdd」Cấu hình\u670d\u52a1\u6620\u5c04
             </p>
           </div>
         </div>
@@ -889,12 +889,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
           {isSubmitting ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-              生成中...
+              \u751f\u6210trong...
             </>
           ) : (
             <>
               <Wand2 className="h-4 w-4 mr-2" />
-              {onGenerateStoryboard ? "生成故事板" : "生成剧本"}
+              {onGenerateStoryboard ? "\u751f\u6210câu chuyện\u677f" : "\u751f\u6210\u5267\u672c"}
             </>
           )}
         </Button>
@@ -907,7 +907,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>AI 设置（即将推出）</p>
+              <p>AI \u8bbe\u7f6e（\u5373\u5c06\u63a8\u51fa）</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

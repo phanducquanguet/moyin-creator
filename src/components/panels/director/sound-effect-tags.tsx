@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 音效标签选择器组件 (Sound Effect Tags)
- * 用于选择镜头的音效标签：自然环境、人物动作、氛围效果等
+ * Hiệu ứng âm thanhnhãn\u9009\u62e9\u5668\u7ec4\u4ef6 (Sound Effect Tags)
+ * sử dụng\u4e8e\u9009\u62e9\u955c\u5934Hiệu ứng âm thanhnhãn：môi trường tự nhiên、nhân vật\u52a8\u4f5c、Hiệu ứng khí quyển v.v.
  */
 
 import { useState } from "react";
@@ -25,7 +25,7 @@ interface SoundEffectTagsProps {
   maxTags?: number;
 }
 
-// 所有音效标签的扁平列表
+// \u6240CóHiệu ứng âm thanhnhãncủa\u6241\u5e73danh sách
 const ALL_SOUND_EFFECTS = [
   ...SOUND_EFFECT_PRESETS.nature,
   ...SOUND_EFFECT_PRESETS.action,
@@ -33,12 +33,12 @@ const ALL_SOUND_EFFECTS = [
   ...SOUND_EFFECT_PRESETS.urban,
 ];
 
-// 分类名称映射
+// \u5206\u7c7btên\u79f0\u6620\u5c04
 const CATEGORY_LABELS: Record<keyof typeof SOUND_EFFECT_PRESETS, string> = {
-  nature: "🌿 自然环境",
-  action: "🏃 人物动作",
-  atmosphere: "🎭 氛围效果",
-  urban: "🏙️ 城市环境",
+  nature: "🌿 môi trường tự nhiên",
+  action: "🏃 nhân vật\u52a8\u4f5c",
+  atmosphere: "🎭 Hiệu ứng khí quyển",
+  urban: "🏙️ môi trường đô thị",
 };
 
 export function SoundEffectTags({
@@ -68,7 +68,7 @@ export function SoundEffectTags({
 
   return (
     <div className="space-y-1.5">
-      {/* 已选标签展示 */}
+      {/* Đã rồi\u9009nhãnhiển thị */}
       <div className="flex flex-wrap gap-1">
         {value.map((tagId) => (
           <span
@@ -88,17 +88,17 @@ export function SoundEffectTags({
           </span>
         ))}
         
-        {/* 添加按钮 */}
+        {/* \u6dfb\u52a0\u6309\u94ae */}
         {value.length < maxTags && !disabled && (
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
               <button className="inline-flex items-center gap-0.5 px-1.5 py-0.5 border border-dashed border-muted-foreground/30 hover:border-primary/50 rounded text-[10px] text-muted-foreground hover:text-foreground transition-colors">
                 <Plus className="h-2.5 w-2.5" />
-                音效
+                Hiệu ứng âm thanh
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-64 p-2" align="start">
-              <p className="text-sm font-medium mb-2">选择音效 ({value.length}/{maxTags})</p>
+              <p className="text-sm font-medium mb-2">\u9009\u62e9Hiệu ứng âm thanh ({value.length}/{maxTags})</p>
               <div className="max-h-[240px] overflow-y-auto space-y-2">
                 {(Object.keys(SOUND_EFFECT_PRESETS) as Array<keyof typeof SOUND_EFFECT_PRESETS>).map(
                   (category) => (

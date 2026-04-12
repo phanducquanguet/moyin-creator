@@ -4,46 +4,46 @@
 /**
  * Scene Viewpoint Generator
  * 
- * 从场景校准数据和分镜动作描写中提取视角需求，
- * 生成多视角联合图提示词，用于生成 6 格联合图。
+ * Từ Cảnh dữ liệu hiệu chuẩn và Phân cảnhHành độTrích xuất G từ mô tả ngóc nhìnNhu cầu，
+ * TạoNhiều Góc nhìđồ thị njointPrompt，cho Tạo Đồ thị khớp 6 ô。
  */
 
 import type { ScriptScene, Shot } from '@/types/script';
 
-// ==================== 类型定义 ====================
+// ==================== LoạiĐịnh nghĩa ====================
 
 /**
- * 场景视角定义
+ * CảnhGóc nhìnĐịnh nghĩa
  */
 export interface SceneViewpoint {
-  id: string;           // 视角ID，如 'dining', 'sofa', 'window'
-  name: string;         // 中文名：餐桌区、沙发区、窗边
-  nameEn: string;       // 英文名：Dining Area, Sofa Area, Window
-  shotIds: string[];    // 关联的分镜ID列表
-  keyProps: string[];   // 该视角需要的道具（中文）
-  keyPropsEn: string[]; // 该视角需要的道具（英文）
-  description: string;  // 视角描述（中文）
-  descriptionEn: string; // 视角描述（英文）
-  gridIndex: number;    // 在联合图中的位置 (0-5)
+  id: string;           // Góc nhìnID，Chẳng hạn như 'dining', 'sofa', 'window'
+  name: string;         // Tên tiếng Trung：khu vực bàn ăn、khu vực ghế sofa、cửa sổ
+  nameEn: string;       // tên tiếng anh：Dining Area, Sofa Area, Window
+  shotIds: string[];    // liên kết tiến sĩân cảdanh sách nhID
+  keyProps: string[];   // Góc nhìn Đạo cụ bắt buộc（Tiếng Trung）
+  keyPropsEn: string[]; // Góc nhìn Đạo cụ bắt buộc（Tiếng Anh）
+  description: string;  // Góc nhìnMô tả（Tiếng Trung）
+  descriptionEn: string; // Góc nhìnMô tả（Tiếng Anh）
+  gridIndex: number;    // V trong sơ đồ chungị trí (0-5)
 }
 
 /**
- * 联合图生成配置
+ * đồ thị chung TạoCấu hình
  */
 export interface ContactSheetConfig {
   scene: ScriptScene;
   shots: Shot[];
   styleTokens: string[];
   aspectRatio: '16:9' | '9:16';
-  maxViewpoints?: number; // 默认 6
+  maxViewpoints?: number; // Mặc định 6
 }
 
 /**
- * 联合图生成结果
+ * đồ thị chung TạoKết quả
  */
 export interface ContactSheetPromptResult {
-  prompt: string;           // 英文提示词
-  promptZh: string;         // 中文提示词
+  prompt: string;           // Tiếng AnhNhắc
+  promptZh: string;         // Lời nhắc tiếng Trung
   viewpoints: SceneViewpoint[];
   gridLayout: {
     rows: number;
@@ -51,125 +51,125 @@ export interface ContactSheetPromptResult {
   };
 }
 
-// ==================== 环境类型定义 ====================
+// ==================== Môi trườngLoạiĐịnh nghĩa ====================
 
 /**
- * 场景环境类型
+ * CảnhMôi trườngLoại
  */
 export type SceneEnvironmentType = 
-  | 'vehicle'        // 现代交通工具（大巴、汽车、火车、飞机等）
-  | 'outdoor'        // 现代户外（公路、街道、公园等）
-  | 'indoor_home'    // 现代室内家居
-  | 'indoor_work'    // 现代室内办公/商业
-  | 'indoor_public'  // 现代室内公共（医院、学校、餐厅等）
-  | 'ancient_indoor' // 古代室内（宫殿、府邸、客栈、寺庙等）
-  | 'ancient_outdoor'// 古代户外（官道、集市、城门等）
-  | 'ancient_vehicle'// 古代交通（马车、轿子、船等）
-  | 'unknown';       // 未知
+  | 'vehicle'        // giao thông hiện đại（xe buýt、xe hơi、xe lửa、Máy bay vv.）
+  | 'outdoor'        // ngoài trời hiện đại（đường cao tốc、đường phố、Công viên vv.）
+  | 'indoor_home'    // nhà nội thất hiện đại
+  | 'indoor_work'    // Nội thất văn phòng hiện đại/Kinh doanh
+  | 'indoor_public'  // công cộng trong nhà hiện đại（bệnh viện、trường học、Nhà hàng vv.）
+  | 'ancient_indoor' // nội thất cổ xưa（cung điện、biệt thự、quán trọ、đền thờ vv.）
+  | 'ancient_outdoor'// ngoài trời cổ xưa（Cách chính thức、thị trường、cổng thành phố vv.）
+  | 'ancient_vehicle'// giao thông cổ xưa（vận chuyển、ghế sedan、thuyền vv.）
+  | 'unknown';       // Không rõ
 
 /**
- * 环境类型关键词检测
- * 用于从场景地点推断环境类型
+ * Môi trườngLoạtôi phát hiện từ khóa
+ * để sử dụng từ Cảnh môi trường suy luận vị trí Loại
  */
 const ENVIRONMENT_KEYWORDS: Record<SceneEnvironmentType, string[]> = {
-  // === 古代场景（优先检测） ===
+  // === Cổ Cảnh（Ưu tiên phát hiện） ===
   ancient_indoor: [
-    // 宫廷/皇家
-    '宫殿', '宫', '殿', '皇宫', '宫门', '内廷', '御书房', '御花园', '太和殿', '乾清宫',
-    '坐厉宫', '冷宫', '东宫', '西宫', '后宫',
-    // 府邸/民居
-    '府邸', '府', '宅', '宅院', '大宅', '老宅', '内宅', '外宅',
-    '堂屋', '正堂', '大堂', '厅堂', '厅',
-    '闺房', '内室', '绣楼', '书馆', '花厅',
-    // 公共建筑
-    '客栈', '酒楼', '酒肃', '茶楼', '茶馆', '饭庄', '庙', '寺', '寺庙', '禅房',
-    '道观', '尼姑庵', '龙门客栈', '悦来客栈',
-    '祁堂', '调堆', '灵堂', '宗祠',
-    '衙门', '公堂', '大理寺',
-    // 古代具体房间
-    '书房', '琴房', '内堂', '账房', '茶房', '库房',
+    // cung điện/hoàng gia
+    'cung điện', 'cung điện', 'cung điện', 'cung điện hoàng gia', 'cổng cung điện', 'tòa án bên trong', 'phòng học hoàng gia', 'Vườn Thượng Uyển', 'Hội trường hòa hợp tối cao', 'Cung điện Càn Thanh',
+    'Ngồi ở Lý Cung', 'Lãnh Công', 'Đông Cung', 'Nishinomiya', 'hậu cung',
+    // biệt thự/nhà ở
+    'biệt thự', 'biệt thự', 'nhà ở', 'nhà ở', 'biệt thự', 'ngôi nhà cũ', 'nhà trong', 'nhà bên ngoài',
+    'Sảnh chính', 'sảnh chính', 'tiền sảnh', 'đại sảnh', 'Hội trường',
+    'boudoir', 'phòng trong', 'Tú Lâu', 'thư viện', 'sảnh hoa',
+    // công trình công cộng
+    'quán trọ', 'Nhà hàng', 'Cửu Túc', 'quán trà', 'quán trà', 'nhà hàng', 'ngôi đền', 'ngôi đền', 'ngôi đền', 'phòng thiền',
+    'Đền thờ Đạo giáo', 'ni viện', 'Nhà trọ Long Môn', 'Nhà trọ Yuelai',
+    'Kỳ Đường', 'Điều chỉnh cọc', 'phòng tang lễ', 'hội trường tổ tiên',
+    'nha môn', 'tòa án', 'Đền Đại Lý',
+    // căn phòng bê tông cổ kính
+    'phòng học', 'phòng piano', 'hội trường bên trong', 'Phòng đếm', 'bồi bàn', 'nhà kho',
   ],
   ancient_outdoor: [
-    // 城市
-    '城门', '城墙', '城楼', '城外', '城内', '皇城',
-    '集市', '集', '市集', '庙会', '夜市', '东市', '西市',
-    '街', '长街', '巷', '巷子', '巷口',
-    '牌坊', '广场', '点将台', '校场',
-    // 道路/旅途
-    '官道', '驿站', '驿道', '山路', '山道', '古道', '商道', '街道',
-    '模到', '南道', '北道',
-    // 自然/庭院
-    '庭院', '庭', '院', '前院', '后院', '内院', '外院',
-    '花园', '后花园', '御花园', '池塘', '荷塘', '亝子',
-    '山野', '林间', '溓畔', '桥头', '渡口', '码头',
+    // thành phố
+    'cổng thành', 'bức tường thành', 'tháp', 'bên ngoài thành phố', 'Bên trong thành phố', 'kinh đô',
+    'thị trường', 'đặt', 'thị trường', 'hội chợ chùa', 'chợ đêm', 'Đông Thạch', 'chợ tây',
+    'đường phố', 'đường dài', 'làn đường', 'hẻm', 'Lối vào ngõ',
+    'cổng vòm', 'hình vuông', 'Điện Giang Đài', 'sân trường',
+    // đường/cuộc hành trình
+    'Cách chính thức', 'Trạm', 'đường bưu điện', 'đường núi', 'đường núi', 'con đường cổ', 'Đường kinh doanh', 'đường phố',
+    'Chết đã đến', 'Đường Nam', 'Đường Bắc',
+    // tự nhiên/sân
+    'sân', 'tòa án', 'bệnh viện', 'sân trước', 'sân sau', 'sân trong', 'sân ngoài',
+    'vườn', 'Vườn sau', 'Vườn Thượng Uyển', 'ao', 'ao sen', 'dân tộc',
+    'núi và cánh đồng', 'rừng', 'Lupan', 'Kiều Đầu', 'phà', 'bến tàu',
   ],
   ancient_vehicle: [
-    '马车', '车', '轿子', '轿', '牛车', '马', '骑马',
-    '船', '客船', '商船', '渔船', '画舷', '小船', '帆船', '舜',
-    '车内', '轿内', '舱内', '船舱',
+    'vận chuyển', 'xe hơi', 'ghế sedan', 'ghế sedan', 'Xe bò', 'con ngựa', 'cưỡi ngựa',
+    'thuyền', 'tàu chở khách', 'tàu buôn', 'thuyền đánh cá', 'mặt sơn', 'thuyền', 'thuyền buồm', 'Thuấn',
+    'bên trong xe', 'Bên trong chiếc sedan', 'Bên trong cabin', 'cabin',
   ],
   
-  // === 现代场景 ===
+  // === C hiện đạiảnh ===
   vehicle: [
-    '大巴', '巴士', '公交', '汽车', '轿车', '出租车', '的士', 'uber',
-    '火车', '高铁', '动车', '地铁', '列车',
-    '飞机', '航班', '机舱',
-    '游艇', '渡轮', '轮船', '游轮',
-    '车内', '车上', '车厢',
+    'xe buýt', 'xe buýt', 'xe buýt', 'xe hơi', 'xe hơi', 'Taxi', 'taxi', 'uber',
+    'xe lửa', 'đường sắt tốc độ cao', 'EMU', 'tàu điện ngầm', 'xe lửa',
+    'máy bay', 'chuyến bay', 'cabin',
+    'du thuyền', 'phà', 'tàu', 'tàu du lịch',
+    'bên trong xe', 'trong xe', 'vận chuyển',
   ],
   outdoor: [
-    '公路', '马路', '街道', '街头', '路边', '十字路口',
-    '公园', '广场', '操场', '球场',
-    '乡村', '田野', '山', '河', '海边', '沙滩', '森林', '树林',
-    '院子', '庭院', '花园', '天台', '楼顶', '屋顶',
-    '停车场', '加油站',
+    'đường cao tốc', 'đường', 'đường phố', 'đường phố', 'ven đường', 'ngã tư',
+    'công viên', 'hình vuông', 'sân chơi', 'sân vận động',
+    'nông thôn', 'lĩnh vực', 'núi', 'con sông', 'bờ biển', 'bãi biển', 'rừng', 'rừng',
+    'sân', 'sân', 'vườn', 'mái nhà', 'mái nhà', 'mái nhà',
+    'bãi đậu xe', 'trạm xăng',
   ],
   indoor_home: [
-    '家', '住宅', '公寓', '别墅', '宿舍',
-    '客厅', '卧室', '厨房', '餐厅', '书房', '卫生间', '浴室', '阳台',
-    '房间', '屋内', '屋里',
+    'nhà', 'khu dân cư', 'căn hộ', 'biệt thự', 'ký túc xá',
+    'phòng khách', 'phòng ngủ', 'nhà bếp', 'nhà hàng', 'phòng học', 'phòng tắm', 'phòng tắm', 'ban công',
+    'phòng', 'trong nhà', 'trong nhà',
   ],
   indoor_work: [
-    '办公室', '公司', '写字楼', '会议室', '工厂', '车间', '仓库',
-    '店', '商店', '超市', '商场',
+    'văn phòng', 'công ty', 'tòa nhà văn phòng', 'phòng họp', 'nhà máy', 'xưởng', 'nhà kho',
+    'cửa tiệm', 'cửa tiệm', 'siêu thị', 'trung tâm mua sắm',
   ],
   indoor_public: [
-    '医院', '诊所', '病房', '手术室',
-    '学校', '教室', '图书馆', '食堂',
-    '餐厅', '酒店', '宾馆', '旅馆', '咖啡厅', '酒吧', 'KTV',
-    '派出所', '警局', '法院', '监狱',
-    '银行', '邮局', '机场', '车站', '码头',
+    'bệnh viện', 'phòng khám', 'Phường', 'phòng mổ',
+    'trường học', 'lớp học', 'thư viện', 'căng tin',
+    'nhà hàng', 'khách sạn', 'khách sạn', 'khách sạn', 'quán cà phê', 'thanh', 'KTV',
+    'đồn cảnh sát', 'đồn cảnh sát', 'tòa án', 'nhà tù',
+    'ngân hàng', 'bưu điện', 'sân bay', 'trạm', 'bến tàu',
   ],
   unknown: [],
 };
 
 /**
- * 清理场景地点字符串，移除人物信息等无关内容
+ * Làm sạch Cảnh chuỗi vị trí，Xóa nội dung không liên quan như thông tin nhân vật
  */
 function cleanLocationString(location: string): string {
-  // 移除 "人物：XXX" 部分
-  let cleaned = location.replace(/\s*人物[：:].*/g, '');
-  // 移除 "角色：XXX" 部分
-  cleaned = cleaned.replace(/\s*角色[：:].*/g, '');
-  // 移除 "时间：XXX" 部分
-  cleaned = cleaned.replace(/\s*时间[：:].*/g, '');
-  // 去除首尾空白
+  // Xóa "nhân vật：XXX" một phần
+  let cleaned = location.replace(/\s*nhân vật[：:].*/g, '');
+  // Xóa "Nhân vật：XXX" một phần
+  cleaned = cleaned.replace(/\s*Nhân vật[：:].*/g, '');
+  // Xóa "Thời gian：XXX" một phần
+  cleaned = cleaned.replace(/\s*Thời gian[：:].*/g, '');
+  // Xóa khoảng trắng đầu và cuối
   return cleaned.trim();
 }
 
 /**
- * 从场景地点推断环境类型
+ * Từ Cảnh môi trường suy luận vị trí Loại
  */
 export function detectEnvironmentType(location: string): SceneEnvironmentType {
-  // 先清理地点字符串
+  // Làm sạch chuỗi vị trí trước
   const cleanedLocation = cleanLocationString(location);
   const normalizedLocation = cleanedLocation.toLowerCase();
   
-  console.log(`[detectEnvironmentType] 原始: "${location}" -> 清理后: "${cleanedLocation}"`);
+  console.log(`[detectEnvironmentType] Bản gốc: "${location}" -> Sau khi làm sạch: "${cleanedLocation}"`);
   
-  // 按优先级检测：古代 > 现代交通 > 户外 > 室内公共 > 室内办公 > 室内家居
+  // Phát hiện theo mức độ ưu tiên：thời cổ đại > giao thông hiện đại > ngoài trời > công cộng trong nhà > văn phòng trong nhà > nhà trong nhà
   const priorities: SceneEnvironmentType[] = [
-    'ancient_vehicle', 'ancient_indoor', 'ancient_outdoor',  // 古代优先
+    'ancient_vehicle', 'ancient_indoor', 'ancient_outdoor',  // Thời xa xưa đầu tiên
     'vehicle', 'outdoor', 'indoor_public', 'indoor_work', 'indoor_home'
   ];
   
@@ -177,20 +177,20 @@ export function detectEnvironmentType(location: string): SceneEnvironmentType {
     const keywords = ENVIRONMENT_KEYWORDS[envType];
     for (const keyword of keywords) {
       if (normalizedLocation.includes(keyword)) {
-        console.log(`[detectEnvironmentType] 匹配到关键词 "${keyword}" -> 环境类型: ${envType}`);
+        console.log(`[detectEnvironmentType] Phù hợp với từ khóa "${keyword}" -> Môi trườngLoại: ${envType}`);
         return envType;
       }
     }
   }
   
-  console.log(`[detectEnvironmentType] 未匹配到任何关键词 -> unknown`);
+  console.log(`[detectEnvironmentType] Không có từ khóa nào phù hợp -> unknown`);
   return 'unknown';
 }
 
-// ==================== 视角关键词映射 ====================
+// ==================== Góc nhìnÁnh xạ từ khóa ====================
 
 /**
- * 视角配置（带环境兼容性）
+ * Góc nhìnCấu hình（Với khả năng tương thích môi trường）
  */
 interface ViewpointConfig {
   id: string;
@@ -198,228 +198,209 @@ interface ViewpointConfig {
   nameEn: string;
   propsZh: string[];
   propsEn: string[];
-  /** 兼容的环境类型，空数组表示通用 */
+  /** Môi trường tương thíchLoại，Mảng trống đại diện cho phổ quát */
   environments: SceneEnvironmentType[];
 }
 
 /**
- * 动作关键词 -> 视角映射
- * 从分镜动作描写中识别需要的视角
- * 扩展关键词以覆盖更多场景
+ * Hành độtừ khóa ng -> Góc nhìnmap
+ * Từ Phân cảnhHành độXác định G cần thiết trong ng mô tảóc nhìn
+ * Mở rộng từ khóa để bao gồm ThêmCảnh
  * 
- * 【重要】environments 字段控制该视角适用于哪些环境类型
- * - 空数组 [] 表示通用视角，适用于所有环境
- * - 指定环境类型列表表示仅在这些环境中匹配
+ * 【quan trọng】Trường môi trường điều khiển Góc nhìn Nó phù hợp với môi trường nào?ại
+ * - mảng trống [] là viết tắt của chung Góc nhìn，Áp dụng cho Tất cảmôi trường
+ * - Chỉ định môi trường Loạdanh sách tôi có nghĩa là chỉ phù hợp trong những môi trường này
  */
 const VIEWPOINT_KEYWORDS: Record<string, ViewpointConfig> = {
-  // ========== 古代室内视角 (ancient_indoor) ==========
-  // 堂屋/正厅
-  '堂屋': { id: 'ancient_hall', name: '堂屋', nameEn: 'Main Hall', propsZh: ['太师椅', '案几', '寿屏'], propsEn: ['taishi chair', 'table', 'screen'], environments: ['ancient_indoor'] },
-  '正堂': { id: 'ancient_hall', name: '正堂', nameEn: 'Main Hall', propsZh: ['寿屏', '上座'], propsEn: ['screen', 'main seat'], environments: ['ancient_indoor'] },
-  '大堂': { id: 'ancient_hall', name: '大堂', nameEn: 'Grand Hall', propsZh: ['案几', '纱帐'], propsEn: ['table', 'gauze curtain'], environments: ['ancient_indoor'] },
-  '厅堂': { id: 'ancient_hall', name: '厅堂', nameEn: 'Reception Hall', propsZh: ['案几', '寛椅'], propsEn: ['table', 'armchair'], environments: ['ancient_indoor'] },
-  // 案几/坐具
-  '案几': { id: 'ancient_table', name: '案几', nameEn: 'Ancient Table', propsZh: ['案几', '茶具', '笔墨'], propsEn: ['table', 'tea set', 'brush and ink'], environments: ['ancient_indoor'] },
-  '书案': { id: 'ancient_table', name: '书案', nameEn: 'Writing Desk', propsZh: ['书案', '笔墨纸砚'], propsEn: ['writing desk', 'brush, ink, paper, inkstone'], environments: ['ancient_indoor'] },
-  '坐在案前': { id: 'ancient_table', name: '案几', nameEn: 'At the Table', propsZh: ['案几'], propsEn: ['table'], environments: ['ancient_indoor'] },
-  '跑堂': { id: 'ancient_table', name: '酒楼大堂', nameEn: 'Tavern Hall', propsZh: ['方桌', '酒壶', '菜肴'], propsEn: ['square table', 'wine pot', 'dishes'], environments: ['ancient_indoor'] },
-  // 屏风/蜗帐
-  '屏风': { id: 'ancient_screen', name: '屏风', nameEn: 'Screen View', propsZh: ['屏风', '帐幔'], propsEn: ['screen', 'curtain'], environments: ['ancient_indoor'] },
-  '纱帐': { id: 'ancient_screen', name: '纱帐', nameEn: 'Gauze Curtain', propsZh: ['纱帐', '垂帐'], propsEn: ['gauze curtain', 'hanging drape'], environments: ['ancient_indoor'] },
-  '帐后': { id: 'ancient_screen', name: '帐后', nameEn: 'Behind the Curtain', propsZh: ['帐幔'], propsEn: ['curtain'], environments: ['ancient_indoor'] },
-  // 闺房/内室
-  '闺房': { id: 'ancient_boudoir', name: '闺房', nameEn: 'Boudoir', propsZh: ['妆台', '铜镜', '梳妆盒'], propsEn: ['dressing table', 'bronze mirror', 'makeup box'], environments: ['ancient_indoor'] },
-  '梳妆': { id: 'ancient_boudoir', name: '妆台', nameEn: 'Dressing Table', propsZh: ['妆台', '铜镜'], propsEn: ['dressing table', 'bronze mirror'], environments: ['ancient_indoor'] },
-  '绣楼': { id: 'ancient_boudoir', name: '绣楼', nameEn: 'Embroidery Chamber', propsZh: ['绣架', '绣线'], propsEn: ['embroidery frame', 'silk thread'], environments: ['ancient_indoor'] },
-  // 榻/床
-  '榻': { id: 'ancient_couch', name: '榻', nameEn: 'Ancient Couch', propsZh: ['榻', '软垫'], propsEn: ['daybed', 'cushion'], environments: ['ancient_indoor'] },
-  '罗汉床': { id: 'ancient_couch', name: '罗汉床', nameEn: 'Arhat Bed', propsZh: ['罗汉床', '青瓷茶具'], propsEn: ['arhat bed', 'celadon tea set'], environments: ['ancient_indoor'] },
-  '床榻': { id: 'ancient_couch', name: '床榻', nameEn: 'Bed', propsZh: ['床', '床帐'], propsEn: ['bed', 'bed curtain'], environments: ['ancient_indoor'] },
-  '厂房': { id: 'ancient_couch', name: '卢室', nameEn: 'Bedroom', propsZh: ['床', '帐子'], propsEn: ['bed', 'canopy'], environments: ['ancient_indoor'] },
-  // 书房古代
-  '挥毫': { id: 'ancient_study', name: '书房', nameEn: 'Study', propsZh: ['笔墨纸砚', '书架'], propsEn: ['four treasures of study', 'bookshelf'], environments: ['ancient_indoor'] },
-  '提笔': { id: 'ancient_study', name: '书房', nameEn: 'Study', propsZh: ['毛笔', '砕台'], propsEn: ['brush', 'inkstone'], environments: ['ancient_indoor'] },
-  '读书': { id: 'ancient_study', name: '书房', nameEn: 'Study', propsZh: ['书卷', '烛灯'], propsEn: ['books', 'candle'], environments: ['ancient_indoor'] },
-  // 佛堂/祁堂
-  '佛堂': { id: 'ancient_shrine', name: '佛堂', nameEn: 'Buddha Hall', propsZh: ['佛像', '香炉', '蒲团'], propsEn: ['Buddha statue', 'incense burner', 'cushion'], environments: ['ancient_indoor'] },
-  '上香': { id: 'ancient_shrine', name: '佛堂', nameEn: 'Offering Incense', propsZh: ['香炉', '香'], propsEn: ['incense burner', 'incense'], environments: ['ancient_indoor'] },
-  '跨拜': { id: 'ancient_shrine', name: '祁堂', nameEn: 'Ancestral Hall', propsZh: ['牠位', '跨垫'], propsEn: ['memorial tablet', 'kneeling cushion'], environments: ['ancient_indoor'] },
+  // ========== G cổ trong nhàóc nhìn (ancient_indoor) ==========
+  // Sảnh chính/sảnh chính
+  'Sảnh chính': { id: 'ancient_hall', name: 'Sảnh chính', nameEn: 'Main Hall', propsZh: ['Ghế Taishi', 'trường hợp', 'Shouping'], propsEn: ['taishi chair', 'table', 'screen'], environments: ['ancient_indoor'] },
+  'sảnh chính': { id: 'ancient_hall', name: 'sảnh chính', nameEn: 'Main Hall', propsZh: ['Shouping', 'Ngồi vào chỗ'], propsEn: ['screen', 'main seat'], environments: ['ancient_indoor'] },
+  'tiền sảnh': { id: 'ancient_hall', name: 'tiền sảnh', nameEn: 'Grand Hall', propsZh: ['trường hợp', 'lều gạc'], propsEn: ['table', 'gauze curtain'], environments: ['ancient_indoor'] },
+  'đại sảnh': { id: 'ancient_hall', name: 'đại sảnh', nameEn: 'Reception Hall', propsZh: ['trường hợp', 'ghế rộng'], propsEn: ['table', 'armchair'], environments: ['ancient_indoor'] },
+  // trường hợp/chỗ ngồi
+  'trường hợp': { id: 'ancient_table', name: 'trường hợp', nameEn: 'Ancient Table', propsZh: ['trường hợp', 'bộ trà', 'bút và mực'], propsEn: ['table', 'tea set', 'brush and ink'], environments: ['ancient_indoor'] },
+  'Tủ sách': { id: 'ancient_table', name: 'Tủ sách', nameEn: 'Writing Desk', propsZh: ['Tủ sách', 'Bút, mực, giấy và đá mực'], propsEn: ['writing desk', 'brush, ink, paper, inkstone'], environments: ['ancient_indoor'] },
+  'ngồi trước vụ án': { id: 'ancient_table', name: 'trường hợp', nameEn: 'At the Table', propsZh: ['trường hợp'], propsEn: ['table'], environments: ['ancient_indoor'] },
+  'bồi bàn': { id: 'ancient_table', name: 'Sảnh nhà hàng', nameEn: 'Tavern Hall', propsZh: ['bàn vuông', 'bình rượu', 'Món ăn'], propsEn: ['square table', 'wine pot', 'dishes'], environments: ['ancient_indoor'] },
+  // màn hình/Lều ốc
+  'màn hình': { id: 'ancient_screen', name: 'màn hình', nameEn: 'Screen View', propsZh: ['màn hình', 'rèm'], propsEn: ['screen', 'curtain'], environments: ['ancient_indoor'] },
+  'lều gạc': { id: 'ancient_screen', name: 'lều gạc', nameEn: 'Gauze Curtain', propsZh: ['lều gạc', 'lều treo'], propsEn: ['gauze curtain', 'hanging drape'], environments: ['ancient_indoor'] },
+  'Sau tài khoản': { id: 'ancient_screen', name: 'Sau tài khoản', nameEn: 'Behind the Curtain', propsZh: ['rèm'], propsEn: ['curtain'], environments: ['ancient_indoor'] },
+  // boudoir/phòng trong
+  'boudoir': { id: 'ancient_boudoir', name: 'boudoir', nameEn: 'Boudoir', propsZh: ['bàn trang điểm', 'Gương đồng', 'Hộp đựng đồ'], propsEn: ['dressing table', 'bronze mirror', 'makeup box'], environments: ['ancient_indoor'] },
+  'mặc quần áo': { id: 'ancient_boudoir', name: 'bàn trang điểm', nameEn: 'Dressing Table', propsZh: ['bàn trang điểm', 'Gương đồng'], propsEn: ['dressing table', 'bronze mirror'], environments: ['ancient_indoor'] },
+  'Tú Lâu': { id: 'ancient_boudoir', name: 'Tú Lâu', nameEn: 'Embroidery Chamber', propsZh: ['Giá thêu', 'chỉ thêu'], propsEn: ['embroidery frame', 'silk thread'], environments: ['ancient_indoor'] },
+  // đi văng/giường
+  'đi văng': { id: 'ancient_couch', name: 'đi văng', nameEn: 'Ancient Couch', propsZh: ['đi văng', 'bọc nệm'], propsEn: ['daybed', 'cushion'], environments: ['ancient_indoor'] },
+  'Giường La Hán': { id: 'ancient_couch', name: 'Giường La Hán', nameEn: 'Arhat Bed', propsZh: ['Giường La Hán', 'bộ trà men ngọc'], propsEn: ['arhat bed', 'celadon tea set'], environments: ['ancient_indoor'] },
+  'giường': { id: 'ancient_couch', name: 'giường', nameEn: 'Bed', propsZh: ['giường', 'lều ngủ'], propsEn: ['bed', 'bed curtain'], environments: ['ancient_indoor'] },
+  'Xây dựng nhà xưởng': { id: 'ancient_couch', name: 'Lữ Thạch', nameEn: 'Bedroom', propsZh: ['giường', 'lều'], propsEn: ['bed', 'canopy'], environments: ['ancient_indoor'] },
+  // Nghiên cứu thời cổ đại
+  'vuốt một sợi tóc': { id: 'ancient_study', name: 'phòng học', nameEn: 'Study', propsZh: ['Bút, mực, giấy và đá mực', 'giá sách'], propsEn: ['four treasures of study', 'bookshelf'], environments: ['ancient_indoor'] },
+  'Hãy lấy cây bút': { id: 'ancient_study', name: 'phòng học', nameEn: 'Study', propsZh: ['bàn chải viết', 'ngoài nền tảng'], propsEn: ['brush', 'inkstone'], environments: ['ancient_indoor'] },
+  'đọc sách': { id: 'ancient_study', name: 'phòng học', nameEn: 'Study', propsZh: ['cuộn', 'đèn lồng nến'], propsEn: ['books', 'candle'], environments: ['ancient_indoor'] },
+  // chùa phật giáo/Kỳ Đường
+  'chùa phật giáo': { id: 'ancient_shrine', name: 'chùa phật giáo', nameEn: 'Buddha Hall', propsZh: ['tượng phật', 'Lư hương', 'nệm futon'], propsEn: ['Buddha statue', 'incense burner', 'cushion'], environments: ['ancient_indoor'] },
+  'Hương': { id: 'ancient_shrine', name: 'chùa phật giáo', nameEn: 'Offering Incense', propsZh: ['Lư hương', 'thơm'], propsEn: ['incense burner', 'incense'], environments: ['ancient_indoor'] },
+  'cầu nguyện qua': { id: 'ancient_shrine', name: 'Kỳ Đường', nameEn: 'Ancestral Hall', propsZh: ['nó hơi', 'đệm nhịp'], propsEn: ['memorial tablet', 'kneeling cushion'], environments: ['ancient_indoor'] },
   
-  // ========== 古代户外视角 (ancient_outdoor) ==========
-  // 庭院
-  '庭院': { id: 'ancient_courtyard', name: '庭院', nameEn: 'Courtyard', propsZh: ['假山', '水池', '花丛'], propsEn: ['rockery', 'pond', 'flower bed'], environments: ['ancient_outdoor'] },
-  '前院': { id: 'ancient_courtyard', name: '前院', nameEn: 'Front Yard', propsZh: ['石阶', '垂花'], propsEn: ['stone steps', 'hanging flowers'], environments: ['ancient_outdoor'] },
-  '后院': { id: 'ancient_courtyard', name: '后院', nameEn: 'Back Yard', propsZh: ['花丛', '竹林'], propsEn: ['flower bed', 'bamboo grove'], environments: ['ancient_outdoor'] },
-  // 池塘/亝子
-  '池塘': { id: 'ancient_pond', name: '池塘', nameEn: 'Pond View', propsZh: ['荷塘', '木桥', '亝'], propsEn: ['lotus pond', 'wooden bridge', 'pavilion'], environments: ['ancient_outdoor'] },
-  '荷塘': { id: 'ancient_pond', name: '荷塘', nameEn: 'Lotus Pond', propsZh: ['荷叶', '荷花', '莲蓬'], propsEn: ['lotus leaves', 'lotus flowers', 'lotus seedpod'], environments: ['ancient_outdoor'] },
-  '亝子': { id: 'ancient_pavilion', name: '亝子', nameEn: 'Pavilion', propsZh: ['亝', '石凳', '栏杆'], propsEn: ['pavilion', 'stone bench', 'railing'], environments: ['ancient_outdoor'] },
-  '流水': { id: 'ancient_pond', name: '水景', nameEn: 'Water View', propsZh: ['小桥', '流水'], propsEn: ['bridge', 'stream'], environments: ['ancient_outdoor'] },
-  // 官道/街道
-  '官道': { id: 'ancient_road', name: '官道', nameEn: 'Official Road', propsZh: ['官道', '松柏'], propsEn: ['road', 'pine trees'], environments: ['ancient_outdoor'] },
-  '驿站': { id: 'ancient_road', name: '驿站', nameEn: 'Post Station', propsZh: ['驿站', '马棚'], propsEn: ['post station', 'stable'], environments: ['ancient_outdoor'] },
-  '赶路': { id: 'ancient_road', name: '道路', nameEn: 'Road', propsZh: ['道路'], propsEn: ['road'], environments: ['ancient_outdoor'] },
-  // 集市/城门
-  '集市': { id: 'ancient_market', name: '集市', nameEn: 'Market', propsZh: ['市集', '摆', '人群'], propsEn: ['market', 'stalls', 'crowd'], environments: ['ancient_outdoor'] },
-  '城门': { id: 'ancient_gate', name: '城门', nameEn: 'City Gate', propsZh: ['城门', '城墙', '士兵'], propsEn: ['city gate', 'city wall', 'soldiers'], environments: ['ancient_outdoor'] },
-  '城楼': { id: 'ancient_gate', name: '城楼', nameEn: 'City Tower', propsZh: ['城楼', '城墙'], propsEn: ['city tower', 'city wall'], environments: ['ancient_outdoor'] },
-  // 码头/渡口
-  '码头': { id: 'ancient_dock', name: '码头', nameEn: 'Dock', propsZh: ['木栅', '船只', '缆绳'], propsEn: ['wooden pier', 'boats', 'mooring rope'], environments: ['ancient_outdoor'] },
-  '渡口': { id: 'ancient_dock', name: '渡口', nameEn: 'Ferry Crossing', propsZh: ['渡船', '河水'], propsEn: ['ferry boat', 'river'], environments: ['ancient_outdoor'] },
+  // ========== G ngoài trời cổ xưaóc nhìn (ancient_outdoor) ==========
+  // sân
+  'sân': { id: 'ancient_courtyard', name: 'sân', nameEn: 'Courtyard', propsZh: ['hòn non bộ', 'hồ bơi', 'hoa'], propsEn: ['rockery', 'pond', 'flower bed'], environments: ['ancient_outdoor'] },
+  'sân trước': { id: 'ancient_courtyard', name: 'sân trước', nameEn: 'Front Yard', propsZh: ['bậc đá', 'hoa khóc'], propsEn: ['stone steps', 'hanging flowers'], environments: ['ancient_outdoor'] },
+  'sân sau': { id: 'ancient_courtyard', name: 'sân sau', nameEn: 'Back Yard', propsZh: ['hoa', 'rừng tre'], propsEn: ['flower bed', 'bamboo grove'], environments: ['ancient_outdoor'] },
+  // ao/dân tộc
+  'ao': { id: 'ancient_pond', name: 'ao', nameEn: 'Pond View', propsZh: ['ao sen', 'cầu gỗ', '\u4e9d'], propsEn: ['lotus pond', 'wooden bridge', 'pavilion'], environments: ['ancient_outdoor'] },
+  'ao sen': { id: 'ancient_pond', name: 'ao sen', nameEn: 'Lotus Pond', propsZh: ['lá sen', 'hoa sen', 'Vỏ sen'], propsEn: ['lotus leaves', 'lotus flowers', 'lotus seedpod'], environments: ['ancient_outdoor'] },
+  'dân tộc': { id: 'ancient_pavilion', name: 'dân tộc', nameEn: 'Pavilion', propsZh: ['\u4e9d', 'ghế đá', 'lan can'], propsEn: ['pavilion', 'stone bench', 'railing'], environments: ['ancient_outdoor'] },
+  'nước chảy': { id: 'ancient_pond', name: 'cảnh nước', nameEn: 'Water View', propsZh: ['Tiểu Kiều', 'nước chảy'], propsEn: ['bridge', 'stream'], environments: ['ancient_outdoor'] },
+  // Cách chính thức/đường phố
+  'Cách chính thức': { id: 'ancient_road', name: 'Cách chính thức', nameEn: 'Official Road', propsZh: ['Cách chính thức', 'cây thông và cây bách'], propsEn: ['road', 'pine trees'], environments: ['ancient_outdoor'] },
+  'Trạm': { id: 'ancient_road', name: 'Trạm', nameEn: 'Post Station', propsZh: ['Trạm', 'ổn định'], propsEn: ['post station', 'stable'], environments: ['ancient_outdoor'] },
+  'Trên đường đi': { id: 'ancient_road', name: 'đường', nameEn: 'Road', propsZh: ['đường'], propsEn: ['road'], environments: ['ancient_outdoor'] },
+  // thị trường/cổng thành
+  'thị trường': { id: 'ancient_market', name: 'thị trường', nameEn: 'Market', propsZh: ['thị trường', 'con lắc', 'đám đông'], propsEn: ['market', 'stalls', 'crowd'], environments: ['ancient_outdoor'] },
+  'cổng thành': { id: 'ancient_gate', name: 'cổng thành', nameEn: 'City Gate', propsZh: ['cổng thành', 'bức tường thành', 'người lính'], propsEn: ['city gate', 'city wall', 'soldiers'], environments: ['ancient_outdoor'] },
+  'tháp': { id: 'ancient_gate', name: 'tháp', nameEn: 'City Tower', propsZh: ['tháp', 'bức tường thành'], propsEn: ['city tower', 'city wall'], environments: ['ancient_outdoor'] },
+  // bến tàu/phà
+  'bến tàu': { id: 'ancient_dock', name: 'bến tàu', nameEn: 'Dock', propsZh: ['Manya', 'tàu', 'cáp'], propsEn: ['wooden pier', 'boats', 'mooring rope'], environments: ['ancient_outdoor'] },
+  'phà': { id: 'ancient_dock', name: 'phà', nameEn: 'Ferry Crossing', propsZh: ['phà', 'nước sông'], propsEn: ['ferry boat', 'river'], environments: ['ancient_outdoor'] },
   
-  // ========== 古代交通视角 (ancient_vehicle) ==========
-  // 马车/轿子
-  '轿子': { id: 'ancient_sedan', name: '轿内', nameEn: 'Sedan Chair', propsZh: ['轿帘', '轿内'], propsEn: ['sedan curtain', 'sedan interior'], environments: ['ancient_vehicle'] },
-  '轿内': { id: 'ancient_sedan', name: '轿内', nameEn: 'Inside Sedan', propsZh: ['轿帘', '坐垫'], propsEn: ['sedan curtain', 'cushion'], environments: ['ancient_vehicle'] },
-  '上轿': { id: 'ancient_sedan', name: '轿门', nameEn: 'Entering Sedan', propsZh: ['轿门', '轿帘'], propsEn: ['sedan door', 'curtain'], environments: ['ancient_vehicle'] },
-  '下轿': { id: 'ancient_sedan', name: '轿门', nameEn: 'Exiting Sedan', propsZh: ['轿门'], propsEn: ['sedan door'], environments: ['ancient_vehicle'] },
-  '马车': { id: 'ancient_carriage', name: '车内', nameEn: 'Carriage', propsZh: ['车篾', '坐垫'], propsEn: ['carriage canopy', 'cushion'], environments: ['ancient_vehicle'] },
-  '车内': { id: 'ancient_carriage', name: '车内', nameEn: 'Inside Carriage', propsZh: ['车篾', '窗帘'], propsEn: ['canopy', 'window curtain'], environments: ['ancient_vehicle'] },
-  // 船只
-  '船舱': { id: 'ancient_boat', name: '船舱', nameEn: 'Boat Cabin', propsZh: ['船舱', '窗子'], propsEn: ['cabin', 'window'], environments: ['ancient_vehicle'] },
-  '舱内': { id: 'ancient_boat', name: '船舱', nameEn: 'Inside Cabin', propsZh: ['船舱', '窗子', '木方'], propsEn: ['cabin', 'window', 'wooden table'], environments: ['ancient_vehicle'] },
-  '甲板': { id: 'ancient_deck', name: '甲板', nameEn: 'Ship Deck', propsZh: ['甲板', '桶杆', '风帆'], propsEn: ['deck', 'mast', 'sail'], environments: ['ancient_vehicle'] },
-  '船头': { id: 'ancient_deck', name: '船头', nameEn: 'Bow', propsZh: ['船头', '桶杆'], propsEn: ['bow', 'mast'], environments: ['ancient_vehicle'] },
-  '船尾': { id: 'ancient_deck', name: '船尾', nameEn: 'Stern', propsZh: ['船尾', '艰'], propsEn: ['stern', 'rudder'], environments: ['ancient_vehicle'] },
-  // 骑马
-  '骑马': { id: 'ancient_horse', name: '马背', nameEn: 'On Horseback', propsZh: ['马', '缰绳', '马鞍'], propsEn: ['horse', 'reins', 'saddle'], environments: ['ancient_vehicle'] },
-  '上马': { id: 'ancient_horse', name: '马背', nameEn: 'Mounting', propsZh: ['马蹬', '马鞍'], propsEn: ['stirrup', 'saddle'], environments: ['ancient_vehicle'] },
-  '下马': { id: 'ancient_horse', name: '马背', nameEn: 'Dismounting', propsZh: ['马'], propsEn: ['horse'], environments: ['ancient_vehicle'] },
-  '驰骋': { id: 'ancient_horse', name: '马背', nameEn: 'Galloping', propsZh: ['马', '缰绳'], propsEn: ['horse', 'reins'], environments: ['ancient_vehicle'] },
+  // ========== Giao thông cổ xưaGóc nhìn (ancient_vehicle) ==========
+  // vận chuyển/ghế sedan
+  'ghế sedan': { id: 'ancient_sedan', name: 'Bên trong chiếc sedan', nameEn: 'Sedan Chair', propsZh: ['rèm xe', 'Bên trong chiếc sedan'], propsEn: ['sedan curtain', 'sedan interior'], environments: ['ancient_vehicle'] },
+  'Bên trong chiếc sedan': { id: 'ancient_sedan', name: 'Bên trong chiếc sedan', nameEn: 'Inside Sedan', propsZh: ['rèm xe', 'đệm'], propsEn: ['sedan curtain', 'cushion'], environments: ['ancient_vehicle'] },
+  'Lên xe sedan': { id: 'ancient_sedan', name: 'cửa xe', nameEn: 'Entering Sedan', propsZh: ['cửa xe', 'rèm xe'], propsEn: ['sedan door', 'curtain'], environments: ['ancient_vehicle'] },
+  'Xuống xe sedan': { id: 'ancient_sedan', name: 'cửa xe', nameEn: 'Exiting Sedan', propsZh: ['cửa xe'], propsEn: ['sedan door'], environments: ['ancient_vehicle'] },
+  'vận chuyển': { id: 'ancient_carriage', name: 'bên trong xe', nameEn: 'Carriage', propsZh: ['Khung xe', 'đệm'], propsEn: ['carriage canopy', 'cushion'], environments: ['ancient_vehicle'] },
+  'bên trong xe': { id: 'ancient_carriage', name: 'bên trong xe', nameEn: 'Inside Carriage', propsZh: ['Khung xe', 'Rèm cửa'], propsEn: ['canopy', 'window curtain'], environments: ['ancient_vehicle'] },
+  // tàu
+  'cabin': { id: 'ancient_boat', name: 'cabin', nameEn: 'Boat Cabin', propsZh: ['cabin', 'cửa sổ'], propsEn: ['cabin', 'window'], environments: ['ancient_vehicle'] },
+  'Bên trong cabin': { id: 'ancient_boat', name: 'cabin', nameEn: 'Inside Cabin', propsZh: ['cabin', 'cửa sổ', 'Mục Phương'], propsEn: ['cabin', 'window', 'wooden table'], environments: ['ancient_vehicle'] },
+  'boong tàu': { id: 'ancient_deck', name: 'boong tàu', nameEn: 'Ship Deck', propsZh: ['boong tàu', 'thân thùng', 'cánh buồm'], propsEn: ['deck', 'mast', 'sail'], environments: ['ancient_vehicle'] },
+  'cúi đầu': { id: 'ancient_deck', name: 'cúi đầu', nameEn: 'Bow', propsZh: ['cúi đầu', 'thân thùng'], propsEn: ['bow', 'mast'], environments: ['ancient_vehicle'] },
+  'nghiêm khắc': { id: 'ancient_deck', name: 'nghiêm khắc', nameEn: 'Stern', propsZh: ['nghiêm khắc', 'khó khăn'], propsEn: ['stern', 'rudder'], environments: ['ancient_vehicle'] },
+  // cưỡi ngựa
+  'cưỡi ngựa': { id: 'ancient_horse', name: 'cưỡi ngựa', nameEn: 'On Horseback', propsZh: ['con ngựa', 'dây cương', 'yên ngựa'], propsEn: ['horse', 'reins', 'saddle'], environments: ['ancient_vehicle'] },
+  'Gắn ngựa của bạn': { id: 'ancient_horse', name: 'cưỡi ngựa', nameEn: 'Mounting', propsZh: ['bàn đạp', 'yên ngựa'], propsEn: ['stirrup', 'saddle'], environments: ['ancient_vehicle'] },
+  'tháo dỡ': { id: 'ancient_horse', name: 'cưỡi ngựa', nameEn: 'Dismounting', propsZh: ['con ngựa'], propsEn: ['horse'], environments: ['ancient_vehicle'] },
+  'phi nước đại': { id: 'ancient_horse', name: 'cưỡi ngựa', nameEn: 'Galloping', propsZh: ['con ngựa', 'dây cương'], propsEn: ['horse', 'reins'], environments: ['ancient_vehicle'] },
   
-  // ========== 现代交通工具视角 (vehicle) ==========
-  // 车窗视角
-  '车窗': { id: 'vehicle_window', name: '车窗', nameEn: 'Vehicle Window View', propsZh: ['车窗', '窗外风景'], propsEn: ['vehicle window', 'outside scenery'], environments: ['vehicle'] },
-  '窗外风景': { id: 'vehicle_window', name: '车窗', nameEn: 'Vehicle Window View', propsZh: ['车窗', '风景'], propsEn: ['vehicle window', 'scenery'], environments: ['vehicle'] },
-  // 车内座位视角
-  '座位': { id: 'vehicle_seat', name: '座位区', nameEn: 'Seat Area', propsZh: ['座位', '扁手'], propsEn: ['seat', 'armrest'], environments: ['vehicle'] },
-  '车座': { id: 'vehicle_seat', name: '座位区', nameEn: 'Seat Area', propsZh: ['车座'], propsEn: ['vehicle seat'], environments: ['vehicle'] },
-  '坐在': { id: 'vehicle_seat', name: '座位区', nameEn: 'Seat Area', propsZh: ['座位'], propsEn: ['seat'], environments: ['vehicle'] },
-  // 车内过道视角
-  '过道': { id: 'vehicle_aisle', name: '过道', nameEn: 'Aisle View', propsZh: ['过道', '扶手'], propsEn: ['aisle', 'handrail'], environments: ['vehicle'] },
-  '走道': { id: 'vehicle_aisle', name: '过道', nameEn: 'Aisle View', propsZh: ['过道'], propsEn: ['aisle'], environments: ['vehicle'] },
-  // 驾驶位视角
-  '驾驶': { id: 'vehicle_driver', name: '驾驶位', nameEn: 'Driver Area', propsZh: ['方向盘', '仪表盘'], propsEn: ['steering wheel', 'dashboard'], environments: ['vehicle'] },
-  '司机': { id: 'vehicle_driver', name: '驾驶位', nameEn: 'Driver Area', propsZh: ['方向盘'], propsEn: ['steering wheel'], environments: ['vehicle'] },
-  '开车': { id: 'vehicle_driver', name: '驾驶位', nameEn: 'Driver Area', propsZh: ['方向盘', '仪表盘'], propsEn: ['steering wheel', 'dashboard'], environments: ['vehicle'] },
-  // 车门视角
-  '车门': { id: 'vehicle_door', name: '车门', nameEn: 'Vehicle Door', propsZh: ['车门', '台阶'], propsEn: ['vehicle door', 'steps'], environments: ['vehicle'] },
-  '上车': { id: 'vehicle_door', name: '车门', nameEn: 'Vehicle Door', propsZh: ['车门', '台阶'], propsEn: ['vehicle door', 'steps'], environments: ['vehicle'] },
-  '下车': { id: 'vehicle_door', name: '车门', nameEn: 'Vehicle Door', propsZh: ['车门', '台阶'], propsEn: ['vehicle door', 'steps'], environments: ['vehicle'] },
+  // ========== Giao thông hiện đạiGóc nhìn (vehicle) ==========
+  // cửa sổ xe Góc nhìn
+  'cửa sổ xe hơi': { id: 'vehicle_window', name: 'cửa sổ xe hơi', nameEn: 'Vehicle Window View', propsZh: ['cửa sổ xe hơi', 'Khung cảnh bên ngoài cửa sổ'], propsEn: ['vehicle window', 'outside scenery'], environments: ['vehicle'] },
+  'Khung cảnh bên ngoài cửa sổ': { id: 'vehicle_window', name: 'cửa sổ xe hơi', nameEn: 'Vehicle Window View', propsZh: ['cửa sổ xe hơi', 'phong cảnh'], propsEn: ['vehicle window', 'scenery'], environments: ['vehicle'] },
+  // Ghế ngồi ô tô Góc nhìn
+  'chỗ ngồi': { id: 'vehicle_seat', name: 'khu vực chỗ ngồi', nameEn: 'Seat Area', propsZh: ['chỗ ngồi', 'bàn tay phẳng'], propsEn: ['seat', 'armrest'], environments: ['vehicle'] },
+  'ghế ngồi ô tô': { id: 'vehicle_seat', name: 'khu vực chỗ ngồi', nameEn: 'Seat Area', propsZh: ['ghế ngồi ô tô'], propsEn: ['vehicle seat'], environments: ['vehicle'] },
+  'ngồi': { id: 'vehicle_seat', name: 'khu vực chỗ ngồi', nameEn: 'Seat Area', propsZh: ['chỗ ngồi'], propsEn: ['seat'], environments: ['vehicle'] },
+  // Lối đi trong xe Góc nhìn
+  'lối đi': { id: 'vehicle_aisle', name: 'lối đi', nameEn: 'Aisle View', propsZh: ['lối đi', 'tay vịn'], propsEn: ['aisle', 'handrail'], environments: ['vehicle'] },
+  // Vị trí lái Góc nhìn
+  'lái xe': { id: 'vehicle_driver', name: 'ghế lái', nameEn: 'Driver Area', propsZh: ['vô lăng', 'Trang tổng quan'], propsEn: ['steering wheel', 'dashboard'], environments: ['vehicle'] },
+  'người lái xe': { id: 'vehicle_driver', name: 'ghế lái', nameEn: 'Driver Area', propsZh: ['vô lăng'], propsEn: ['steering wheel'], environments: ['vehicle'] },
+  // Cửa Góc nhìn
+  'cửa xe': { id: 'vehicle_door', name: 'cửa xe', nameEn: 'Vehicle Door', propsZh: ['cửa xe', 'bước'], propsEn: ['vehicle door', 'steps'], environments: ['vehicle'] },
+  'Lên xe buýt': { id: 'vehicle_door', name: 'cửa xe', nameEn: 'Vehicle Door', propsZh: ['cửa xe', 'bước'], propsEn: ['vehicle door', 'steps'], environments: ['vehicle'] },
+  'Xuống xe': { id: 'vehicle_door', name: 'cửa xe', nameEn: 'Vehicle Door', propsZh: ['cửa xe', 'bước'], propsEn: ['vehicle door', 'steps'], environments: ['vehicle'] },
   
-  // ========== 户外视角 (outdoor) ==========
-  // 道路视角
-  '路边': { id: 'roadside', name: '路边', nameEn: 'Roadside View', propsZh: ['道路', '路牙'], propsEn: ['road', 'curb'], environments: ['outdoor'] },
-  '马路': { id: 'roadside', name: '道路', nameEn: 'Road View', propsZh: ['道路', '树木'], propsEn: ['road', 'trees'], environments: ['outdoor'] },
-  '街道': { id: 'street', name: '街景', nameEn: 'Street View', propsZh: ['街道', '路灯', '店铺'], propsEn: ['street', 'streetlight', 'shops'], environments: ['outdoor'] },
-  '街头': { id: 'street', name: '街景', nameEn: 'Street View', propsZh: ['街道', '行人'], propsEn: ['street', 'pedestrians'], environments: ['outdoor'] },
-  // 自然风景视角
-  '田野': { id: 'nature', name: '自然风景', nameEn: 'Nature View', propsZh: ['田野', '庄稼'], propsEn: ['field', 'crops'], environments: ['outdoor'] },
-  '山': { id: 'nature', name: '自然风景', nameEn: 'Nature View', propsZh: ['山峦'], propsEn: ['mountains'], environments: ['outdoor'] },
-  '河': { id: 'nature', name: '自然风景', nameEn: 'Nature View', propsZh: ['河流'], propsEn: ['river'], environments: ['outdoor'] },
-  '树': { id: 'nature', name: '自然风景', nameEn: 'Nature View', propsZh: ['树木', '树叶'], propsEn: ['trees', 'leaves'], environments: ['outdoor'] },
-  // 庭院视角
-  '院子': { id: 'yard', name: '庭院', nameEn: 'Yard View', propsZh: ['院子', '围墙'], propsEn: ['yard', 'wall'], environments: ['outdoor'] },
-  '花园': { id: 'garden', name: '花园', nameEn: 'Garden View', propsZh: ['花卉', '植物'], propsEn: ['flowers', 'plants'], environments: ['outdoor'] },
+  // ========== ngoài trờiGóc nhìn (outdoor) ==========
+  // Đường Góc nhìn
+  'ven đường': { id: 'roadside', name: 'ven đường', nameEn: 'Roadside View', propsZh: ['đường', 'lề đường'], propsEn: ['road', 'curb'], environments: ['outdoor'] },
+  'đường': { id: 'roadside', name: 'đường', nameEn: 'Road View', propsZh: ['đường', 'cây cối'], propsEn: ['road', 'trees'], environments: ['outdoor'] },
+  'đường phố': { id: 'street', name: 'quang cảnh đường phố', nameEn: 'Street View', propsZh: ['đường phố', 'đèn đường', 'cửa tiệm'], propsEn: ['street', 'streetlight', 'shops'], environments: ['outdoor'] },
+  // phong cảnh thiên nhiên Góc nhìn
+  'núi': { id: 'nature', name: 'phong cảnh thiên nhiên', nameEn: 'Nature View', propsZh: ['núi'], propsEn: ['mountains'], environments: ['outdoor'] },
+  'con sông': { id: 'nature', name: 'phong cảnh thiên nhiên', nameEn: 'Nature View', propsZh: ['con sông'], propsEn: ['river'], environments: ['outdoor'] },
+  'cây': { id: 'nature', name: 'phong cảnh thiên nhiên', nameEn: 'Nature View', propsZh: ['cây cối', 'lá'], propsEn: ['trees', 'leaves'], environments: ['outdoor'] },
+  // Sân Góc nhìn
+  'vườn': { id: 'garden', name: 'vườn', nameEn: 'Garden View', propsZh: ['hoa', 'thực vật'], propsEn: ['flowers', 'plants'], environments: ['outdoor'] },
+  // ========== Nhà trong nhàGóc nhìn (indoor_home) ==========
+  // bàn ăn/Liên quan đến bữa ăn
+  'ăn': { id: 'dining', name: 'khu vực bàn ăn', nameEn: 'Dining Area', propsZh: ['bàn ăn', 'Bộ đồ ăn', 'Món ăn'], propsEn: ['dining table', 'bowls and chopsticks', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
+  'bàn ăn': { id: 'dining', name: 'khu vực bàn ăn', nameEn: 'Dining Area', propsZh: ['bàn ăn', 'Bộ đồ ăn', 'Món ăn'], propsEn: ['dining table', 'bowls and chopsticks', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
+  'bữa ăn': { id: 'dining', name: 'khu vực bàn ăn', nameEn: 'Dining Area', propsZh: ['bàn ăn', 'Bộ đồ ăn', 'Món ăn'], propsEn: ['dining table', 'bowls and chopsticks', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
+  'uống': { id: 'dining', name: 'khu vực bàn ăn', nameEn: 'Dining Area', propsZh: ['bàn ăn', 'ly rượu'], propsEn: ['dining table', 'wine glass'], environments: ['indoor_home', 'indoor_public'] },
+  'Kính kêu leng keng': { id: 'dining', name: 'khu vực bàn ăn', nameEn: 'Dining Area', propsZh: ['bàn ăn', 'ly rượu'], propsEn: ['dining table', 'glasses'], environments: ['indoor_home', 'indoor_public'] },
+  'bánh mì nướng': { id: 'dining', name: 'khu vực bàn ăn', nameEn: 'Dining Area', propsZh: ['bàn ăn', 'ly rượu'], propsEn: ['dining table', 'glasses'], environments: ['indoor_home', 'indoor_public'] },
   
-  // ========== 室内家居视角 (indoor_home) ==========
-  // 餐桌/用餐相关
-  '吃饭': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '碗筷', '菜肴'], propsEn: ['dining table', 'bowls and chopsticks', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
-  '饭桌': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '碗筷', '菜肴'], propsEn: ['dining table', 'bowls and chopsticks', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
-  '餐桌': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '碗筷'], propsEn: ['dining table', 'bowls and chopsticks'], environments: ['indoor_home', 'indoor_public'] },
-  '用餐': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '碗筷', '菜肴'], propsEn: ['dining table', 'bowls and chopsticks', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
-  '端菜': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '菜肴'], propsEn: ['dining table', 'dishes'], environments: ['indoor_home', 'indoor_public'] },
-  '夹菜': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '碗筷'], propsEn: ['dining table', 'chopsticks'], environments: ['indoor_home', 'indoor_public'] },
-  '喝酒': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '酒杯'], propsEn: ['dining table', 'wine glass'], environments: ['indoor_home', 'indoor_public'] },
-  '碰杯': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '酒杯'], propsEn: ['dining table', 'glasses'], environments: ['indoor_home', 'indoor_public'] },
-  '举杯': { id: 'dining', name: '餐桌区', nameEn: 'Dining Area', propsZh: ['餐桌', '酒杯'], propsEn: ['dining table', 'glasses'], environments: ['indoor_home', 'indoor_public'] },
+  // Sofa/Phòng khách liên quan - chỉ trong nhà
+  'Sofa': { id: 'sofa', name: 'khu vực ghế sofa', nameEn: 'Sofa Area', propsZh: ['Sofa', 'bàn cà phê', 'truyền hình'], propsEn: ['sofa', 'coffee table', 'TV'], environments: ['indoor_home'] },
+  'xem tivi': { id: 'sofa', name: 'khu vực ghế sofa', nameEn: 'Sofa Area', propsZh: ['Sofa', 'truyền hình'], propsEn: ['sofa', 'television'], environments: ['indoor_home'] },
+  'bàn cà phê': { id: 'sofa', name: 'khu vực ghế sofa', nameEn: 'Sofa Area', propsZh: ['Sofa', 'bàn cà phê'], propsEn: ['sofa', 'coffee table'], environments: ['indoor_home'] },
+  'rót trà': { id: 'sofa', name: 'khu vực ghế sofa', nameEn: 'Sofa Area', propsZh: ['Sofa', 'bàn cà phê', 'ấm trà'], propsEn: ['sofa', 'coffee table', 'teapot'], environments: ['indoor_home', 'indoor_work'] },
+  'uống trà': { id: 'sofa', name: 'khu vực ghế sofa', nameEn: 'Sofa Area', propsZh: ['Sofa', 'bàn cà phê', 'tách trà'], propsEn: ['sofa', 'coffee table', 'teacup'], environments: ['indoor_home', 'indoor_work'] },
   
-  // 沙发/客厅相关 - 仅室内家居
-  '沙发': { id: 'sofa', name: '沙发区', nameEn: 'Sofa Area', propsZh: ['沙发', '茶几', '电视'], propsEn: ['sofa', 'coffee table', 'TV'], environments: ['indoor_home'] },
-  '看电视': { id: 'sofa', name: '沙发区', nameEn: 'Sofa Area', propsZh: ['沙发', '电视'], propsEn: ['sofa', 'television'], environments: ['indoor_home'] },
-  '茶几': { id: 'sofa', name: '沙发区', nameEn: 'Sofa Area', propsZh: ['沙发', '茶几'], propsEn: ['sofa', 'coffee table'], environments: ['indoor_home'] },
-  '倒茶': { id: 'sofa', name: '沙发区', nameEn: 'Sofa Area', propsZh: ['沙发', '茶几', '茶壶'], propsEn: ['sofa', 'coffee table', 'teapot'], environments: ['indoor_home', 'indoor_work'] },
-  '喝茶': { id: 'sofa', name: '沙发区', nameEn: 'Sofa Area', propsZh: ['沙发', '茶几', '茶杯'], propsEn: ['sofa', 'coffee table', 'teacup'], environments: ['indoor_home', 'indoor_work'] },
+  // Liên quan đến cửa sổ - sử dụng trong nhà
+  'cửa sổ': { id: 'window', name: 'cửa sổ', nameEn: 'Window View', propsZh: ['các cửa sổ', 'Rèm cửa'], propsEn: ['window', 'curtains'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'bên ngoài cửa sổ': { id: 'window', name: 'cửa sổ', nameEn: 'Window View', propsZh: ['các cửa sổ', 'Rèm cửa', 'ánh sáng tự nhiên'], propsEn: ['window', 'curtains', 'natural light'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'ban công': { id: 'window', name: 'cửa sổ/ban công', nameEn: 'Balcony View', propsZh: ['ban công', 'lan can'], propsEn: ['balcony', 'railing'], environments: ['indoor_home'] },
+  'Rèm cửa': { id: 'window', name: 'cửa sổ', nameEn: 'Window View', propsZh: ['các cửa sổ', 'Rèm cửa'], propsEn: ['window', 'curtains'], environments: ['indoor_home', 'indoor_work'] },
+  // lối vào/Liên quan đến cửa - sử dụng trong nhà
+  'ngưỡng cửa': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa', 'Lối vào'], propsEn: ['door', 'entrance'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'cửa': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa', 'Lối vào'], propsEn: ['door', 'entrance'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'Vào đi': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa', 'Lối vào'], propsEn: ['door', 'entrance'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'đi ra ngoài': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'về nhà': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa', 'Lối vào'], propsEn: ['door', 'entrance'], environments: ['indoor_home'] },
+  'bước vào': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'rời đi': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['cửa'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  'Thay giày': { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', propsZh: ['Lối vào', 'tủ giày'], propsEn: ['entrance', 'shoe cabinet'], environments: ['indoor_home'] },
   
-  // 窗边相关 - 室内用
-  '窗': { id: 'window', name: '窗边', nameEn: 'Window View', propsZh: ['窗户', '窗帘'], propsEn: ['window', 'curtains'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '窗外': { id: 'window', name: '窗边', nameEn: 'Window View', propsZh: ['窗户', '窗帘', '自然光'], propsEn: ['window', 'curtains', 'natural light'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '窗边': { id: 'window', name: '窗边', nameEn: 'Window View', propsZh: ['窗户', '窗帘'], propsEn: ['window', 'curtains'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '阳台': { id: 'window', name: '窗边/阳台', nameEn: 'Balcony View', propsZh: ['阳台', '栏杆'], propsEn: ['balcony', 'railing'], environments: ['indoor_home'] },
-  '窗帘': { id: 'window', name: '窗边', nameEn: 'Window View', propsZh: ['窗户', '窗帘'], propsEn: ['window', 'curtains'], environments: ['indoor_home', 'indoor_work'] },
+  // Liên quan đến Nhà bếp - Chỉ trong nhà
+  'nhà bếp': { id: 'kitchen', name: 'nhà bếp', nameEn: 'Kitchen', propsZh: ['bếp lò', 'tủ'], propsEn: ['stove', 'cabinets'], environments: ['indoor_home'] },
+  'nấu ăn': { id: 'kitchen', name: 'nhà bếp', nameEn: 'Kitchen', propsZh: ['bếp lò', 'chậu'], propsEn: ['stove', 'cookware'], environments: ['indoor_home'] },
+  'xào': { id: 'kitchen', name: 'nhà bếp', nameEn: 'Kitchen', propsZh: ['bếp lò', 'chậu'], propsEn: ['stove', 'wok'], environments: ['indoor_home'] },
+  'rửa bát': { id: 'kitchen', name: 'nhà bếp', nameEn: 'Kitchen', propsZh: ['bồn rửa', 'món ăn'], propsEn: ['sink', 'dishes'], environments: ['indoor_home'] },
+  'tủ lạnh': { id: 'kitchen', name: 'nhà bếp', nameEn: 'Kitchen', propsZh: ['tủ lạnh'], propsEn: ['refrigerator'], environments: ['indoor_home'] },
   
-  // 入口/门相关 - 室内用
-  '门口': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门', '玄关'], propsEn: ['door', 'entrance'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '门': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门', '玄关'], propsEn: ['door', 'entrance'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '进门': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门', '玄关'], propsEn: ['door', 'entrance'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '出门': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '回家': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门', '玄关'], propsEn: ['door', 'entrance'], environments: ['indoor_home'] },
-  '进来': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '走进': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '离开': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门'], propsEn: ['door'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
-  '玄关': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['门', '玄关', '鞋柜'], propsEn: ['door', 'entrance', 'shoe cabinet'], environments: ['indoor_home'] },
-  '换鞋': { id: 'entrance', name: '入口', nameEn: 'Entrance View', propsZh: ['玄关', '鞋柜'], propsEn: ['entrance', 'shoe cabinet'], environments: ['indoor_home'] },
+  // phòng học/Công Việc Liên Quan - Nội thất Nhà + Văn Phòng
+  'bàn': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['bàn', 'đèn bàn', 'giá sách'], propsEn: ['desk', 'lamp', 'bookshelf'], environments: ['indoor_home', 'indoor_work'] },
+  'máy tính': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['bàn', 'máy tính'], propsEn: ['desk', 'computer'], environments: ['indoor_home', 'indoor_work'] },
+  'đọc một cuốn sách': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['bàn', 'đèn bàn'], propsEn: ['desk', 'lamp'], environments: ['indoor_home', 'indoor_public'] },
+  'viết': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['bàn', 'đèn bàn'], propsEn: ['desk', 'lamp'], environments: ['indoor_home', 'indoor_work'] },
+  'văn phòng': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['bàn', 'máy tính'], propsEn: ['desk', 'computer'], environments: ['indoor_work'] },
+  'Tệp': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['bàn', 'Tệp'], propsEn: ['desk', 'documents'], environments: ['indoor_home', 'indoor_work'] },
+  'giá sách': { id: 'study', name: 'phòng học/bàn', nameEn: 'Study Area', propsZh: ['giá sách', 'sách'], propsEn: ['bookshelf', 'books'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
   
-  // 厨房相关 - 仅室内家居
-  '厨房': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['灶台', '橱柜'], propsEn: ['stove', 'cabinets'], environments: ['indoor_home'] },
-  '做饭': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['灶台', '锅具'], propsEn: ['stove', 'cookware'], environments: ['indoor_home'] },
-  '烧菜': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['灶台', '锅具'], propsEn: ['stove', 'cookware'], environments: ['indoor_home'] },
-  '炒菜': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['灶台', '锅具'], propsEn: ['stove', 'wok'], environments: ['indoor_home'] },
-  '洗碗': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['水槽', '碗碟'], propsEn: ['sink', 'dishes'], environments: ['indoor_home'] },
-  '切菜': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['砧板', '菜刀'], propsEn: ['cutting board', 'knife'], environments: ['indoor_home'] },
-  '冰箱': { id: 'kitchen', name: '厨房', nameEn: 'Kitchen', propsZh: ['冰箱'], propsEn: ['refrigerator'], environments: ['indoor_home'] },
+  // Liên quan đến phòng ngủ - phải đề cập rõ ràng đến giường hoặc phòng ngủ
+  'phòng ngủ': { id: 'bedroom', name: 'phòng ngủ', nameEn: 'Bedroom', propsZh: ['giường', 'bàn cạnh giường ngủ'], propsEn: ['bed', 'nightstand'], environments: ['indoor_home'] },
+  'thức dậy': { id: 'bedroom', name: 'phòng ngủ', nameEn: 'Bedroom', propsZh: ['giường', 'bàn cạnh giường ngủ'], propsEn: ['bed', 'nightstand'], environments: ['indoor_home'] },
+  'đầu giường': { id: 'bedroom', name: 'phòng ngủ', nameEn: 'Bedroom', propsZh: ['giường', 'bàn cạnh giường ngủ', 'đèn bàn'], propsEn: ['bed', 'nightstand', 'lamp'], environments: ['indoor_home'] },
   
-  // 书房/工作相关 - 室内家居+办公
-  '书桌': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书桌', '台灯', '书架'], propsEn: ['desk', 'lamp', 'bookshelf'], environments: ['indoor_home', 'indoor_work'] },
-  '电脑': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书桌', '电脑'], propsEn: ['desk', 'computer'], environments: ['indoor_home', 'indoor_work'] },
-  '看书': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书桌', '台灯'], propsEn: ['desk', 'lamp'], environments: ['indoor_home', 'indoor_public'] },
-  '写字': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书桌', '台灯'], propsEn: ['desk', 'lamp'], environments: ['indoor_home', 'indoor_work'] },
-  '办公': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书桌', '电脑'], propsEn: ['desk', 'computer'], environments: ['indoor_work'] },
-  '文件': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书桌', '文件'], propsEn: ['desk', 'documents'], environments: ['indoor_home', 'indoor_work'] },
-  '书架': { id: 'study', name: '书房/书桌', nameEn: 'Study Area', propsZh: ['书架', '书籍'], propsEn: ['bookshelf', 'books'], environments: ['indoor_home', 'indoor_work', 'indoor_public'] },
+  // ========== Phổ Góc nhìn（Áp dụng cho Tất cảmôi trường） ==========
+  // \u5bf9\u8bdd/Cảm xúcCảnh - chung
+  'nói chuyện': { id: 'conversation', name: 'khu vực đối thoại', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
+  'trò chuyện': { id: 'conversation', name: 'khu vực đối thoại', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
+  'nói': { id: 'conversation', name: 'khu vực đối thoại', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
+  'cãi nhau': { id: 'conversation', name: 'khu vực đối thoại', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
+  'khóc': { id: 'emotion', name: 'cảm xúcĐặc tả', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
+  'rơi nước mắt': { id: 'emotion', name: 'cảm xúcĐặc tả', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
+  'ôm': { id: 'emotion', name: 'cảm xúcĐặc tả', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
   
-  // 卧室相关 - 必须明确提到床或卧室
-  '卧室': { id: 'bedroom', name: '卧室', nameEn: 'Bedroom', propsZh: ['床', '床头柜'], propsEn: ['bed', 'nightstand'], environments: ['indoor_home'] },
-  '床上': { id: 'bedroom', name: '卧室', nameEn: 'Bedroom', propsZh: ['床'], propsEn: ['bed'], environments: ['indoor_home'] },
-  '起床': { id: 'bedroom', name: '卧室', nameEn: 'Bedroom', propsZh: ['床', '床头柜'], propsEn: ['bed', 'nightstand'], environments: ['indoor_home'] },
-  '床头': { id: 'bedroom', name: '卧室', nameEn: 'Bedroom', propsZh: ['床', '床头柜', '台灯'], propsEn: ['bed', 'nightstand', 'lamp'], environments: ['indoor_home'] },
-  '被窝': { id: 'bedroom', name: '卧室', nameEn: 'Bedroom', propsZh: ['床', '被子'], propsEn: ['bed', 'blanket'], environments: ['indoor_home'] },
+  // Đặc tảCảnh quay - tổng hợp
+  'tay': { id: 'detail', name: 'Chi tiếtĐặc tả', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
+  'giữ': { id: 'detail', name: 'Chi tiếtĐặc tả', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
+  'nhặt lên': { id: 'detail', name: 'Chi tiếtĐặc tả', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
+  'buông ra': { id: 'detail', name: 'Chi tiếtĐặc tả', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
+  'Đặc tả': { id: 'detail', name: 'Chi tiếtĐặc tả', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
+  'Cận cảnh': { id: 'detail', name: 'Chi tiếtĐặc tả', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
   
-  // ========== 通用视角（适用于所有环境） ==========
-  // 对话/情感场景 - 通用
-  '交谈': { id: 'conversation', name: '对话区', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
-  '聊天': { id: 'conversation', name: '对话区', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
-  '说话': { id: 'conversation', name: '对话区', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
-  '争吵': { id: 'conversation', name: '对话区', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
-  '吵架': { id: 'conversation', name: '对话区', nameEn: 'Conversation Area', propsZh: [], propsEn: [], environments: [] },
-  '哭泣': { id: 'emotion', name: '情感特写', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
-  '流泪': { id: 'emotion', name: '情感特写', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
-  '微笑': { id: 'emotion', name: '情感特写', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
-  '拥抱': { id: 'emotion', name: '情感特写', nameEn: 'Emotional Close-up', propsZh: [], propsEn: [], environments: [] },
+  // xem/Chung Hành động - chung
+  'nhìn về phía': { id: 'looking', name: 'xemGóc nhìn', nameEn: 'Looking View', propsZh: [], propsEn: [], environments: [] },
+  'khao khát': { id: 'looking', name: 'xemGóc nhìn', nameEn: 'Looking View', propsZh: [], propsEn: [], environments: [] },
+  'xem': { id: 'looking', name: 'xemGóc nhìn', nameEn: 'Looking View', propsZh: [], propsEn: [], environments: [] },
   
-  // 特写镜头 - 通用
-  '手': { id: 'detail', name: '细节特写', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
-  '握着': { id: 'detail', name: '细节特写', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
-  '拿起': { id: 'detail', name: '细节特写', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
-  '放下': { id: 'detail', name: '细节特写', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
-  '特写': { id: 'detail', name: '细节特写', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
-  '近景': { id: 'detail', name: '细节特写', nameEn: 'Detail Close-up', propsZh: [], propsEn: [], environments: [] },
-  
-  // 观看/类泛用动作 - 通用
-  '望向': { id: 'looking', name: '观看视角', nameEn: 'Looking View', propsZh: [], propsEn: [], environments: [] },
-  '眰望': { id: 'looking', name: '观看视角', nameEn: 'Looking View', propsZh: [], propsEn: [], environments: [] },
-  '注视': { id: 'looking', name: '观看视角', nameEn: 'Looking View', propsZh: [], propsEn: [], environments: [] },
-  
-  // 坐下/起身 - 根据环境动态适应
-  '坐下': { id: 'seating', name: '坐席区', nameEn: 'Seating Area', propsZh: [], propsEn: [], environments: [] },
-  '落座': { id: 'seating', name: '坐席区', nameEn: 'Seating Area', propsZh: [], propsEn: [], environments: [] },
-  '起身': { id: 'seating', name: '坐席区', nameEn: 'Seating Area', propsZh: [], propsEn: [], environments: [] },
+  // ngồi xuống/Đứng dậy - năng động thích ứng với môi trường
+  'ngồi xuống': { id: 'seating', name: 'Khu vực ngồi', nameEn: 'Seating Area', propsZh: [], propsEn: [], environments: [] },
+  'Ngồi xuống đi': { id: 'seating', name: 'Khu vực ngồi', nameEn: 'Seating Area', propsZh: [], propsEn: [], environments: [] },
+  'đứng dậy': { id: 'seating', name: 'Khu vực ngồi', nameEn: 'Seating Area', propsZh: [], propsEn: [], environments: [] },
 };
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 从分镜动作描写中提取视角需求
+ * Từ Phân cảnhHành độTrích xuất G từ mô tả ngóc nhìnNhu cầu
  */
 export function extractViewpointsFromShots(
   shots: Shot[],
@@ -430,7 +411,7 @@ export function extractViewpointsFromShots(
   for (const shot of shots) {
     const actionText = shot.actionSummary || '';
     
-    // 检查每个关键词
+    // Kiểm tra mọi từ khóa
     for (const [keyword, config] of Object.entries(VIEWPOINT_KEYWORDS)) {
       if (actionText.includes(keyword)) {
         if (!viewpointMap.has(config.id)) {
@@ -450,7 +431,7 @@ export function extractViewpointsFromShots(
           if (!existing.shotIds.includes(shot.id)) {
             existing.shotIds.push(shot.id);
           }
-          // 合并道具
+          // Hợp nhất đạo cụ
           for (const prop of config.propsZh) {
             if (!existing.keyProps.includes(prop)) {
               existing.keyProps.push(prop);
@@ -466,18 +447,18 @@ export function extractViewpointsFromShots(
     }
   }
   
-  // 按关联分镜数排序（常用视角优先）
+  // Hiệp hội báo chí Phân cảnh số Sắp xếp（Thường được sử dụng Góc nhìưu tiên）
   const viewpoints = Array.from(viewpointMap.values())
     .sort((a, b) => b.shotIds.length - a.shotIds.length)
     .slice(0, maxViewpoints);
   
-  // 重新分配 gridIndex
+  // Gán lại GridIndex
   viewpoints.forEach((v, i) => { v.gridIndex = i; });
   
-  // 如果视角不足 6 个，补充默认视角
+  // Nếu Góc nhìn nhỏ hơn 6，Bổ sung Mặc địnhGóc nhìn
   const defaultViewpoints: Array<Omit<SceneViewpoint, 'shotIds' | 'gridIndex'>> = [
-    { id: 'overview', name: '全景', nameEn: 'Overview', keyProps: [], keyPropsEn: [], description: '整体空间布局', descriptionEn: 'Overall spatial layout' },
-    { id: 'detail', name: '细节', nameEn: 'Detail View', keyProps: [], keyPropsEn: [], description: '装饰细节特写', descriptionEn: 'Decorative details close-up' },
+    { id: 'overview', name: 'Toàn cảnh', nameEn: 'Overview', keyProps: [], keyPropsEn: [], description: 'bố trí không gian tổng thể', descriptionEn: 'Overall spatial layout' },
+    { id: 'detail', name: 'Chi tiết', nameEn: 'Detail View', keyProps: [], keyPropsEn: [], description: 'chi tiết trang tríĐặc tả', descriptionEn: 'Decorative details close-up' },
   ];
   
   while (viewpoints.length < maxViewpoints && defaultViewpoints.length > 0) {
@@ -495,22 +476,22 @@ export function extractViewpointsFromShots(
 }
 
 /**
- * 生成联合图提示词
- * 优先使用 AI 分析的视角，如果没有则回退到关键词提取
+ * TạoBiểu đồ thống nhất Nhắc nhở
+ * Ưu tiên cho AI Ph.ân tíG của chóc nhìn，Nếu không, hãy quay lại trích xuất từ khóa
  */
 export function generateContactSheetPrompt(config: ContactSheetConfig): ContactSheetPromptResult {
   const { scene, shots, styleTokens, aspectRatio, maxViewpoints = 6 } = config;
   
-  // 优先使用 AI 分析的视角（来自 scene.viewpoints）
+  // Ưu tiên cho AI Ph.ân tíG của chóc nhìn（từ cảnh.viewpoints）
   let viewpoints: SceneViewpoint[];
   let isAIAnalyzed = false;
   
   if (scene.viewpoints && scene.viewpoints.length > 0) {
-    // 使用 AI 分析的视角
-    console.log(`[generateContactSheetPrompt] 使用 AI 分析视角: ${scene.viewpoints.length} 个`);
+    // Sử dụng AI Ph.ân tíG của chóc nhìn
+    console.log(`[generateContactSheetPrompt] Sử dụng AI Ph.ân tíchGóc nhìn: ${scene.viewpoints.length} một`);
     viewpoints = scene.viewpoints.slice(0, maxViewpoints).map((v: any, idx: number) => ({
       id: v.id || `viewpoint_${idx}`,
-      name: v.name || '未命名视角',
+      name: v.name || 'Chưa đặt tênGóc nhìn',
       nameEn: v.nameEn || 'Unnamed Viewpoint',
       shotIds: v.shotIds || [],
       keyProps: v.keyProps || [],
@@ -521,23 +502,23 @@ export function generateContactSheetPrompt(config: ContactSheetConfig): ContactS
     }));
     isAIAnalyzed = true;
   } else {
-    // 回退到关键词提取
-    console.log('[generateContactSheetPrompt] 没有 AI 视角，回退到关键词提取');
+    // Quay lại trích xuất từ khóa
+    console.log('[generateContactSheetPrompt] Không có AI Góc nhìn，Quay lại trích xuất từ khóa');
     viewpoints = extractViewpointsFromShots(shots, maxViewpoints);
   }
   
-  // 确定网格布局 - 强制使用 NxN 布局 (2x2 或 3x3)
+  // Xác định bố cục lưới - buộc bố cục NxN (2x2 hoặc 3x3)
   const vpCount = viewpoints.length;
   const gridLayout = vpCount <= 4 
     ? { rows: 2, cols: 2 }
     : { rows: 3, cols: 3 };
   
-  // 构建场景基础描述
+  // \u6784\u5efaCảnhCơ bảnMô tả
   const sceneDescZh = [
-    scene.architectureStyle && `建筑风格：${scene.architectureStyle}`,
-    scene.colorPalette && `色彩基调：${scene.colorPalette}`,
-    scene.eraDetails && `时代特征：${scene.eraDetails}`,
-    scene.lightingDesign && `光影设计：${scene.lightingDesign}`,
+    scene.architectureStyle && `Kiến trúcPhong cách：${scene.architectureStyle}`,
+    scene.colorPalette && `Màu sắgiai điệu c：${scene.colorPalette}`,
+    scene.eraDetails && `Đặc điểm của thời đại：${scene.eraDetails}`,
+    scene.lightingDesign && `Ánh sáthiết kế：${scene.lightingDesign}`,
   ].filter(Boolean).join('，');
   
   const sceneDescEn = [
@@ -547,12 +528,12 @@ export function generateContactSheetPrompt(config: ContactSheetConfig): ContactS
     scene.lightingDesign && `Lighting: ${scene.lightingDesign}`,
   ].filter(Boolean).join('. ');
   
-  // 为每个视角生成描述
+  // cho mỗi Góc nhìnTạoMô tả
   viewpoints.forEach((vp, index) => {
-    const propsZh = vp.keyProps.length > 0 ? `，包含${vp.keyProps.join('、')}` : '';
+    const propsZh = vp.keyProps.length > 0 ? `，chứa${vp.keyProps.join('、')}` : '';
     const propsEn = vp.keyPropsEn.length > 0 ? ` with ${vp.keyPropsEn.join(', ')}` : '';
     
-    vp.description = `${vp.name}视角${propsZh}`;
+    vp.description = `${vp.name}Góc nhìn${propsZh}`;
     vp.descriptionEn = `${vp.nameEn} angle${propsEn}`;
   });
   
@@ -563,17 +544,17 @@ export function generateContactSheetPrompt(config: ContactSheetConfig): ContactS
   const totalCells = gridLayout.rows * gridLayout.cols;
   const paddedCount = totalCells;
   
-  // 构建增强版提示词 — 对齐导演面板 generateGridAndSlice 的三层风格夹击结构
+  // Xây dựng phiên bản nâng cao của Lời nhắc — Căn chỉPhong c ba lớp của bảng giám đốc nh generateGridAndSliceácấu trúc ch nhúm
   const promptParts: string[] = [];
   
-  // 1. 核心指令区 (Instruction Block) — 使用与导演面板一致的 storyboard grid 术语
+  // 1. Khối lệnh lõi (Instruction Block) — Sử dụng thuật ngữ lưới bảng phân cảnh phù hợp với Bảng điều khiển
   promptParts.push('<instruction>');
   promptParts.push(`Generate a clean ${gridLayout.rows}x${gridLayout.cols} storyboard grid with exactly ${paddedCount} equal-sized panels.`);
   promptParts.push(`Overall Image Aspect Ratio: ${aspectRatio}.`);
-  // 明确指定单个格子的宽高比，防止 AI 混淆（导演面板核心差异点）
+  // Chỉ định rõ ràng tỷ lệ khung hình của một lưới riêng lẻ，Ngăn chặn sự nhầm lẫn của AI（Sự khác biệt cốt lõi của Ban Giám đốc）
   const panelAspect = aspectRatio === '16:9' ? '16:9 (horizontal landscape)' : '9:16 (vertical portrait)';
   promptParts.push(`Each individual panel must have a ${panelAspect} aspect ratio.`);
-  // 全局视觉风格（前置到指令区，权重最高 — 三层夹击第一层）
+  // Global VisionPhong cách（thêm vào khu vực chỉ huy，Trọng lượng cao nhất — Ba lớp gọng kìm tấn công lớp đầu tiên）
   if (styleStr) {
     promptParts.push(`MANDATORY Visual Style for ALL panels: ${styleStr}`);
   }
@@ -582,15 +563,15 @@ export function generateContactSheetPrompt(config: ContactSheetConfig): ContactS
   promptParts.push('Subject: Interior design and architectural details only, NO people.');
   promptParts.push('</instruction>');
   
-  // 2. 布局描述
+  // 2. Bố cục Mô tả
   promptParts.push(`Layout: ${gridLayout.rows} rows, ${gridLayout.cols} columns, reading order left-to-right, top-to-bottom.`);
   
-  // 3. 场景信息
+  // 3. Cảnh thông tin
   if (sceneDescEn) {
     promptParts.push(`Scene Context: ${sceneDescEn}`);
   }
   
-  // 4. 每个格子的内容描述 — 每格附带 [same style] 锚定（三层夹击第二层）
+  // 4. Nội dung M của mỗi lướiô tả — Bao gồm trong mỗi lưới [same style] mỏ neo（Ba lớp gọng kìm tấn công lớp thứ hai）
   const styleAnchor = styleStr ? ' [same style]' : '';
   viewpoints.forEach((vp, idx) => {
     const row = Math.floor(idx / gridLayout.cols) + 1;
@@ -599,37 +580,37 @@ export function generateContactSheetPrompt(config: ContactSheetConfig): ContactS
     promptParts.push(`Panel [row ${row}, col ${col}] (no people): ${vp.nameEn.toUpperCase()}: ${vp.descriptionEn}${styleAnchor}`);
   });
   
-  // 5. 空白占位格描述
+  // 5. Khoảng trống Mô tả
   for (let i = viewpoints.length; i < paddedCount; i++) {
     const row = Math.floor(i / gridLayout.cols) + 1;
     const col = (i % gridLayout.cols) + 1;
     promptParts.push(`Panel [row ${row}, col ${col}]: empty placeholder, solid gray background`);
   }
   
-    // 6. 全局风格尾部再次强调（三层夹击第三层）
+    // 6. Toàn Phong cáSự kết thúc của ch được nhấn mạnh một lần nữa（Ba lớp gọng kìm tấn công lớp thứ ba）
     if (styleStr) {
       promptParts.push(`IMPORTANT - Apply this EXACT style uniformly to every panel: ${styleStr}`);
     }
   
-    // 7. 负面提示词
+    // 7. Lời nhắc tiêu cực
     promptParts.push('Negative constraints: text, watermark, split screen borders, speech bubbles, blur, distortion, bad anatomy, people, characters, distorted grid, uneven panels.');
     
     const prompt = promptParts.join('\n');
 
-    // 中文提示词
+    // Lời nhắc tiếng Trung
     const gridItemsZh = viewpoints.map((vp, i) => 
-      `[${i + 1}] ${vp.name}：${vp.description || vp.name + '视角'}`
+      `[${i + 1}] ${vp.name}：${vp.description || vp.name + 'Góc nhìn'}`
     ).join('\n');
     
-    const viewpointSource = isAIAnalyzed ? '（AI 分析）' : '（关键词提取）';
+    const viewpointSource = isAIAnalyzed ? '（AI Phân tích）' : '（Trích xuất từ khóa）';
   
-  const promptZh = `一张${gridLayout.rows}x${gridLayout.cols}网格联合图，展示同一个「${scene.name || scene.location}」场景的${viewpoints.length}个不同机位视角${viewpointSource}。
+  const promptZh = `một mảnh${gridLayout.rows}x${gridLayout.cols}sơ đồ nối lưới，hiển thị tương tự「${scene.name || scene.location}」Cảnh${viewpoints.length}khác nhauGóc máyGóc nhìn${viewpointSource}。
 ${sceneDescZh}
 
-网格布局（从左到右，从上到下）：
+bố trí lưới（từ trái sang phải，từ trên xuống dưới）：
 ${gridItemsZh}
 
-风格：${styleTokens.length > 0 ? styleTokens.join('、') : '动画风格，柔和色彩，细节丰富'}，${viewpoints.length}个格子保持一致的透视和光照。每个格子用细白线分隔。只有背景，没有人物。`;
+Phong cách：${styleTokens.length > 0 ? styleTokens.join('、') : 'Hoạt ảnhPhong cách，mềm Màu sắc，Giàu chi tiết'}，${viewpoints.length}Mỗi lưới duy trì phối cảnh và ánh sáng nhất quán。Mỗi lưới được phân tách bằng một đường trắng mỏng。Chỉ có Nền，không có ký tự。`;
 
   return {
     prompt,
@@ -640,8 +621,8 @@ ${gridItemsZh}
 }
 
 /**
- * 根据切割结果关联视角
- * 将切割后的图片分配给对应的视角
+ * Liên kết G theo kết quả cắtóc nhìn
+ * Cắt chữ Hình ảnh được gán cho G tương ứngóc nhìn
  */
 export function assignViewpointImages(
   viewpoints: SceneViewpoint[],
@@ -656,12 +637,12 @@ export function assignViewpointImages(
   const result = new Map<string, { imageUrl: string; gridIndex: number }>();
   
   for (const vp of viewpoints) {
-    // 计算该视角在切割结果中的索引
+    // Tính Góc nhìchỉ số n trong kết quả cắt
     const gridIndex = vp.gridIndex;
     const row = Math.floor(gridIndex / gridLayout.cols);
     const col = gridIndex % gridLayout.cols;
     
-    // 查找匹配的切割结果
+    // Tìm kết quả cắt phù hợp
     const splitResult = splitResults.find(sr => sr.row === row && sr.col === col);
     
     if (splitResult) {
@@ -676,7 +657,7 @@ export function assignViewpointImages(
 }
 
 /**
- * 根据分镜动作自动匹配最佳视角
+ * Theo Ph.ân cảnhHành động tự động khớp với G tốt nhấtóc nhìn
  */
 export function matchShotToViewpoint(
   shot: Shot,
@@ -684,14 +665,14 @@ export function matchShotToViewpoint(
 ): string | null {
   const actionText = shot.actionSummary || '';
   
-  // 检查分镜是否已关联到某个视角
+  // Kiểm tra Phân cảNh có được liên kết với G hay khôngóc nhìn
   for (const vp of viewpoints) {
     if (vp.shotIds.includes(shot.id)) {
       return vp.id;
     }
   }
   
-  // 尝试根据动作关键词匹配
+  // Hãy thử sử dụng Hành độkết hợp từ khóa
   for (const [keyword, config] of Object.entries(VIEWPOINT_KEYWORDS)) {
     if (actionText.includes(keyword)) {
       const matchedVp = viewpoints.find(vp => vp.id === config.id);
@@ -701,12 +682,12 @@ export function matchShotToViewpoint(
     }
   }
   
-  // 默认返回全景视角
+  // Mặc địnhQuay lạiToàn cảnhGóc nhìn
   const overviewVp = viewpoints.find(vp => vp.id === 'overview');
   return overviewVp?.id || viewpoints[0]?.id || null;
 }
 
-// ==================== 动态视角和分页支持 ====================
+// ==================== Năng động Góc nhìn và phân trang Hỗ trợ ====================
 
 import type { 
   PendingViewpointData, 
@@ -714,8 +695,8 @@ import type {
 } from '@/stores/media-panel-store';
 
 /**
- * 从分镜文本中提取所有可搜索的内容
- * 包括：动作描述、对白、视觉描述等
+ * Từ Phân cảTrích xuất T từ văn bản nhất cảCan Tìm kiếnội dung của tôi
+ * bao gồm：Hành độngMô tả、đối thoại、Tầm nhìn Mô tảĐợi đã
  */
 function getShotSearchableText(shot: Shot): string {
   const parts = [
@@ -728,86 +709,86 @@ function getShotSearchableText(shot: Shot): string {
 }
 
 /**
- * 根据环境类型获取默认视角列表
- * 用于在提取的视角不足时补充
+ * Theo môi trường Loạtôi nhận được Mặc địnhGóc nhìnDanh sách
+ * được sử dụng trong việc trích xuất Góc nhìBổ sung khi n không đủ
  */
 function getDefaultViewpointsForEnvironment(
   envType: SceneEnvironmentType
 ): Array<Omit<SceneViewpoint, 'shotIds' | 'gridIndex'>> {
-  // 通用默认视角
+  // Phổ thông Mặc địnhGóc nhìn
   const commonDefaults: Array<Omit<SceneViewpoint, 'shotIds' | 'gridIndex'>> = [
-    { id: 'overview', name: '全景', nameEn: 'Overview', keyProps: [], keyPropsEn: [], description: '整体空间布局', descriptionEn: 'Overall spatial layout' },
-    { id: 'detail', name: '细节', nameEn: 'Detail View', keyProps: [], keyPropsEn: [], description: '细节特写', descriptionEn: 'Detail close-up' },
+    { id: 'overview', name: 'Toàn cảnh', nameEn: 'Overview', keyProps: [], keyPropsEn: [], description: 'bố trí không gian tổng thể', descriptionEn: 'Overall spatial layout' },
+    { id: 'detail', name: 'Chi tiết', nameEn: 'Detail View', keyProps: [], keyPropsEn: [], description: 'Chi tiếtĐặc tả', descriptionEn: 'Detail close-up' },
   ];
   
-  // 根据环境类型返回特定默认视角
+  // Theo môi trường LoạiQuay lạđặc trưngMặc địnhGóc nhìn
   switch (envType) {
     case 'vehicle':
       return [
-        { id: 'vehicle_window', name: '车窗', nameEn: 'Vehicle Window View', keyProps: ['车窗', '窗外风景'], keyPropsEn: ['vehicle window', 'outside scenery'], description: '车窗视角', descriptionEn: 'Vehicle window view' },
-        { id: 'vehicle_seat', name: '座位区', nameEn: 'Seat Area', keyProps: ['座位'], keyPropsEn: ['seat'], description: '座位区域', descriptionEn: 'Seating area' },
-        { id: 'vehicle_aisle', name: '过道', nameEn: 'Aisle View', keyProps: ['过道', '扶手'], keyPropsEn: ['aisle', 'handrail'], description: '过道视角', descriptionEn: 'Aisle view' },
-        { id: 'vehicle_driver', name: '驾驶位', nameEn: 'Driver Area', keyProps: ['方向盘'], keyPropsEn: ['steering wheel'], description: '驾驶区域', descriptionEn: 'Driver area' },
+        { id: 'vehicle_window', name: 'cửa sổ xe hơi', nameEn: 'Vehicle Window View', keyProps: ['cửa sổ xe hơi', 'Khung cảnh bên ngoài cửa sổ'], keyPropsEn: ['vehicle window', 'outside scenery'], description: 'cửa sổ xe Góc nhìn', descriptionEn: 'Vehicle window view' },
+        { id: 'vehicle_seat', name: 'khu vực chỗ ngồi', nameEn: 'Seat Area', keyProps: ['chỗ ngồi'], keyPropsEn: ['seat'], description: 'khu vực chỗ ngồi', descriptionEn: 'Seating area' },
+        { id: 'vehicle_aisle', name: 'lối đi', nameEn: 'Aisle View', keyProps: ['lối đi', 'tay vịn'], keyPropsEn: ['aisle', 'handrail'], description: 'Lối đi Góc nhìn', descriptionEn: 'Aisle view' },
+        { id: 'vehicle_driver', name: 'ghế lái', nameEn: 'Driver Area', keyProps: ['vô lăng'], keyPropsEn: ['steering wheel'], description: 'khu vực lái xe', descriptionEn: 'Driver area' },
         ...commonDefaults,
       ];
       
     case 'outdoor':
       return [
-        { id: 'nature', name: '自然风景', nameEn: 'Nature View', keyProps: [], keyPropsEn: [], description: '自然风景视角', descriptionEn: 'Nature scenery view' },
-        { id: 'roadside', name: '路边', nameEn: 'Roadside View', keyProps: ['道路'], keyPropsEn: ['road'], description: '路边视角', descriptionEn: 'Roadside view' },
-        { id: 'street', name: '街景', nameEn: 'Street View', keyProps: ['街道'], keyPropsEn: ['street'], description: '街景视角', descriptionEn: 'Street view' },
+        { id: 'nature', name: 'phong cảnh thiên nhiên', nameEn: 'Nature View', keyProps: [], keyPropsEn: [], description: 'phong cảnh thiên nhiên Góc nhìn', descriptionEn: 'Nature scenery view' },
+        { id: 'roadside', name: 'ven đường', nameEn: 'Roadside View', keyProps: ['đường'], keyPropsEn: ['road'], description: 'Bên Đường Góc nhìn', descriptionEn: 'Roadside view' },
+        { id: 'street', name: 'quang cảnh đường phố', nameEn: 'Street View', keyProps: ['đường phố'], keyPropsEn: ['street'], description: 'Chế độ xem phốGóc nhìn', descriptionEn: 'Street view' },
         ...commonDefaults,
       ];
       
     case 'indoor_home':
       return [
-        { id: 'sofa', name: '沙发区', nameEn: 'Sofa Area', keyProps: ['沙发', '茶几'], keyPropsEn: ['sofa', 'coffee table'], description: '沙发区域', descriptionEn: 'Sofa area' },
-        { id: 'window', name: '窗边', nameEn: 'Window View', keyProps: ['窗户', '窗帘'], keyPropsEn: ['window', 'curtains'], description: '窗边视角', descriptionEn: 'Window view' },
-        { id: 'entrance', name: '入口', nameEn: 'Entrance View', keyProps: ['门', '玄关'], keyPropsEn: ['door', 'entrance'], description: '入口视角', descriptionEn: 'Entrance view' },
+        { id: 'sofa', name: 'khu vực ghế sofa', nameEn: 'Sofa Area', keyProps: ['Sofa', 'bàn cà phê'], keyPropsEn: ['sofa', 'coffee table'], description: 'khu vực ghế sofa', descriptionEn: 'Sofa area' },
+        { id: 'window', name: 'cửa sổ', nameEn: 'Window View', keyProps: ['các cửa sổ', 'Rèm cửa'], keyPropsEn: ['window', 'curtains'], description: 'G bên cửa sổóc nhìn', descriptionEn: 'Window view' },
+        { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', keyProps: ['cửa', 'Lối vào'], keyPropsEn: ['door', 'entrance'], description: 'Lối vào Góc nhìn', descriptionEn: 'Entrance view' },
         ...commonDefaults,
       ];
       
     case 'indoor_work':
       return [
-        { id: 'study', name: '办公区', nameEn: 'Work Area', keyProps: ['书桌', '电脑'], keyPropsEn: ['desk', 'computer'], description: '办公区域', descriptionEn: 'Work area' },
-        { id: 'window', name: '窗边', nameEn: 'Window View', keyProps: ['窗户'], keyPropsEn: ['window'], description: '窗边视角', descriptionEn: 'Window view' },
-        { id: 'entrance', name: '入口', nameEn: 'Entrance View', keyProps: ['门'], keyPropsEn: ['door'], description: '入口视角', descriptionEn: 'Entrance view' },
+        { id: 'study', name: 'Khu văn phòng', nameEn: 'Work Area', keyProps: ['bàn', 'máy tính'], keyPropsEn: ['desk', 'computer'], description: 'Khu văn phòng', descriptionEn: 'Work area' },
+        { id: 'window', name: 'cửa sổ', nameEn: 'Window View', keyProps: ['các cửa sổ'], keyPropsEn: ['window'], description: 'G bên cửa sổóc nhìn', descriptionEn: 'Window view' },
+        { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', keyProps: ['cửa'], keyPropsEn: ['door'], description: 'Lối vào Góc nhìn', descriptionEn: 'Entrance view' },
         ...commonDefaults,
       ];
       
     case 'indoor_public':
       return [
-        { id: 'seating', name: '坐席区', nameEn: 'Seating Area', keyProps: [], keyPropsEn: [], description: '坐席区域', descriptionEn: 'Seating area' },
-        { id: 'entrance', name: '入口', nameEn: 'Entrance View', keyProps: ['门'], keyPropsEn: ['door'], description: '入口视角', descriptionEn: 'Entrance view' },
+        { id: 'seating', name: 'Khu vực ngồi', nameEn: 'Seating Area', keyProps: [], keyPropsEn: [], description: 'Khu vực chỗ ngồi', descriptionEn: 'Seating area' },
+        { id: 'entrance', name: 'lối vào', nameEn: 'Entrance View', keyProps: ['cửa'], keyPropsEn: ['door'], description: 'Lối vào Góc nhìn', descriptionEn: 'Entrance view' },
         ...commonDefaults,
       ];
     
-    // === 古代场景 ===
+    // === Cổ Cảnh ===
     case 'ancient_indoor':
       return [
-        { id: 'ancient_hall', name: '堂屋', nameEn: 'Main Hall', keyProps: ['太师椅', '案几'], keyPropsEn: ['taishi chair', 'table'], description: '堂屋视角', descriptionEn: 'Main hall view' },
-        { id: 'ancient_table', name: '案几', nameEn: 'Ancient Table', keyProps: ['案几', '茶具'], keyPropsEn: ['table', 'tea set'], description: '案几视角', descriptionEn: 'Table view' },
-        { id: 'ancient_screen', name: '屏风', nameEn: 'Screen View', keyProps: ['屏风', '帐幔'], keyPropsEn: ['screen', 'curtain'], description: '屏风视角', descriptionEn: 'Screen view' },
-        { id: 'ancient_couch', name: '榻', nameEn: 'Ancient Couch', keyProps: ['榻', '软垫'], keyPropsEn: ['daybed', 'cushion'], description: '榻视角', descriptionEn: 'Couch view' },
+        { id: 'ancient_hall', name: 'Sảnh chính', nameEn: 'Main Hall', keyProps: ['Ghế Taishi', 'trường hợp'], keyPropsEn: ['taishi chair', 'table'], description: 'Hội trường Góc nhìn', descriptionEn: 'Main hall view' },
+        { id: 'ancient_table', name: 'trường hợp', nameEn: 'Ancient Table', keyProps: ['trường hợp', 'bộ trà'], keyPropsEn: ['table', 'tea set'], description: 'Trường hợp Góc nhìn', descriptionEn: 'Table view' },
+        { id: 'ancient_screen', name: 'màn hình', nameEn: 'Screen View', keyProps: ['màn hình', 'rèm'], keyPropsEn: ['screen', 'curtain'], description: 'Màn hình Góc nhìn', descriptionEn: 'Screen view' },
+        { id: 'ancient_couch', name: 'đi văng', nameEn: 'Ancient Couch', keyProps: ['đi văng', 'bọc nệm'], keyPropsEn: ['daybed', 'cushion'], description: 'Ghế Góc nhìn', descriptionEn: 'Couch view' },
         ...commonDefaults,
       ];
       
     case 'ancient_outdoor':
       return [
-        { id: 'ancient_courtyard', name: '庭院', nameEn: 'Courtyard', keyProps: ['假山', '水池'], keyPropsEn: ['rockery', 'pond'], description: '庭院视角', descriptionEn: 'Courtyard view' },
-        { id: 'ancient_pavilion', name: '亝子', nameEn: 'Pavilion', keyProps: ['亝', '石凳'], keyPropsEn: ['pavilion', 'stone bench'], description: '亝子视角', descriptionEn: 'Pavilion view' },
-        { id: 'ancient_road', name: '官道', nameEn: 'Official Road', keyProps: ['官道'], keyPropsEn: ['road'], description: '官道视角', descriptionEn: 'Road view' },
-        { id: 'ancient_gate', name: '城门', nameEn: 'City Gate', keyProps: ['城门', '城墙'], keyPropsEn: ['city gate', 'wall'], description: '城门视角', descriptionEn: 'City gate view' },
+        { id: 'ancient_courtyard', name: 'sân', nameEn: 'Courtyard', keyProps: ['hòn non bộ', 'hồ bơi'], keyPropsEn: ['rockery', 'pond'], description: 'Sân Góc nhìn', descriptionEn: 'Courtyard view' },
+        { id: 'ancient_pavilion', name: 'dân tộc', nameEn: 'Pavilion', keyProps: ['\u4e9d', 'ghế đá'], keyPropsEn: ['pavilion', 'stone bench'], description: 'dân tộcGóc nhìn', descriptionEn: 'Pavilion view' },
+        { id: 'ancient_road', name: 'Cách chính thức', nameEn: 'Official Road', keyProps: ['Cách chính thức'], keyPropsEn: ['road'], description: 'đường công vụ Góc nhìn', descriptionEn: 'Road view' },
+        { id: 'ancient_gate', name: 'cổng thành', nameEn: 'City Gate', keyProps: ['cổng thành', 'bức tường thành'], keyPropsEn: ['city gate', 'wall'], description: 'Cổng thành Góc nhìn', descriptionEn: 'City gate view' },
         ...commonDefaults,
       ];
       
     case 'ancient_vehicle':
       return [
-        { id: 'ancient_sedan', name: '轿内', nameEn: 'Inside Sedan', keyProps: ['轿帘', '坐垫'], keyPropsEn: ['sedan curtain', 'cushion'], description: '轿内视角', descriptionEn: 'Inside sedan view' },
-        { id: 'ancient_carriage', name: '车内', nameEn: 'Inside Carriage', keyProps: ['车篾', '坐垫'], keyPropsEn: ['canopy', 'cushion'], description: '车内视角', descriptionEn: 'Inside carriage view' },
-        { id: 'ancient_boat', name: '船舱', nameEn: 'Boat Cabin', keyProps: ['船舱', '窗子'], keyPropsEn: ['cabin', 'window'], description: '船舱视角', descriptionEn: 'Boat cabin view' },
-        { id: 'ancient_deck', name: '甲板', nameEn: 'Ship Deck', keyProps: ['甲板', '风帆'], keyPropsEn: ['deck', 'sail'], description: '甲板视角', descriptionEn: 'Deck view' },
-        { id: 'ancient_horse', name: '马背', nameEn: 'On Horseback', keyProps: ['马', '马鞍'], keyPropsEn: ['horse', 'saddle'], description: '马背视角', descriptionEn: 'Horseback view' },
+        { id: 'ancient_sedan', name: 'Bên trong chiếc sedan', nameEn: 'Inside Sedan', keyProps: ['rèm xe', 'đệm'], keyPropsEn: ['sedan curtain', 'cushion'], description: 'G bên trong xeóc nhìn', descriptionEn: 'Inside sedan view' },
+        { id: 'ancient_carriage', name: 'bên trong xe', nameEn: 'Inside Carriage', keyProps: ['Khung xe', 'đệm'], keyPropsEn: ['canopy', 'cushion'], description: 'G trong xeóc nhìn', descriptionEn: 'Inside carriage view' },
+        { id: 'ancient_boat', name: 'cabin', nameEn: 'Boat Cabin', keyProps: ['cabin', 'cửa sổ'], keyPropsEn: ['cabin', 'window'], description: 'Cabin Góc nhìn', descriptionEn: 'Boat cabin view' },
+        { id: 'ancient_deck', name: 'boong tàu', nameEn: 'Ship Deck', keyProps: ['boong tàu', 'cánh buồm'], keyPropsEn: ['deck', 'sail'], description: 'Tầng Góc nhìn', descriptionEn: 'Deck view' },
+        { id: 'ancient_horse', name: 'cưỡi ngựa', nameEn: 'On Horseback', keyProps: ['con ngựa', 'yên ngựa'], keyPropsEn: ['horse', 'saddle'], description: 'Cưỡi NgựaGóc nhìn', descriptionEn: 'Horseback view' },
         ...commonDefaults,
       ];
       
@@ -817,32 +798,32 @@ function getDefaultViewpointsForEnvironment(
 }
 
 /**
- * 检查视角配置是否与环境类型兼容
+ * Kiểm tra Góc nhìn cấu hình phù hợp với môi trường Loạtôi tương thích
  */
 function isViewpointCompatibleWithEnvironment(
   config: ViewpointConfig,
   envType: SceneEnvironmentType
 ): boolean {
-  // 空数组表示通用视角，适用于所有环境
+  // Một mảng trống đại diện cho một G chungóc nhìn，Áp dụng cho Tất cảmôi trường
   if (config.environments.length === 0) {
     return true;
   }
-  // unknown 环境不做过滤，允许所有视角
+  // Môi trường không xác định không làm được Lọc，Cho phép Tất cảGóc nhìn
   if (envType === 'unknown') {
     return true;
   }
-  // 检查环境是否在兼容列表中
+  // Kiểm tra xem môi trường có nằm trong danh sách tương thích không
   return config.environments.includes(envType);
 }
 
 /**
- * 提取视角（不限数量）
- * 返回所有识别到的视角，不再限制为6个
+ * Trích xuấtGóc nhìn（Số lượng không giới hạn）
+ * Quay lạiTất cảG được công nhậnóc nhìn，Không còn giới hạn ở 6
  * 
- * 视角是从分镜内容中提取的，不做环境过滤
+ * Góc nhìn đến từ Phân cảTrích từ nội dung nh，Đừng làm môi trường Lọc
  * 
- * @param shots 分镜列表
- * @param sceneLocation 场景地点（仅用于补充默认视角）
+ * @param shots Phân cảnh danh sách
+ * @param sceneLocation Cảvị trí nh（Chỉ để bổ sung Mặc địnhGóc nhìn）
  */
 export function extractAllViewpointsFromShots(
   shots: Shot[],
@@ -851,7 +832,7 @@ export function extractAllViewpointsFromShots(
   const viewpointMap = new Map<string, SceneViewpoint>();
   const matchedShotIds = new Set<string>();
   
-  // 第一遍：根据关键词匹配分镜到视角
+  // lần đầu tiên：Kết hợp Ph dựa trên từ khóaân cảnh đến Góc nhìn
   for (const shot of shots) {
     const searchText = getShotSearchableText(shot);
     let shotMatched = false;
@@ -896,18 +877,18 @@ export function extractAllViewpointsFromShots(
     }
   }
   
-  // 第二遍：将未匹配的分镜归入「全景」视角
+  // Lần thứ hai：Sẽ vô song Phân cảnh thuộc về「Toàn cảnh」Góc nhìn
   const unmatchedShots = shots.filter(s => !matchedShotIds.has(s.id));
   if (unmatchedShots.length > 0) {
     if (!viewpointMap.has('overview')) {
       viewpointMap.set('overview', {
         id: 'overview',
-        name: '全景',
+        name: 'Toàn cảnh',
         nameEn: 'Overview',
         shotIds: unmatchedShots.map(s => s.id),
         keyProps: [],
         keyPropsEn: [],
-        description: '整体空间布局',
+        description: 'bố trí không gian tổng thể',
         descriptionEn: 'Overall spatial layout',
         gridIndex: viewpointMap.size,
       });
@@ -921,14 +902,14 @@ export function extractAllViewpointsFromShots(
     }
   }
   
-  // 按关联分镜数排序
+  // Hiệp hội báo chí Phân cảnh số Sắp xếp
   const viewpoints = Array.from(viewpointMap.values())
     .sort((a, b) => b.shotIds.length - a.shotIds.length);
   
-  // 补充默认视角（全景和细节）
+  // Bổ sung Mặc địnhGóc nhìn（Toàn cảnh và chi tiết）
   const defaultViewpoints = [
-    { id: 'overview', name: '全景', nameEn: 'Overview', keyProps: [] as string[], keyPropsEn: [] as string[], description: '整体空间布局', descriptionEn: 'Overall spatial layout' },
-    { id: 'detail', name: '细节', nameEn: 'Detail View', keyProps: [] as string[], keyPropsEn: [] as string[], description: '细节特写', descriptionEn: 'Detail close-up' },
+    { id: 'overview', name: 'Toàn cảnh', nameEn: 'Overview', keyProps: [] as string[], keyPropsEn: [] as string[], description: 'bố trí không gian tổng thể', descriptionEn: 'Overall spatial layout' },
+    { id: 'detail', name: 'Chi tiết', nameEn: 'Detail View', keyProps: [] as string[], keyPropsEn: [] as string[], description: 'Chi tiếtĐặc tả', descriptionEn: 'Detail close-up' },
   ];
   
   while (viewpoints.length < 6 && defaultViewpoints.length > 0) {
@@ -948,8 +929,8 @@ export function extractAllViewpointsFromShots(
 }
 
 /**
- * 将视角分组为联合图页
- * 每页最多 6 个视角
+ * Will Góc nhìnGroup thành các trang bản đồ chung
+ * Tối đa 6 G mỗi trangóc nhìn
  */
 export function groupViewpointsIntoPages(
   viewpoints: SceneViewpoint[],
@@ -959,7 +940,7 @@ export function groupViewpointsIntoPages(
   
   for (let i = 0; i < viewpoints.length; i += viewpointsPerPage) {
     const page = viewpoints.slice(i, i + viewpointsPerPage);
-    // 重新分配页内 gridIndex (0-5)
+    // Chỉ định lại GridIndex trong trang (0-5)
     page.forEach((v, idx) => { v.gridIndex = idx; });
     pages.push(page);
   }
@@ -968,50 +949,50 @@ export function groupViewpointsIntoPages(
 }
 
 /**
- * 生成联合图的提示词
- * 返回 PendingViewpointData 和 ContactSheetPromptSet 用于传递给场景库
+ * TạoNhắc sơ đồ chung
+ * Quay lại PendingViewpointData và ContactSheetPromptSet được sử dụng để chuyển tới Thư viện cảnh
  * 
- * 布局选择逻辑：
- * - 视角 ≤ 6：使用 2x3 或 3x2（1 张图）
- * - 视角 7-9：使用 3x3（1 张图）
- * - 视角 > 9：分多张图
+ * Logic lựa chọn bố cục：
+ * - Góc nhìn ≤ 6：Sử dụng 2x3 hoặc 3x2（1 bức ảnh）
+ * - Góc nhìn 7-9：Sử dụng 3x3（1 bức ảnh）
+ * - Góc nhìn > 9：Chia thành nhiều hình ảnh
  */
 export function generateMultiPageContactSheetData(
   config: ContactSheetConfig,
-  shots: Shot[] // 用于获取分镜序号
+  shots: Shot[] // Được sử dụng để lấy Phân cảsố sê-ri
 ): {
   viewpoints: PendingViewpointData[];
   contactSheetPrompts: ContactSheetPromptSet[];
 } {
   const { scene, styleTokens, aspectRatio } = config;
   
-  // 提取所有视角（传入场景地点进行环境过滤）
+  // Trích xuất Tất cảGóc nhìn（Đạt Cảnh vị trí cho môi trường Lọc）
   const sceneLocation = scene.location || scene.name || '';
   const allViewpoints = extractAllViewpointsFromShots(config.shots, sceneLocation);
   
-  // 根据视角数量和宽高比自动选择最优布局
-  // 强制使用 NxN 布局 (2x2 或 3x3) 以保证宽高比一致性，与 Director 面板保持一致
+  // Theo G.óc nhìn số và tỷ lệ khung hình tự động chọn bố cục tối ưu
+  // Buộc bố cục NxN (2x2 hoặc 3x3) để có tính nhất quán về tỷ lệ khung hình，Phù hợp với Ban giám đốc
   let gridLayout: { rows: number; cols: number };
   let viewpointsPerPage: number;
   
   const vpCount = allViewpoints.length;
   
   if (vpCount <= 4) {
-    // 4 个以内：使用 2x2
+    // Trong vòng 4：Sử dụng 2x2
     gridLayout = { rows: 2, cols: 2 };
     viewpointsPerPage = 4;
   } else {
-    // 超过 4 个：使用 3x3 (最多 9 个一页)
+    // hơn 4：Sử dụng 3x3 (tối đa 9 trang mỗi trang)
     gridLayout = { rows: 3, cols: 3 };
     viewpointsPerPage = 9;
   }
   
-  console.log('[ContactSheet] 布局选择:', { vpCount, aspectRatio, gridLayout, viewpointsPerPage });
+  console.log('[ContactSheet] Tùy chọn bố cục:', { vpCount, aspectRatio, gridLayout, viewpointsPerPage });
   
-  // 分页
+  // Phân trang
   const pages = groupViewpointsIntoPages(allViewpoints, viewpointsPerPage);
   
-  // 构建场景基础描述
+  // \u6784\u5efaCảnhCơ bảnMô tả
   const sceneDescEn = [
     scene.architectureStyle && `Architecture: ${scene.architectureStyle}`,
     scene.colorPalette && `Color palette: ${scene.colorPalette}`,
@@ -1020,37 +1001,37 @@ export function generateMultiPageContactSheetData(
   ].filter(Boolean).join('. ');
   
   const sceneDescZh = [
-    scene.architectureStyle && `建筑风格：${scene.architectureStyle}`,
-    scene.colorPalette && `色彩基调：${scene.colorPalette}`,
-    scene.eraDetails && `时代特征：${scene.eraDetails}`,
-    scene.lightingDesign && `光影设计：${scene.lightingDesign}`,
+    scene.architectureStyle && `Kiến trúcPhong cách：${scene.architectureStyle}`,
+    scene.colorPalette && `Màu sắgiai điệu c：${scene.colorPalette}`,
+    scene.eraDetails && `Đặc điểm của thời đại：${scene.eraDetails}`,
+    scene.lightingDesign && `Ánh sáthiết kế：${scene.lightingDesign}`,
   ].filter(Boolean).join('，');
   
   const styleStr = styleTokens.length > 0 
     ? styleTokens.join(', ') 
     : 'anime style, soft colors, detailed background';
   
-  // 构建分镜 ID 到序号的映射
+  // xây dựng tiến sĩân cảnh ID để ánh xạ số thứ tự
   const shotIdToIndex = new Map<string, number>();
   shots.forEach(shot => {
     shotIdToIndex.set(shot.id, shot.index);
   });
   
-  // 生成 PendingViewpointData
+  // Tạo PendingViewpointData
   const pendingViewpoints: PendingViewpointData[] = [];
   
   pages.forEach((pageViewpoints, pageIndex) => {
     pageViewpoints.forEach((vp, idx) => {
-      // 生成视角描述
-      const propsZh = vp.keyProps.length > 0 ? `，包含${vp.keyProps.join('、')}` : '';
+      // TạoGóc nhìnMô tả
+      const propsZh = vp.keyProps.length > 0 ? `，chứa${vp.keyProps.join('、')}` : '';
       const propsEn = vp.keyPropsEn.length > 0 ? ` with ${vp.keyPropsEn.join(', ')}` : '';
-      vp.description = `${vp.name}视角${propsZh}`;
+      vp.description = `${vp.name}Góc nhìn${propsZh}`;
       vp.descriptionEn = `${vp.nameEn} angle${propsEn}`;
       
-      // 更新 gridIndex
+      // Cập nhật gridIndex
       vp.gridIndex = idx;
       
-      // 获取关联分镜的序号
+      // Nhận Ph liên quanân cảsố seri của nh
       const shotIndexes = vp.shotIds
         .map(id => shotIdToIndex.get(id))
         .filter((idx): idx is number => idx !== undefined)
@@ -1070,25 +1051,25 @@ export function generateMultiPageContactSheetData(
     });
   });
   
-  // 生成每页的 ContactSheetPromptSet
+  // TạoBảng liên hệPromptSet trên mỗi trang
   const contactSheetPrompts: ContactSheetPromptSet[] = pages.map((pageViewpoints, pageIndex) => {
     const totalCells = gridLayout.rows * gridLayout.cols;
     const paddedCount = totalCells;
     const actualCount = pageViewpoints.length;
     
-    // 构建增强版提示词 — 对齐导演面板 generateGridAndSlice 的三层风格夹击结构
+    // Xây dựng phiên bản nâng cao của Lời nhắc — Căn chỉPhong c ba lớp của bảng giám đốc nh generateGridAndSliceácấu trúc ch nhúm
     const promptParts: string[] = [];
     
-    // 1. 核心指令区 (Instruction Block) — 使用与导演面板一致的 storyboard grid 术语
+    // 1. Khối lệnh lõi (Instruction Block) — Sử dụng thuật ngữ lưới bảng phân cảnh phù hợp với Bảng điều khiển
     promptParts.push('<instruction>');
     promptParts.push(`Generate a clean ${gridLayout.rows}x${gridLayout.cols} storyboard grid with exactly ${paddedCount} equal-sized panels.`);
     promptParts.push(`Overall Image Aspect Ratio: ${aspectRatio}.`);
     
-    // 明确指定单个格子的宽高比，防止 AI 混淆
+    // Chỉ định rõ ràng tỷ lệ khung hình của một lưới riêng lẻ，Ngăn chặn sự nhầm lẫn của AI
     const panelAspect = aspectRatio === '16:9' ? '16:9 (horizontal landscape)' : '9:16 (vertical portrait)';
     promptParts.push(`Each individual panel must have a ${panelAspect} aspect ratio.`);
     
-    // 全局视觉风格（前置到指令区，权重最高 — 三层夹击第一层）
+    // Global VisionPhong cách（thêm vào khu vực chỉ huy，Trọng lượng cao nhất — Ba lớp gọng kìm tấn công lớp đầu tiên）
     if (styleStr) {
       promptParts.push(`MANDATORY Visual Style for ALL panels: ${styleStr}`);
     }
@@ -1098,15 +1079,15 @@ export function generateMultiPageContactSheetData(
     promptParts.push('Subject: Interior design and architectural details only, NO people.');
     promptParts.push('</instruction>');
     
-    // 2. 布局描述
+    // 2. Bố cục Mô tả
     promptParts.push(`Layout: ${gridLayout.rows} rows, ${gridLayout.cols} columns, reading order left-to-right, top-to-bottom.`);
     
-    // 3. 场景信息
+    // 3. Cảnh thông tin
     if (sceneDescEn) {
       promptParts.push(`Scene Context: ${sceneDescEn}`);
     }
     
-    // 4. 每个格子的内容描述 — 每格附带 [same style] 锚定（三层夹击第二层）
+    // 4. Nội dung M của mỗi lướiô tả — Bao gồm trong mỗi lưới [same style] mỏ neo（Ba lớp gọng kìm tấn công lớp thứ hai）
     const styleAnchor = styleStr ? ' [same style]' : '';
     pageViewpoints.forEach((vp, idx) => {
       const row = Math.floor(idx / gridLayout.cols) + 1;
@@ -1119,39 +1100,39 @@ export function generateMultiPageContactSheetData(
       promptParts.push(`Panel [row ${row}, col ${col}] (no people): ${content}${styleAnchor}`);
     });
     
-    // 5. 空白占位格描述
+    // 5. Khoảng trống Mô tả
     for (let i = actualCount; i < paddedCount; i++) {
       const row = Math.floor(i / gridLayout.cols) + 1;
       const col = (i % gridLayout.cols) + 1;
       promptParts.push(`Panel [row ${row}, col ${col}]: empty placeholder, solid gray background`);
     }
     
-    // 6. 全局风格尾部再次强调（三层夹击第三层）
+    // 6. Toàn Phong cáSự kết thúc của ch được nhấn mạnh một lần nữa（Ba lớp gọng kìm tấn công lớp thứ ba）
     if (styleStr) {
       promptParts.push(`IMPORTANT - Apply this EXACT style uniformly to every panel: ${styleStr}`);
     }
     
-    // 7. 负面提示词
+    // 7. Lời nhắc tiêu cực
     promptParts.push('Negative constraints: text, watermark, split screen borders, speech bubbles, blur, distortion, bad anatomy, people, characters, distorted grid, uneven panels.');
     
     const prompt = promptParts.join('\n');
 
-    // 中文提示词
+    // Lời nhắc tiếng Trung
     const gridItemsZh = pageViewpoints.map((vp, i) => 
       `[${i + 1}] ${vp.name}：${vp.description}`
     ).join('\n');
     
-    const promptZh = `一张精确的 ${gridLayout.rows}行${gridLayout.cols}列 网格图（共 ${totalCells} 个格子），展示同一个「${scene.name || scene.location}」场景的不同视角。
+    const promptZh = `chính xác ${gridLayout.rows}được rồi${gridLayout.cols}biểu đồ lưới cột（tổng cộng ${totalCells} lưới），hiển thị tương tự「${scene.name || scene.location}」CảDifferent G of nhóc nhìn。
 ${sceneDescZh}
 
-${totalCells} 个格子分别展示：${gridItemsZh}。
+${totalCells} Mỗi lưới được hiển thị riêng biệt：${gridItemsZh}。
 
-重要：
-- 必须精确生成 ${gridLayout.rows} 行 ${gridLayout.cols} 列，不能多也不能少。
-- 这是一张干净的参考图，图片上不要添加任何文字覆盖。
-- 不要添加标签、标题、说明文字、水印或任何类型的文字。
+quan trọng：
+- Phải chính xácạo ${gridLayout.rows} được rồi ${gridLayout.cols} Cột，Không hơn, không kém。
+- Đây là hình ảnh tham khảo rõ ràng，Hình ảKhông Th trên nhêghi đè văn bản mAny。
+- Đừng màêthẻ m、Tiêu đề、Giải thívăn bản ch、Hình mờ hoặc bất kỳ Loạvăn bản của tôi。
 
-风格：${styleTokens.length > 0 ? styleTokens.join('、') : '动画风格，柔和色彩，细节丰富'}，所有格子光照一致，格子之间用细白边框分隔，只有背景，没有人物。`;
+Phong cách：${styleTokens.length > 0 ? styleTokens.join('、') : 'Hoạt ảnhPhong cách，mềm Màu sắc，Giàu chi tiết'}，Tất cảLưới chiếu sáng nhất quán，Sử dụng Vi trắng mịn giữa các lướiền tách ra，Chỉ có Nền，không có ký tự。`;
     
     return {
       pageIndex,
@@ -1169,14 +1150,14 @@ ${totalCells} 个格子分别展示：${gridItemsZh}。
 }
 
 /**
- * 从已有的 viewpoints 数据构建联合图数据
- * 用于从剧本面板跳转到场景库时，直接使用 AI 分析的视角
+ * Xây dựng dữ liệu đồ thị chung từ dữ liệu quan điểm hiện có
+ * sử dụng từ Kịch bảbảng n nhảy tới Thư viện cảnh thời gian，Sử dụng AI Ph trực tiếpân tíG của chóc nhìn
  * 
- * @param viewpoints - 来自 ScriptScene.viewpoints 的视角数据
- * @param scene - 场景信息（用于生成提示词）
- * @param shots - 分镜列表（用于获取分镜序号）
- * @param styleTokens - 风格标记
- * @param aspectRatio - 宽高比
+ * @quan điểm param - G từ ScriptScene.viewpointsóc nhìdữ liệu
+ * @param scene - Cảnh thông tin（cho TạoPrompt）
+ * @param shots - Phân cảnh danh sách（Được sử dụng để lấy Phân cảsố sê-ri）
+ * @param styleTokens - Phong cádấu ch
+ * @param khía cạnhRatio - tỷ lệ khung hình
  */
 export function buildContactSheetDataFromViewpoints(
   viewpoints: Array<{
@@ -1195,7 +1176,7 @@ export function buildContactSheetDataFromViewpoints(
   viewpoints: PendingViewpointData[];
   contactSheetPrompts: ContactSheetPromptSet[];
 } {
-  // 根据视角数量选择布局
+  // Theo G.óc nhìn bố cục chọn số lượng
   const vpCount = viewpoints.length;
   let gridLayout: { rows: number; cols: number };
   let viewpointsPerPage: number;
@@ -1208,11 +1189,11 @@ export function buildContactSheetDataFromViewpoints(
     viewpointsPerPage = 9;
   }
   
-  console.log('[buildContactSheetDataFromViewpoints] 使用 AI 视角构建联合图数据:', {
+  console.log('[buildContactSheetDataFromViewpoints] Sử dụng AI Góc nhìnBuild dữ liệu đồ thị chung:', {
     vpCount,
     gridLayout,
     viewpointsPerPage,
-    // 调试：场景美术设计字段
+    // Gỡ lỗi：Cảlĩnh vực thiết kế nghệ thuật nh
     sceneFields: {
       name: scene.name,
       location: scene.location,
@@ -1223,16 +1204,16 @@ export function buildContactSheetDataFromViewpoints(
     },
   });
   
-  // 分页
+  // Phân trang
   const pages: typeof viewpoints[] = [];
   for (let i = 0; i < viewpoints.length; i += viewpointsPerPage) {
     const page = viewpoints.slice(i, i + viewpointsPerPage);
-    // 重新分配页内 gridIndex (0-based)
+    // Chỉ định lại GridIndex trong trang (dựa trên 0)
     page.forEach((v, idx) => { (v as any).gridIndex = idx; });
     pages.push(page);
   }
   
-  // 构建场景描述（美术设计字段）
+  // \u6784\u5efaCảnhMô tả（lĩnh vực thiết kế nghệ thuật）
   const sceneDescEn = [
     scene.architectureStyle && `Architecture: ${scene.architectureStyle}`,
     scene.colorPalette && `Color palette: ${scene.colorPalette}`,
@@ -1241,39 +1222,39 @@ export function buildContactSheetDataFromViewpoints(
   ].filter(Boolean).join('. ');
   
   const sceneDescZh = [
-    scene.architectureStyle && `建筑风格：${scene.architectureStyle}`,
-    scene.colorPalette && `色彩基调：${scene.colorPalette}`,
-    scene.eraDetails && `时代特征：${scene.eraDetails}`,
-    scene.lightingDesign && `光影设计：${scene.lightingDesign}`,
+    scene.architectureStyle && `Kiến trúcPhong cách：${scene.architectureStyle}`,
+    scene.colorPalette && `Màu sắgiai điệu c：${scene.colorPalette}`,
+    scene.eraDetails && `Đặc điểm của thời đại：${scene.eraDetails}`,
+    scene.lightingDesign && `Ánh sáthiết kế：${scene.lightingDesign}`,
   ].filter(Boolean).join('，');
   
-  // 视觉提示词（AI 场景校准生成的详细场景描述）
+  // Lời nhắc trực quan（AI Cảnh hiệu chuẩn TạChi tiết C của oảnhMô tả）
   const visualPromptZh = scene.visualPrompt || '';
   const visualPromptEn = scene.visualPromptEn || '';
   
-  console.log('[buildContactSheetDataFromViewpoints] 场景描述:', {
+  console.log('[buildContactSheetDataFromViewpoints] CảnhMô tả:', {
     sceneDescZh,
     sceneDescEn,
-    visualPromptZh: visualPromptZh ? visualPromptZh.substring(0, 50) + '...' : '(无)',
-    visualPromptEn: visualPromptEn ? visualPromptEn.substring(0, 50) + '...' : '(无)',
+    visualPromptZh: visualPromptZh ? visualPromptZh.substring(0, 50) + '...' : '(không có)',
+    visualPromptEn: visualPromptEn ? visualPromptEn.substring(0, 50) + '...' : '(không có)',
   });
   
   const styleStr = styleTokens.length > 0 
     ? styleTokens.join(', ') 
     : 'anime style, soft colors, detailed background';
   
-  // 构建分镜 ID 到序号的映射
+  // xây dựng tiến sĩân cảnh ID để ánh xạ số thứ tự
   const shotIdToIndex = new Map<string, number>();
   shots.forEach(shot => {
     shotIdToIndex.set(shot.id, shot.index);
   });
   
-  // 生成 PendingViewpointData
+  // Tạo PendingViewpointData
   const pendingViewpoints: PendingViewpointData[] = [];
   
   pages.forEach((pageViewpoints, pageIndex) => {
     pageViewpoints.forEach((vp, idx) => {
-      // 获取关联分镜的序号
+      // Nhận Ph liên quanân cảsố seri của nh
       const shotIndexes = vp.shotIds
         .map(id => shotIdToIndex.get(id))
         .filter((idx): idx is number => idx !== undefined)
@@ -1282,34 +1263,34 @@ export function buildContactSheetDataFromViewpoints(
       pendingViewpoints.push({
         id: vp.id,
         name: vp.name,
-        nameEn: vp.nameEn || vp.name, // 如果没有英文名，使用中文名
+        nameEn: vp.nameEn || vp.name, // Nếu không có tên tiếng Anh，Sử dụng tên tiếng Trung
         shotIds: vp.shotIds,
         shotIndexes,
         keyProps: vp.keyProps,
-        keyPropsEn: [], // 可能没有英文道具名，留空
+        keyPropsEn: [], // Có thể không có tên tiếng Anh，Để trống
         gridIndex: idx,
         pageIndex,
       });
     });
   });
   
-  // 生成每页的 ContactSheetPromptSet
+  // TạoBảng liên hệPromptSet trên mỗi trang
   const contactSheetPrompts: ContactSheetPromptSet[] = pages.map((pageViewpoints, pageIndex) => {
     const totalCells = gridLayout.rows * gridLayout.cols;
     const paddedCount = totalCells;
     const actualCount = pageViewpoints.length;
     
-    // 构建英文提示词 — 对齐导演面板三层风格注入
+    // Xây dựng lời nhắc tiếng Anh — Căn chỉnh bảng giám đốc ba lớp Phong cách tiêm
     const promptParts: string[] = [];
     
-    // 计算每格的宽高比描述
+    // Tính tỷ lệ khung hình M của mỗi lướiô tả
     const panelAspect = aspectRatio === '16:9' ? '16:9 (horizontal landscape)' : '9:16 (vertical portrait)';
     
     promptParts.push('<instruction>');
     promptParts.push(`Generate a clean ${gridLayout.rows}x${gridLayout.cols} storyboard grid with exactly ${paddedCount} equal-sized panels.`);
     promptParts.push(`Overall Image Aspect Ratio: ${aspectRatio}.`);
     promptParts.push(`Each individual panel must have a ${panelAspect} aspect ratio.`);
-    // Layer 1: MANDATORY 风格前置（instruction 区内，最高优先级）
+    // Layer 1: MANDATORY Phong cátiền tố ch（Khu vực hướng dẫn，ưu tiên cao nhất）
     promptParts.push(`MANDATORY Visual Style for ALL panels: ${styleStr}`);
     promptParts.push('Structure: No borders between panels, no text, no watermarks, no speech bubbles.');
     promptParts.push('Consistency: Maintain consistent perspective, lighting, color grading, and visual style across ALL panels.');
@@ -1322,56 +1303,56 @@ export function buildContactSheetDataFromViewpoints(
       promptParts.push(`Scene Context: ${sceneDescEn}`);
     }
     
-    // 添加视觉提示词（英文）
+    // ThêLời nhắc mVisual（Tiếng Anh）
     if (visualPromptEn) {
       promptParts.push(`Visual Description: ${visualPromptEn}`);
     }
     
-    // 每个格子的内容描述 + Layer 2: 每格风格锚定
+    // Nội dung của mỗi lưới Mô tả + Lớp 2: Phong c mỗi ôách neo
     pageViewpoints.forEach((vp, idx) => {
       const row = Math.floor(idx / gridLayout.cols) + 1;
       const col = (idx % gridLayout.cols) + 1;
       const vpNameEn = vp.nameEn || vp.name;
       const content = vp.keyProps.length > 0 
         ? `showing ${vp.keyProps.join(', ')}` 
-        : (vpNameEn === 'Overview' || vp.name === '全景' ? 'wide shot showing the entire room layout' : `${vpNameEn} angle of the room`);
+        : (vpNameEn === 'Overview' || vp.name === 'Toàn cảnh' ? 'wide shot showing the entire room layout' : `${vpNameEn} angle of the room`);
       
       promptParts.push(`Panel [row ${row}, col ${col}] (no people): ${content} [same style]`);
     });
     
-    // 空白占位格
+    // phần giữ chỗ trống
     for (let i = actualCount; i < paddedCount; i++) {
       const row = Math.floor(i / gridLayout.cols) + 1;
       const col = (i % gridLayout.cols) + 1;
       promptParts.push(`Panel [row ${row}, col ${col}]: empty placeholder, solid gray background`);
     }
     
-    // Layer 3: 尾部风格强调（首尾夹击）
+    // Lớp 3: Đuôi Phong cách nhấn mạnh（Tấn công trực diện）
     promptParts.push(`IMPORTANT - Apply this EXACT style uniformly to every panel: ${styleStr}`);
     promptParts.push('Negative constraints: text, watermark, split screen borders, speech bubbles, blur, distortion, bad anatomy, people, characters, distorted grid, uneven panels.');
     
     const prompt = promptParts.join('\n');
     
-    // 中文提示词
+    // Lời nhắc tiếng Trung
     const gridItemsZh = pageViewpoints.map((vp, i) => {
       const content = vp.keyProps.length > 0 
-        ? `展示${vp.keyProps.join('、')}` 
-        : (vp.name === '全景' ? '展示整个空间布局的宽角度全景' : `${vp.name}视角`);
+        ? `hiển thị${vp.keyProps.join('、')}` 
+        : (vp.name === 'Toàn cảnh' ? 'Góc rộng thể hiện được bố cục của toàn bộ không gianàn cảnh' : `${vp.name}Góc nhìn`);
       return `[${i + 1}] ${vp.name}：${content}`;
     }).join('\n');
     
-    const promptZh = `一张精确的 ${gridLayout.rows}行${gridLayout.cols}列 网格图（共 ${totalCells} 个格子），展示同一个「${scene.name || scene.location}」场景的不同视角。
-${sceneDescZh}${visualPromptZh ? `\n场景氛围：${visualPromptZh}` : ''}
+    const promptZh = `chính xác ${gridLayout.rows}được rồi${gridLayout.cols}biểu đồ lưới cột（tổng cộng ${totalCells} lưới），hiển thị tương tự「${scene.name || scene.location}」CảDifferent G of nhóc nhìn。
+${sceneDescZh}${visualPromptZh ? `\nCảbầu không khí nh：${visualPromptZh}` : ''}
 
-${totalCells} 个格子分别展示：
+${totalCells} Mỗi lưới được hiển thị riêng biệt：
 ${gridItemsZh}
 
-重要：
-- 必须精确生成 ${gridLayout.rows} 行 ${gridLayout.cols} 列，不能多也不能少。
-- 这是一张干净的参考图，图片上不要添加任何文字覆盖。
-- 不要添加标签、标题、说明文字、水印或任何类型的文字。
+quan trọng：
+- Phải chính xácạo ${gridLayout.rows} được rồi ${gridLayout.cols} Cột，Không hơn, không kém。
+- Đây là hình ảnh tham khảo rõ ràng，Hình ảKhông Th trên nhêghi đè văn bản mAny。
+- Đừng màêthẻ m、Tiêu đề、Giải thívăn bản ch、Hình mờ hoặc bất kỳ Loạvăn bản của tôi。
 
-风格：${styleTokens.length > 0 ? styleTokens.join('、') : '动画风格，柔和色彩，细节丰富'}，所有格子光照一致，格子之间用细白边框分隔，只有背景，没有人物。`;
+Phong cách：${styleTokens.length > 0 ? styleTokens.join('、') : 'Hoạt ảnhPhong cách，mềm Màu sắc，Giàu chi tiết'}，Tất cảLưới chiếu sáng nhất quán，Sử dụng Vi trắng mịn giữa các lướiền tách ra，Chỉ có Nền，không có ký tự。`;
     
     return {
       pageIndex,

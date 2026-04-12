@@ -4,98 +4,98 @@
 /**
  * AI Character Finder
  * 
- * 根据用户自然语言描述，从剧本中查找角色并生成专业角色数据
+ * Theo Người dùngtự nhiênngôn ngữMô tả，từKịch bảntrong\u67e5\u627eNhân vật\u5e76TạoNH chuyên nghiệpân vật\u6570\u636e
  * 
- * 功能：
- * 1. 解析用户输入（如 "缺第10集的王大哥这个角色"）
- * 2. 搜索剧本中的角色信息
- * 3. AI 生成完整角色数据（包括视觉提示词）
+ * chức năng：
+ * 1. Phân tích cú phápười dùngĐầu vào（Chẳng hạn như "thiếuKhông.10đặt\u738b\u5927\u54e5\u8fd9Nhân vật"）
+ * 2. Tìm kiếmKịch bảntrongNhân vậthông tin t
+ * 3. AI TạoHoàn thànhNhân vật\u6570\u636e（bao gồmLời nhắc trực quan）
  */
 
 import type { ScriptCharacter, ProjectBackground, EpisodeRawScript } from '@/types/script';
 import { callFeatureAPI } from '@/lib/ai/feature-router';
 
-// ==================== 类型定义 ====================
+// ==================== LoạiĐịnh nghĩa ====================
 
 export interface CharacterSearchResult {
-  /** 是否找到角色 */
+  /** \u662f\u5426tìm thấyNhân vật */
   found: boolean;
-  /** 角色名 */
+  /** Nhân vậtên t */
   name: string;
-  /** 置信度 0-1 */
+  /** \u7f6e\u4fe1\u5ea6 0-1 */
   confidence: number;
-  /** 出现的集数 */
+  /** Số tập đã xuất hiện */
   episodeNumbers: number[];
-  /** 找到的上下文（对白、场景等） */
+  /** tìm thấycủa\u4e0a\u4e0b\u6587（đối thoại、CảnhĐợi đã） */
   contexts: string[];
-  /** AI 生成的完整角色数据 */
+  /** AI Tạo Hoàn thànhNhân vật\u6570\u636e */
   character?: ScriptCharacter;
-  /** 搜索说明 */
+  /** Tìm kiếmGiải thích */
   message: string;
 }
 
-/** @deprecated 不再需要手动传递，自动从服务映射获取 */
+/** @không được dùng nữa không cần phải chuyển thủ công nữa，Tự động thu được từ bản đồ dịch vụ */
 export interface FinderOptions {
   apiKey?: string;
   provider?: string;
   baseUrl?: string;
 }
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 解析用户输入，提取角色名和集数信息
+ * Phân tích cú phápười dùngĐầu vào，Trích xuất Nhân vậtên tvàđặt\u6570thông tin
  */
 function parseUserQuery(query: string): { name: string | null; episodeNumber: number | null } {
   let name: string | null = null;
   let episodeNumber: number | null = null;
   
-  // 提取集数：第X集、第X话、EP.X、EpX 等
-  const episodeMatch = query.match(/第\s*(\d+)\s*[集话]|EP\.?\s*(\d+)|episode\s*(\d+)/i);
+  // Bộ trích xuất\u6570：Tập X、Không.X\u8bdd、EP.X、EpX Đợi đã
+  const episodeMatch = query.match(/Không.\s*(\d+)\s*[đặt\u8bdd]|EP\.?\s*(\d+)|episode\s*(\d+)/i);
   if (episodeMatch) {
     episodeNumber = parseInt(episodeMatch[1] || episodeMatch[2] || episodeMatch[3]);
   }
   
-  // 提取角色名：常见模式
-  // 1. "王大哥这个角色" → 王大哥
-  // 2. "缺张小宝这个人" → 张小宝
-  // 3. "需要李明" → 李明
-  // 4. "角色：刀疤哥" → 刀疤哥
+  // Trích xuất Nhân vậtên t：\u5e38\u89c1chế độ
+  // 1. "\u738b\u5927\u54e5\u8fd9Nhân vật" → \u738b\u5927\u54e5
+  // 2. "thiếu\u5f20\u5c0f\u5b9d\u8fd9một\u4eba" → \u5f20\u5c0f\u5b9d
+  // 3. "\u9700\u8981\u674e\u660e" → \u674e\u660e
+  // 4. "Nhân vật：\u5200\u75a4\u54e5" → \u5200\u75a4\u54e5
   
-  // 移除集数相关文本
+  // Xóađặt\u6570\u76f8\u5173\u6587\u672c
   let cleanQuery = query
-    .replace(/第\s*\d+\s*[集话]/g, '')
+    .replace(/Không.\s*\d+\s*[đặt\u8bdd]/g, '')
     .replace(/EP\.?\s*\d+/gi, '')
     .replace(/episode\s*\d+/gi, '')
     .trim();
   
-  // 模式1：X这个角色/X这个人
-  let nameMatch = cleanQuery.match(/[「「"']?([^「」""'\s,，。！？]+?)[」」"']?\s*这个[角色人]/);
+  // chế độ1：X\u8fd9Nhân vật/X\u8fd9một\u4eba
+  let nameMatch = cleanQuery.match(/[「「"']?([^「」""'\s,，。！？]+?)[」」"']?\s*\u8fd9một[Nhân vật\u4eba]/);
   if (nameMatch) {
     name = nameMatch[1];
   }
   
-  // 模式2：缺/需要/添加 + 角色名
+  // chế độ2：thiếu/\u9700\u8981/Thêm + Nhân vậtên t
   if (!name) {
-    // 先移除前缀动词，然后取剩余部分作为角色名
-    nameMatch = cleanQuery.match(/^[缺需要添加找查想请帮我的]+\s*[「「"']?([^「」""'\s,，。！？这个角色人]{2,8})[」」"']?/);
+    // đầu tiênXóa\u524d\u7f00\u52a8\u8bcd，\u7136\u540e\u53d6\u5269\u4f59một phần\u4f5cchoNhân vậtên t
+    nameMatch = cleanQuery.match(/^[thiếu\u9700\u8981Thêm\u627e\u67e5\u60f3\u8bf7\u5e2e\u6211của]+\s*[「「"']?([^「」""'\s,，。！？\u8fd9Nhân vật\u4eba]{2,8})[」」"']?/);
     if (nameMatch) {
       name = nameMatch[1];
     }
   }
   
-  // 模式3：角色：/角色名：后面的内容
+  // chế độ3：Nhân vật：/Nhân vậtên t：\u540e\u9762củabên trong\u5bb9
   if (!name) {
-    nameMatch = cleanQuery.match(/角色[：:名]?\s*[「「"']?([^「」""'\s,，。！？]{2,8})[」」"']?/);
+    nameMatch = cleanQuery.match(/Nhân vật[：:tên]?\s*[「「"']?([^「」""'\s,，。！？]{2,8})[」」"']?/);
     if (nameMatch) {
       name = nameMatch[1];
     }
   }
   
-  // 模式4：直接就是角色名（2-8个字符）
+  // chế độ4：\u76f4\u63a5\u5c31\u662fNhân vậtên t（2-8mộttừ\u7b26）
   if (!name) {
-    // 去掉常见动词和助词
-    const pureQuery = cleanQuery.replace(/^[缺需要添加找查想请帮我的]+/g, '').trim();
+    // \u53bb\u6389\u5e38\u89c1\u52a8\u8bcdvà\u52a9\u8bcd
+    const pureQuery = cleanQuery.replace(/^[thiếu\u9700\u8981Thêm\u627e\u67e5\u60f3\u8bf7\u5e2e\u6211của]+/g, '').trim();
     if (pureQuery.length >= 2 && pureQuery.length <= 8 && /^[\u4e00-\u9fa5A-Za-z]+$/.test(pureQuery)) {
       name = pureQuery;
     }
@@ -105,7 +105,7 @@ function parseUserQuery(query: string): { name: string | null; episodeNumber: nu
 }
 
 /**
- * 从剧本中搜索角色
+ * từKịch bảntrongTìm kiếmNhân vật
  */
 function searchCharacterInScripts(
   name: string,
@@ -123,7 +123,7 @@ function searchCharacterInScripts(
   const dialogueSamples: string[] = [];
   const sceneSamples: string[] = [];
   
-  // 遍历剧本搜索
+  // \u904d\u5386Kịch bảnTìm kiếm
   const scriptsToSearch = targetEpisode 
     ? episodeScripts.filter(ep => ep.episodeIndex === targetEpisode)
     : episodeScripts;
@@ -136,12 +136,12 @@ function searchCharacterInScripts(
     for (const scene of ep.scenes) {
       if (!scene) continue;
       
-      // 检查场景人物列表
+      // \u68c0\u67e5Cảnh nhân vậdanh sách t
       const hasInCharacters = scene.characters?.some(c => 
         c === name || c.includes(name) || name.includes(c)
       );
       
-      // 检查对白
+      // \u68c0\u67e5đối thoại
       const relevantDialogues = scene.dialogues?.filter(d => 
         d.character === name || d.character.includes(name) || name.includes(d.character)
       ) || [];
@@ -152,23 +152,23 @@ function searchCharacterInScripts(
           foundInEpisode = true;
         }
         
-        // 收集场景信息
+        // \u6536đặtCảnh thông tin
         if (sceneSamples.length < 3) {
-          sceneSamples.push(`第${ep.episodeIndex}集 - ${scene.sceneHeader || '场景'}`);
+          sceneSamples.push(`Không.${ep.episodeIndex}đặt - ${scene.sceneHeader || 'Cảnh'}`);
         }
         
-      // 收集对白样本
+      // Thu thập mẫu đối thoại
         for (const d of relevantDialogues.slice(0, 3)) {
           if (dialogueSamples.length < 5) {
             dialogueSamples.push(`${d.character}: ${d.line.slice(0, 50)}${d.line.length > 50 ? '...' : ''}`);
           }
         }
         
-        // 收集上下文
+        // \u6536đặt\u4e0a\u4e0b\u6587
         if (contexts.length < 5) {
           const sceneContext = [
-            `【${scene.sceneHeader || '场景'}】`,
-            scene.characters?.length ? `人物: ${scene.characters.join(', ')}` : '',
+            `【${scene.sceneHeader || 'Cảnh'}】`,
+            scene.characters?.length ? `nhân vật: ${scene.characters.join(', ')}` : '',
             ...relevantDialogues.slice(0, 2).map(d => `${d.character}: ${d.line.slice(0, 30)}...`),
           ].filter(Boolean).join('\n');
           contexts.push(sceneContext);
@@ -187,7 +187,7 @@ function searchCharacterInScripts(
 }
 
 /**
- * 使用 AI 生成完整角色数据
+ * sử dụng AI TạoHoàn thànhNhân vật\u6570\u636e
  */
 async function generateCharacterData(
   name: string,
@@ -196,7 +196,7 @@ async function generateCharacterData(
   dialogueSamples: string[]
 ): Promise<ScriptCharacter> {
   
-  // 检测剧本类型：古装/未来/现代
+  // Phát hiệnKịch bảnLoại：\u53e4\u88c5/tương lai/hiện đại
   const detectStoryType = () => {
     const era = (background.era || '');
     const timeline = (background.timelineSetting || '');
@@ -212,169 +212,169 @@ async function generateCharacterData(
       hasOutline: !!outline,
     });
     
-    // 如果有明确的 storyStartYear 且是近现代年份（1800年以后），直接判定为现代剧
+    // nếu có\u660e\u786ecủa storyStartYear \u4e14\u662f\u8fd1hiện đạinăm\u4efd（1800năm\u4ee5\u540e），\u76f4\u63a5\u5224\u5b9achohiện đại\u5267
     if (startYear && startYear >= 1800) {
-      console.log('[detectStoryType] 检测结果: modern (基于 storyStartYear:', startYear, ')');
+      console.log('[detectStoryType] Phát hiệnkết quả: modern (Dựa trên storyStartYear:', startYear, ')');
       return 'modern';
     }
     
-    // 如果 storyStartYear 不存在，尝试从 outline/era/timeline 中提取年份
+    // Chẳng hạn như\u679c storyStartYear \u4e0d\u5b58\u5728，\u5c1d\u8bd5từ outline/era/timeline trongTrích xuấtnăm\u4efd
     const textForYearExtraction = `${era} ${timeline} ${outline}`;
-    const yearMatch = textForYearExtraction.match(/(19\d{2}|20\d{2})\s*年/);
+    const yearMatch = textForYearExtraction.match(/(19\d{2}|20\d{2})\s*năm/);
     if (yearMatch) {
       const extractedYear = parseInt(yearMatch[1]);
-      console.log('[detectStoryType] 检测结果: modern (从文本提取年份:', extractedYear, ')');
+      console.log('[detectStoryType] Phát hiệnkết quả: modern (từ\u6587\u672cTrích xuấtnăm\u4efd:', extractedYear, ')');
       return 'modern';
     }
     
-    // 古装剧关键词（明确的古代设定）
-    const ancientKeywords = ['古代', '古装', '武侠', '仙侠', '唐朝', '宋朝', '明朝', '清朝', '汉朝', '三国', '战国', '秦朝', '宫廷', '皇宫', '江湖', '修仙', '玄幻', '神话', '传说', '朝代', '皇帝', '大臣', '太监', '妃子'];
-    // 未来/科幻关键词
-    const futureKeywords = ['未来', '科幻', '太空', '星际', '机器人', '赛博朋克', '末日', '后启示录', '反乌托邦', '人工智能', '2100', '2200', '2300'];
+    // \u53e4\u88c5\u5267chìa khóa\u8bcd（\u660e\u786ecủathời cổ đạicài đặt）
+    const ancientKeywords = ['thời cổ đại', '\u53e4\u88c5', 'võ thuật', 'Tiên Hạ', 'nhà Đường', 'Nhà Tống', 'nhà Minh', 'nhà Thanh', 'nhà Hán', 'Tam Quốc', 'Thời Chiến Quốc', '\u79e6\u671d', 'cung điện', 'cung điện hoàng gia', 'giang hồ', 'trồng trọt', 'tưởng tượng', '\u795e\u8bdd', '\u4f20nói', '\u671d\u4ee3', 'hoàng đế', 'Bộ trưởng', '\u592a\u76d1', 'vợ lẽ'];
+    // tương lai/khoa học viễn tưởngchìa khóa\u8bcd
+    const futureKeywords = ['tương lai', 'khoa học viễn tưởng', 'không gian', 'liên sao', 'người máy', 'cyberpunk', '\u672bngày', 'hậu tận thế', 'viễn tưởng', 'trí tuệ nhân tạo', '2100', '2200', '2300'];
     
     const allText = `${era} ${timeline} ${genre} ${outline}`;
     
     if (ancientKeywords.some(kw => allText.includes(kw))) {
-      console.log('[detectStoryType] 检测结果: ancient (基于关键词)');
+      console.log('[detectStoryType] Phát hiệnkết quả: ancient (Dựa trênchìa khóa\u8bcd)');
       return 'ancient';
     }
     if (futureKeywords.some(kw => allText.includes(kw))) {
-      console.log('[detectStoryType] 检测结果: future (基于关键词)');
+      console.log('[detectStoryType] Phát hiệnkết quả: future (Dựa trênchìa khóa\u8bcd)');
       return 'future';
     }
-    console.log('[detectStoryType] 检测结果: modern (默认)');
+    console.log('[detectStoryType] Phát hiệnkết quả: modern (Mặc định)');
     return 'modern';
   };
   
   const storyType = detectStoryType();
   
-  // 根据剧本类型构建服装指导
+  // Theo K.ịch bảnLoại\u6784\u5efaquần áo\u6307\u5bfc
   const getEraFashionGuidance = () => {
-    // 古装剧
+    // \u53e4\u88c5\u5267
     if (storyType === 'ancient') {
-      const era = background.era || background.timelineSetting || '古代';
-      return `【${era}服装指导】
-请根据剧本设定的历史时代设计服装：
-- 如果是客梨或武侠：古代汉服、侠客服饰、布衣草鞋
-- 如果是宫廷：宫装、朝服、官服
-- 如果是仙侠/玄幻：仙侠风格的服饰、飘逸长袍
-请根据角色身份（平民/贵族/侠客/官员）设计合适的古代服装。`;
+      const era = background.era || background.timelineSetting || 'thời cổ đại';
+      return `【${era}quần áo\u6307\u5bfc】
+Xin vui lòng Theo K.ịch bảncài đặtcủaLịch sửthời đại\u8bbe\u8ba1quần áo：
+- Chẳng hạn như\u679c\u662f\u5ba2\u68a8hoặcvõ thuật：thời cổ đại\u6c49\u670d、hiệp sĩ\u670d\u9970、\u5e03\u8863\u8349\u978b
+- Chẳng hạn như\u679c\u662fcung điện：cung điện\u88c5、\u671d\u670d、\u5b98\u670d
+- Chẳng hạn như\u679c\u662fTiên Hạ/tưởng tượng：Tiên HạPhong cáchcủa\u670d\u9970、\u98d8\u9038áo choàng
+\u8bf7\u6839\u636eNhân vậtdanh tính（\u5e73\u6c11/\u8d35\u65cf/hiệp sĩ/\u5b98\u5458）\u8bbe\u8ba1\u5408\u9002củathời cổ đạiquần áo。`;
     }
     
-    // 未来/科幻剧
+    // tương lai/khoa học viễn tưởng\u5267
     if (storyType === 'future') {
-      return `【未来/科幻服装指导】
-请根据剧本设定设计未来风格服装：
-- 科技感服饰、功能性装备、智能穿戴
-- 根据设定可以是乌托邦风格或反乌托邦风格
-- 注意角色身份（平民/科学家/军人/机械师）`;
+      return `【tương lai/khoa học viễn tưởngquần áo\u6307\u5bfc】
+Xin vui lòng Theo K.ịch bảncài đặt\u8bbe\u8ba1tương laiPhong cáchquần áo：
+- \u79d1\u6280\u611f\u670d\u9970、chức năng\u6027\u88c5\u5907、\u667a\u80fd\u7a7f\u6234
+- Theocài đặt\u53ef\u4ee5\u662f\u4e4c\u6258\u90a6Phong cáchhoặcviễn tưởngPhong cách
+- Lưu ýNhân vậtdanh tính（\u5e73\u6c11/\u79d1\u5b66nhà/\u519b\u4eba/\u673a\u68b0phép chia）`;
     }
     
-    // 现代剧 - 根据具体年代
+    // hiện đại\u5267 - Theo\u5177\u4f53thời đại
     const startYear = background.storyStartYear;
     
     if (startYear) {
       if (startYear >= 2020) {
-        return `【${startYear}年代服装指导】
-- 年轻人：休闲时尚、运动风、潮牌元素，常穿卫衣、牵仔裤、运动鞋
-- 中年人：商务休闲、简约现代，常穿Polo衫、休闲西装、卡其裤
-- 老年人：舒适休闲，常穿开衫、单子衫、布鞋或运动鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：\u4f11\u95f2\u65f6\u5c1a、các môn thể thaogió、\u6f6e\u724cphần tử，\u5e38\u7a7f\u536b\u8863、\u7275\u4ed4\u88e4、các môn thể thao\u978b
+- tuổi trung niên\u4eba：\u5546\u52a1\u4f11\u95f2、\u7b80khoảnghiện đại，\u5e38\u7a7fPolo\u886b、\u4f11\u95f2\u897f\u88c5、\u5361\u5176\u88e4
+- tuổi già\u4eba：Thoải mái\u4f11\u95f2，\u5e38\u7a7f\u5f00\u886b、\u5355\u5b50\u886b、\u5e03\u978bhoặccác môn thể thao\u978b`;
       } else if (startYear >= 2010) {
-        return `【${startYear}年代服装指导】
-- 年轻人：韩系时尚、小清新风格，常穿T恤、牵仔裤、帆布鞋
-- 中年人：商务正装或商务休闲，常穿西装、衬衫、皮鞋
-- 老年人：传统休闲，常穿开衫、布鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：\u97e9\u7cfb\u65f6\u5c1a、\u5c0f\u6e05\u65b0Phong cách，\u5e38\u7a7fáo phông、\u7275\u4ed4\u88e4、\u5e06\u5e03\u978b
+- tuổi trung niên\u4eba：\u5546\u52a1trang phục chính thứchoặc\u5546\u52a1\u4f11\u95f2，\u5e38\u7a7f\u897f\u88c5、\u886c\u886b、\u76ae\u978b
+- tuổi già\u4eba：\u4f20\u7edf\u4f11\u95f2，\u5e38\u7a7f\u5f00\u886b、\u5e03\u978b`;
       } else if (startYear >= 2000) {
-        return `【${startYear}年代服装指导】
-- 年轻人：千禧年时尚，常穿紧身裤、宽松外套、板鞋
-- 中年人：正式商务装，常穿西装套装、领带、皮鞋
-- 老年人：中山装或简单开衫、布鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：ngàn\u79a7năm\u65f6\u5c1a，\u5e38\u7a7f\u7d27\u8eab\u88e4、lỏng lẻoBên ngoài\u5957、\u677f\u978b
+- tuổi trung niên\u4eba：\u6b63\u5f0f\u5546\u52a1\u88c5，\u5e38\u7a7f\u897f\u88c5\u5957\u88c5、\u9886\u5e26、\u76ae\u978b
+- tuổi già\u4eba：trongnúi\u88c5hoặc\u7b80\u5355\u5f00\u886b、\u5e03\u978b`;
       } else if (startYear >= 1990) {
-        return `【${startYear}年代服装指导】
-- 年轻人：喇叭裤、的确良外套、大肩垫西装
-- 中年人：中山装或西装，解放鞋或简单皮鞋
-- 老年人：中山装、棉袄、布鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：loa\u88e4、của\u786e\u826fBên ngoài\u5957、\u5927\u80a9\u57ab\u897f\u88c5
+- tuổi trung niên\u4eba：trongnúi\u88c5hoặc\u897f\u88c5，giải phóng\u978bhoặc\u7b80\u5355\u76ae\u978b
+- tuổi già\u4eba：trongnúi\u88c5、áo khoác đệm bông、\u5e03\u978b`;
       } else {
-        return `【${startYear}年代服装指导】
-请根据该年代的中国实际服装风格设计`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+\u8bf7\u6839\u636e\u8be5thời đạicủatrong\u56fd\u5b9e\u9645quần áoPhong cách thiết kế`;
       }
     }
     
-    // 默认现代
-    return `【现代服装指导】
-请设计符合当代中国的服装风格，根据角色年龄和身份选择合适的现代服装。`;
+    // Mặc định hiện đại
+    return `【hiện đạiquần áo\u6307\u5bfc】
+\u8bf7\u8bbe\u8ba1\u7b26\u5408đương đạitrong\u56fdcủaquần áoPhong cách，\u6839\u636eNhân vậtuổi tácvàdanh tính\u9009\u62e9\u5408\u9002củahiện đạiquần áo。`;
   };
   
-  // 构建年代信息字符串
+  // \u6784\u5efathông tin tuổi tácchuỗi
   const getEraInfo = () => {
     if (storyType === 'ancient') {
-      return `时代背景：${background.era || background.timelineSetting || '古代'}`;
+      return `Thời đại Nền：${background.era || background.timelineSetting || 'thời cổ đại'}`;
     }
     if (storyType === 'future') {
-      return `时代背景：${background.era || background.timelineSetting || '未来'}`;
+      return `Thời đại Nền：${background.era || background.timelineSetting || 'tương lai'}`;
     }
     if (background.storyStartYear) {
-      return `故事年份：${background.storyStartYear}年${background.storyEndYear && background.storyEndYear !== background.storyStartYear ? ` - ${background.storyEndYear}年` : ''}`;
+      return `năm câu chuyện：${background.storyStartYear}năm${background.storyEndYear && background.storyEndYear !== background.storyStartYear ? ` - ${background.storyEndYear}năm` : ''}`;
     }
-    return `时代背景：${background.era || background.timelineSetting || '现代'}`;
+    return `Thời đại Nền：${background.era || background.timelineSetting || 'hiện đại'}`;
   };
   
   const eraInfo = getEraInfo();
   const eraFashionGuidance = getEraFashionGuidance();
   
-  const systemPrompt = `你是专业的影视角色设计师，擅长从剧本信息中提炼角色特征并生成专业的角色数据。
+  const systemPrompt = `\u4f60\u662f\u4e13\u4e1acủa\u5f71\u89c6Nhân vật\u8bbe\u8ba1phép chia，\u64c5\u957ftừKịch bảthông tintrong\u63d0\u70bcNhân vật\u7279\u5f81\u5e76TạoNH chuyên nghiệpân vật\u6570\u636e。
 
-请根据提供的剧本信息和角色上下文，生成完整的角色数据。
+\u8bf7\u6839\u636e\u63d0\u4f9bcủaKịch bảthông tinvàNhân vật\u4e0a\u4e0b\u6587，TạoHoàn thànhNhân vật\u6570\u636e。
 
-【服装设计要求】
+【quần áo\u8bbe\u8ba1yêu cầu】
 ${eraFashionGuidance}
 
-服装必须与剧本时代背景一致，不要混淆不同时代的服装风格。
+quần áo\u5fc5\u987bvớiKịch bảnThời đại Nềnmột\u81f4，\u4e0d\u8981\u6df7\u6dc6\u4e0d\u540cthời đạtôi làquần áoPhong cách。
 
-【输出格式】
-请返回JSON格式，包含以下字段：
+【Đầu raĐịnh dạng】
+Xin hãy quay lạiạiJSONĐịnh dạng，chứa\u4ee5\u4e0btừ\u6bb5：
 {
-  "name": "角色名",
-  "gender": "男/女",
-  "age": "年龄描述，如 '30岁左右' 或 '中年'",
-  "personality": "性格特点，2-3个词",
-  "role": "角色身份/职业/在剧中的作用",
-  "appearance": "外貌特征描述（服装必须符合年代）",
-  "relationships": "与其他角色的关系",
-  "visualPromptEn": "英文视觉提示词，用于AI图像生成，描述外貌、服装（必须符合年代）、气质",
-  "visualPromptZh": "中文视觉提示词",
+  "name": "Nhân vậtên t",
+  "gender": "Nam/Nữ",
+  "age": "tuổi tácMô tả，Chẳng hạn như '30tuổi\u5de6\u53f3' hoặc 'tuổi trung niên'",
+  "personality": "Đặc điểm tính cách，2-3một\u8bcd",
+  "role": "Nhân vậtdanh tính/Sự nghiệp/\u5728\u5267trongcủa\u4f5csử dụng",
+  "appearance": "đặc điểm vật lýMô tả（quần áo\u5fc5\u987b\u7b26\u5408thời đại）",
+  "relationships": "với Nh khácân vậmối quan hệ",
+  "visualPromptEn": "Lời nhắc trực quan bằng tiếng Anh，cho hình ảnh AI Tạo，Mô tảBên ngoài\u8c8c、quần áo（\u5fc5\u987b\u7b26\u5408thời đại）、tính khí",
+  "visualPromptZh": "Lời nhắc trực quan của Trung Quốc",
   "importance": "protagonist/supporting/minor"
 }`;
 
-  const userPrompt = `【剧本信息】
-剧名：《${background.title}》
-类型：${background.genre || '剧情'}
+  const userPrompt = `【Kịch bảthông tin】
+Tiêu đề phim truyền hình：《${background.title}》
+Loại：${background.genre || '\u5267\u60c5'}
 ${eraInfo}
 
-【故事大纲】
-${background.outline?.slice(0, 1000) || '无'}
+【Tóm tắt】
+${background.outline?.slice(0, 1000) || 'không có'}
 
-【人物小传】
-${background.characterBios?.slice(0, 800) || '无'}
+【Tiểu sử】
+${background.characterBios?.slice(0, 800) || 'không có'}
 
-【要分析的角色】
+【\u8981Phân tíchNhân vật】
 ${name}
 
-【角色出场上下文】
+【Nhân vậtxuất hiệnContext】
 ${contexts.slice(0, 3).join('\n\n')}
 
-【角色对白样本】
+【Nhân vậtmẫu đối thoại】
 ${dialogueSamples.join('\n')}
 
-请基于以上信息，生成角色「${name}」的完整数据。
+\u8bf7Dựa trên\u4ee5\u4e0athông tin，TạoNhân vật「${name}」của\u5b8csố nguyên\u636e。
 
-【重要】服装必须符合故事时代背景（${eraInfo}）！`;
+【quan trọng】quần áo\u5fc5\u987b\u7b26\u5408câu chuyệnThời đại Nền（${eraInfo}）！`;
 
   try {
-    // 统一从服务映射获取配置
+    // Thống nhất có được cấu hình từ ánh xạ dịch vụ
     const result = await callFeatureAPI('script_analysis', systemPrompt, userPrompt);
     
-    // 解析 JSON
+    // Phân tích cú pháp JSON
     let cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const jsonStart = cleaned.indexOf('{');
     const jsonEnd = cleaned.lastIndexOf('}');
@@ -384,16 +384,16 @@ ${dialogueSamples.join('\n')}
     
     const parsed = JSON.parse(cleaned);
     
-    // 确保所有字段都是字符串类型（AI 可能返回对象）
+    // \u786e\u4fddTất cảtừ\u6bb5\u90fd\u662fchuỗiLoại（AI \u53ef\u80fdQuay lại\u5bf9\u8c61）
     const ensureString = (val: any): string | undefined => {
       if (val === null || val === undefined) return undefined;
       if (typeof val === 'string') return val;
       if (typeof val === 'object') {
-        // 如果是对象，尝试转换为字符串
+        // Chẳng hạn như\u679c\u662f\u5bf9\u8c61，\u5c1d\u8bd5\u8f6c\u6362chochuỗi
         if (Array.isArray(val)) {
           return val.join(', ');
         }
-        // 对象转换为键值对字符串
+        // \u5bf9\u8c61\u8f6c\u6362cho\u952e\u503c\u5bf9chuỗi
         return Object.entries(val)
           .map(([k, v]) => `${k}: ${v}`)
           .join('; ');
@@ -412,32 +412,32 @@ ${dialogueSamples.join('\n')}
       relationships: ensureString(parsed.relationships),
       visualPromptEn: ensureString(parsed.visualPromptEn),
       visualPromptZh: ensureString(parsed.visualPromptZh),
-      tags: [parsed.importance || 'minor', 'AI生成'],
+      tags: [parsed.importance || 'minor', 'AITạo'],
     };
   } catch (error) {
-    console.error('[generateCharacterData] AI生成失败:', error);
-    // 返回基础数据
+    console.error('[generateCharacterData] AITạoThất bại:', error);
+    // Quay lạiCơ bảdữ liệu
     return {
       id: `char_${Date.now()}`,
       name,
-      tags: ['AI生成'],
+      tags: ['AITạo'],
     };
   }
 }
 
 /**
- * 主函数：根据用户描述查找并生成角色
+ * Chúa ơichức năng：Theo Người dùngMô tả\u67e5\u627e\u5e76TạoNhân vật
  */
 export async function findCharacterByDescription(
   userQuery: string,
   background: ProjectBackground,
   episodeScripts: EpisodeRawScript[],
   existingCharacters: ScriptCharacter[],
-  _options?: FinderOptions // 不再需要，保留以兼容
+  _options?: FinderOptions // không còn cần thiết nữa，dành riêng cho khả năng tương thích
 ): Promise<CharacterSearchResult> {
-  console.log('[findCharacterByDescription] 用户查询:', userQuery);
+  console.log('[findCharacterByDescription] Người dùngTruy vấn:', userQuery);
   
-  // 1. 解析用户输入
+  // 1. Phân tích cú phápười dùngĐầu vào
   const { name, episodeNumber } = parseUserQuery(userQuery);
   
   if (!name) {
@@ -447,13 +447,13 @@ export async function findCharacterByDescription(
       confidence: 0,
       episodeNumbers: [],
       contexts: [],
-      message: '无法识别角色名。请用类似"缺第10集的王大哥"或"添加张小宝这个角色"的方式描述。',
+      message: 'không có\u6cd5\u8bc6\u522bNhân vậtên t。\u8bf7sử dụng\u7c7b\u4f3c"thiếuKhông.10đặt\u738b\u5927\u54e5"hoặc"Thêm\u5f20\u5c0f\u5b9d\u8fd9Nhân vật"của\u65b9\u5f0fMô tả。',
     };
   }
   
-  console.log('[findCharacterByDescription] 解析结果:', { name, episodeNumber });
+  console.log('[findCharacterByDescription] Phân tích kết quả:', { name, episodeNumber });
   
-  // 2. 检查是否已存在
+  // 2. \u68c0\u67e5\u662f\u5426Đã rồi\u5b58\u5728
   const existing = existingCharacters.find(c => 
     c.name === name || c.name.includes(name) || name.includes(c.name)
   );
@@ -465,16 +465,16 @@ export async function findCharacterByDescription(
       confidence: 1,
       episodeNumbers: [],
       contexts: [],
-      message: `角色「${existing.name}」已存在于角色列表中。`,
+      message: `Nhân vật「${existing.name}」Đã rồi\u5b58\u5728\u4e8eNhân vậdanh sách ttrong。`,
       character: existing,
     };
   }
   
-  // 3. 从剧本中搜索
+  // 3. từKịch bảntrongTìm kiếm
   const searchResult = searchCharacterInScripts(name, episodeScripts, episodeNumber || undefined);
   
   if (!searchResult.found) {
-    // 没找到但可以让用户确认是否创建
+    // \u6ca1tìm thấy\u4f46\u53ef\u4ee5\u8ba9Người dùngXác nhận liệu Tạo
     return {
       found: false,
       name,
@@ -482,13 +482,13 @@ export async function findCharacterByDescription(
       episodeNumbers: [],
       contexts: [],
       message: episodeNumber 
-        ? `在第 ${episodeNumber} 集中未找到角色「${name}」。是否仍要创建这个角色？`
-        : `在剧本中未找到角色「${name}」。是否仍要创建这个角色？`,
+        ? `ở Không. ${episodeNumber} đặttrong\u672atìm thấyNhân vật「${name}」。Bạn vẫn muốn Tạo\u8fd9Nhân vật？`
+        : `ở Kịch bảntrong\u672atìm thấyNhân vật「${name}」。Bạn vẫn muốn Tạo\u8fd9Nhân vật？`,
     };
   }
   
-  // 4. 使用 AI 生成完整角色数据
-  console.log('[findCharacterByDescription] 正在生成角色数据...');
+  // 4. sử dụng AI TạoHoàn thànhNhân vật\u6570\u636e
+  console.log('[findCharacterByDescription] Là TạoNhân vật\u6570\u636e...');
   
   const character = await generateCharacterData(
     name,
@@ -497,7 +497,7 @@ export async function findCharacterByDescription(
     searchResult.dialogueSamples
   );
   
-  // 计算置信度
+  // Tính toán\u7f6e\u4fe1\u5ea6
   const confidence = Math.min(
     0.5 + searchResult.dialogueSamples.length * 0.1 + searchResult.episodeNumbers.length * 0.05,
     1
@@ -509,13 +509,13 @@ export async function findCharacterByDescription(
     confidence,
     episodeNumbers: searchResult.episodeNumbers,
     contexts: searchResult.contexts,
-    message: `找到角色「${character.name}」，出现在第 ${searchResult.episodeNumbers.join(', ')} 集。`,
+    message: `tìm thấyNhân vật「${character.name}」，\u51fa\u73b0ở Không. ${searchResult.episodeNumbers.join(', ')} đặt。`,
     character,
   };
 }
 
 /**
- * 仅搜索（不调用AI），用于快速预览
+ * \u4ec5Tìm kiếm（\u4e0d\u8c03sử dụngAI），sử dụng\u4e8eNhanh\u901fXem trước
  */
 export function quickSearchCharacter(
   userQuery: string,
@@ -525,10 +525,10 @@ export function quickSearchCharacter(
   const { name, episodeNumber } = parseUserQuery(userQuery);
   
   if (!name) {
-    return { name: null, found: false, message: '请输入角色名' };
+    return { name: null, found: false, message: 'Vui lòng nhậpNhân vậtên t' };
   }
   
-  // 检查已存在
+  // \u68c0\u67e5Đã rồi\u5b58\u5728
   const existing = existingCharacters.find(c => 
     c.name === name || c.name.includes(name) || name.includes(c.name)
   );
@@ -537,25 +537,25 @@ export function quickSearchCharacter(
     return { 
       name: existing.name, 
       found: true, 
-      message: `角色「${existing.name}」已存在`,
+      message: `Nhân vật「${existing.name}」Đã rồi\u5b58\u5728`,
       existingChar: existing,
     };
   }
   
-  // 快速搜索
+  // Nhanh\u901fTìm kiếm
   const searchResult = searchCharacterInScripts(name, episodeScripts, episodeNumber || undefined);
   
   if (searchResult.found) {
     return {
       name,
       found: true,
-      message: `找到「${name}」，出现在第 ${searchResult.episodeNumbers.join(', ')} 集`,
+      message: `tìm thấy「${name}」，\u51fa\u73b0ở Không. ${searchResult.episodeNumbers.join(', ')} đặt`,
     };
   }
   
   return {
     name,
     found: false,
-    message: `未在剧本中找到「${name}」`,
+    message: `\u672aở Kịch bảntrongtìm thấy「${name}」`,
   };
 }

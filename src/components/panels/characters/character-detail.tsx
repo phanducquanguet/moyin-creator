@@ -39,26 +39,26 @@ import { ImagePreviewModal } from "@/components/panels/director/media-preview-mo
 
 // View type labels
 const VIEW_LABELS: Record<string, string> = {
-  front: "正面",
-  side: "侧面",
-  back: "背面",
-  "three-quarter": "四分之三",
+  front: "phía trước",
+  side: "\u4fa7\u9762",
+  back: "mặt sau",
+  "three-quarter": "bốn\u5206\u4e4bba",
 };
 
 // Gender labels
 const GENDER_LABELS: Record<string, string> = {
-  male: "男",
-  female: "女",
-  other: "其他",
+  male: "\u7537",
+  female: "\u5973",
+  other: "\u5176\u4ed6",
 };
 
 // Age labels
 const AGE_LABELS: Record<string, string> = {
-  child: "儿童",
-  teen: "青少年",
-  "young-adult": "青年",
-  adult: "中年",
-  senior: "老年",
+  child: "\u513f\u7ae5",
+  teen: "\u9752vị thành niên",
+  "young-adult": "tuổi trẻ",
+  adult: "tuổi trung niên",
+  senior: "tuổi già",
 };
 
 interface CharacterDetailProps {
@@ -84,7 +84,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
           <User className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          选择一个角色查看详情
+          \u9009\u62e9mộtmột\u89d2\u8272\u67e5\u770b\u8be6\u60c5
         </p>
       </div>
     );
@@ -93,23 +93,23 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
   const handleSaveName = () => {
     if (editName.trim() && editName.trim() !== character.name) {
       updateCharacter(character.id, { name: editName.trim() });
-      toast.success("名称已更新");
+      toast.success("tên\u79f0Đã rồi\u66f4mới");
     }
     setIsEditingName(false);
   };
 
   const handleDelete = () => {
-    if (confirm(`确定要删除角色 "${character.name}" 吗？`)) {
+    if (confirm(`\u786e\u5b9a\u8981\u5220\u9664\u89d2\u8272 "${character.name}" \u5417？`)) {
       deleteCharacter(character.id);
       selectCharacter(null);
-      toast.success("角色已删除");
+      toast.success("\u89d2\u8272Đã rồi\u5220\u9664");
     }
   };
 
   const handleSaveNotes = () => {
     updateCharacter(character.id, { notes: editNotes.trim() || undefined });
     setIsEditingNotes(false);
-    toast.success("备注已更新");
+    toast.success("Bình luậnha\u66f4mới");
   };
 
   const handleAddTag = () => {
@@ -118,7 +118,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
     const currentTags = character.tags || [];
     if (!currentTags.includes(tag)) {
       updateCharacter(character.id, { tags: [...currentTags, tag] });
-      toast.success("标签已添加");
+      toast.success("nhãnha\u6dfb\u52a0");
     }
     setNewTag("");
   };
@@ -159,10 +159,10 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success(`${name}.png 导出成功`);
+      toast.success(`${name}.png \u5bfc\u51fa\u6210\u529f`);
     } catch (err) {
       console.error('Export image failed:', err);
-      toast.error('导出失败');
+      toast.error('\u5bfc\u51fa\u5931\u8d25');
     }
   };
 
@@ -216,7 +216,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
           <div className="space-y-2">
             <div 
               className="aspect-square rounded-lg bg-muted overflow-hidden border relative cursor-zoom-in"
-              title="双击查看完整图片"
+              title="\u53cc\u51fb\u67e5\u770b\u5b8c\u6574\u56fe\u7247"
               draggable
               onDoubleClick={() => {
                 const url = currentView?.imageUrl || character.thumbnailUrl;
@@ -285,7 +285,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
 
           {/* Character info */}
           <div className="space-y-3">
-            <div className="text-xs font-medium text-muted-foreground">角色信息</div>
+            <div className="text-xs font-medium text-muted-foreground">\u89d2\u8272thông tin</div>
             
             {/* Basic info badges */}
             <div className="flex flex-wrap gap-1.5">
@@ -309,7 +309,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Description */}
             {character.description && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">描述</Label>
+                <Label className="text-xs text-muted-foreground">\u63cf\u8ff0</Label>
                 <p className="text-xs whitespace-pre-wrap bg-muted rounded p-2 max-h-[120px] overflow-y-auto">
                   {character.description}
                 </p>
@@ -319,19 +319,19 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Visual traits */}
             {character.visualTraits && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">视觉特征</Label>
+                <Label className="text-xs text-muted-foreground">\u89c6\u89c9\u7279\u5f81</Label>
                 <p className="text-xs text-muted-foreground bg-muted rounded p-2">
                   {character.visualTraits}
                 </p>
               </div>
             )}
 
-            {/* Notes / 角色备注 */}
+            {/* Notes / \u89d2\u8272Bình luận */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <StickyNote className="h-3 w-3" />
-                  角色备注
+                  \u89d2\u8272Bình luận
                 </Label>
                 {!isEditingNotes && (
                   <Button
@@ -352,33 +352,33 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
-                    placeholder="添加剧情相关的备注..."
+                    placeholder="\u6dfb\u52a0\u5267\u60c5\u76f8\u5173củaBình luận..."
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <Button size="sm" className="h-6 text-xs" onClick={handleSaveNotes}>
-                      保存
+                      \u4fdd\u5b58
                     </Button>
                     <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setIsEditingNotes(false)}>
-                      取消
+                      \u53d6\u6d88
                     </Button>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded p-2 text-indigo-800 dark:text-indigo-200">
-                  {character.notes || '点击编辑添加备注...'}
+                  {character.notes || '\u70b9\u51fb\u7f16\u8f91\u6dfb\u52a0Bình luận...'}
                 </p>
               )}
             </div>
 
             <Separator />
 
-            {/* Tags / 标签 */}
+            {/* Tags / nhãn */}
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Tag className="h-3 w-3" />
-                角色标签
+                \u89d2\u8272nhãn
               </Label>
               <div className="flex flex-wrap gap-1">
                 {(character.tags || []).map((tag) => (
@@ -397,7 +397,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                 <Input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="添加标签..."
+                  placeholder="\u6dfb\u52a0nhãn..."
                   className="h-7 text-xs"
                   onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
                 />
@@ -410,13 +410,13 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Reference images */}
             {character.referenceImages && character.referenceImages.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">参考图片</Label>
+                <Label className="text-xs text-muted-foreground">Hình ảnh tham khảo\u7247</Label>
                 <div className="flex gap-1.5">
                   {character.referenceImages.map((img, i) => (
                     <img
                       key={i}
                       src={img}
-                      alt={`参考图 ${i + 1}`}
+                      alt={`Hình ảnh tham khảo ${i + 1}`}
                       className="w-10 h-10 object-cover rounded border"
                     />
                   ))}
@@ -436,7 +436,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               onClick={() => setShowWardrobe(true)}
             >
               <Shirt className="h-4 w-4 mr-2" />
-              衣橱 ({variationCount})
+              \u8863\u6a71 ({variationCount})
             </Button>
 
             {currentView && (
@@ -447,7 +447,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                 onClick={() => handleExportImage(currentView.imageUrl, `${character.name}-${currentView.viewType}`)}
               >
                 <Download className="h-4 w-4 mr-2" />
-                导出当前视图
+                \u5bfc\u51fahiện tại\u89c6\u56fe
               </Button>
             )}
 
@@ -458,13 +458,13 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               onClick={handleDelete}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              删除角色
+              \u5220\u9664\u89d2\u8272
             </Button>
           </div>
 
           {/* Tips */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>💡 拖拽角色图片到 AI 导演面板使用</p>
+            <p>💡 \u62d6\u62fd\u89d2\u8272\u56fe\u7247Đến AI giám đốc\u9762\u677fsử dụng</p>
           </div>
         </div>
       </ScrollArea>

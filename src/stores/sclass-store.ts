@@ -2,16 +2,16 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * S级 Store — Seedance 2.0 多模态创作板块状态管理
+ * Cửa hàng cấp S — Phần tạo đa phương thức Seedance 2.0 Trạng thátôi quản lý
  *
- * 核心概念：
- * - ShotGroup：将 director-store 中的 SplitScene 按组合并，用于多镜头叙事视频生成
- * - AssetRef：@引用资产（图片/视频/音频），在提示词中以 @Image1 @Video1 @Audio1 形式引用
- * - 双模式：分镜模式（从剧本流水线导入）+ 自由模式（纯素材上传）
+ * khái niệm cốt lõi：
+ * - ShotGroup：Hợp nhất SplitScenes trong cửa hàng giám đốc theo nhóm，cho đa Cảnh quaynarrativeVideoTạo
+ * - AssetRef：@Nội dung tham chiếu（Hình ảnh/Video/Âm thanh），Nhắc nhở với @Image1 @Video1 @Tham chiếu biểu mẫu Audio1
+ * - Chế độ kép：Phân cảnh chế độ（từKịch bản dây chuyền lắp ráp Nhập）+ Chế độ miễn phí（Chất liệu nguyên chất Tải lên）
  *
- * Seedance 2.0 限制：
- * - 输入：≤9图片 + ≤3视频(≤15s) + ≤3音频(MP3,≤15s) + 文本(5000字符) ，总文件≤12
- * - 输出：4-15s，480p/720p/1080p，16:9/9:16/4:3/3:4/21:9/1:1
+ * Hạn chế của Seedance 2.0：
+ * - Đầu vào：≤9Hình ảnh + ≤3Video(≤15s) + ≤3Âm thanh(MP3,≤15s) + văn bản (5000 ký tự) ，Tổng Tệp≤12
+ * - Đầu ra：4-15s，480p/720p/1080p，16:9/9:16/4:3/3:4/21:9/1:1
  */
 
 import { create } from 'zustand';
@@ -20,78 +20,78 @@ import { createProjectScopedStorage } from '@/lib/project-storage';
 
 // ==================== Types ====================
 
-/** @引用资产类型 */
+/** @Tài sản tham chiếu Loại */
 export type AssetType = 'image' | 'video' | 'audio';
 
-/** 素材用途（Seedance 2.0 @素材用途精确标注） */
+/** Sử dụng vật liệu（Seedance 2.0 @Ghi nhãn chính xác việc sử dụng vật liệu） */
 export type AssetPurpose =
-  | 'character_ref'     // 角色参考
-  | 'scene_ref'         // 场景参考
-  | 'first_frame'       // 首帧
-  | 'grid_image'        // 格子图
-  | 'camera_replicate'  // 运镜复刻
-  | 'action_replicate'  // 动作复刻
-  | 'effect_replicate'  // 特效复刻
-  | 'beat_sync'         // 音乐卡点
-  | 'bgm'              // 背景音乐
-  | 'voice_ref'        // 语音参考
-  | 'prev_video'       // 前组延长
-  | 'video_extend'     // 被延长的视频
-  | 'video_edit_src'   // 被编辑的源视频
-  | 'general'          // 通用参考
+  | 'character_ref'     // Nhân vậsự phản bội
+  | 'scene_ref'         // Cảnh tham khảo
+  | 'first_frame'       // khung hình đầu tiên
+  | 'grid_image'        // biểu đồ lưới
+  | 'camera_replicate'  // Bản sao chuyển động gương
+  | 'action_replicate'  // Hành độbản sao
+  | 'effect_replicate'  // Hiệu ứbản sao
+  | 'beat_sync'         // Điểm kẹt nhạc
+  | 'bgm'              // NềnÂm nhạc
+  | 'voice_ref'        // Tham chiếu bằng giọng nói
+  | 'prev_video'       // Phần mở rộng phía trước
+  | 'video_extend'     // Video mở rộng
+  | 'video_edit_src'   // Bé Chỉnh sửNguồn Video của một
+  | 'general'          // tài liệu tham khảo chung
 ;
 
-/** 视频生成状态 */
+/** VideoTạoTrạng thái */
 export type VideoGenStatus = 'idle' | 'generating' | 'completed' | 'failed';
 
-/** 输出视频画幅比 */
+/** Đầbạn raTỷ lệ khung hình video */
 export type SClassAspectRatio = '16:9' | '9:16' | '4:3' | '3:4' | '21:9' | '1:1';
 
-/** 输出视频分辨率 */
+/** Đầu raVideoĐộ phân giải */
 export type SClassResolution = '480p' | '720p' | '1080p';
 
-/** 输出视频时长（秒） */
+/** Đầu raVideoThời lượng（giây） */
 export type SClassDuration = 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
 
-/** 创作模式 */
+/** chế độ sáng tạo */
 export type SClassMode = 'storyboard' | 'free';
 
-/** 组生成类型 */
+/** Nhóm TạoLoại */
 export type GroupGenerationType = 'new' | 'extend' | 'edit';
 
-/** 延长方向 */
+/** Hướng mở rộng */
 export type ExtendDirection = 'forward' | 'backward';
 
-/** 编辑类型 */
+/** Chỉnh sửaLoại */
 export type EditType = 'plot_change' | 'character_swap' | 'attribute_modify' | 'element_add';
 
 // ==================== Interfaces ====================
 
 /**
- * @引用资产
- * 在提示词中以 @Image1, @Video1, @Audio1 方式引用
+ * @Nội dung tham chiếu
+ * Nhắc nhở với @Image1, @Video1, @Tham chiếu chế độ Audio1
  */
 export interface AssetRef {
   id: string;
   type: AssetType;
-  /** 资产标签，如 @Image1, @Video2 */
+  /** Thẻ nội dung，Chẳng hạn như @Image1, @Video2 */
   tag: string;
-  /** 本地文件路径或 data URL */
+  /** địa phươngTệpĐường dẫcũng như URL dữ liệu */
   localUrl: string;
-  /** HTTP URL（上传到 API 后获得） */
+  /** HTTP URL（Tải lên thu được sau khi truy cập API） */
   httpUrl: string | null;
-  /** 文件名（用于显示） */
+  /** Tệtên p（để trưng bày） */
   fileName: string;
-  /** 文件大小（字节） */
+  /** TệpKích cỡ（Byte） */
   fileSize: number;
-  /** 视频/音频时长（秒），图片为 null */
+  /** Video/Âm thanhThời lượng（giây），Hình ảnh là null */
   duration: number | null;
-  /** 素材用途（Seedance 2.0 @素材用途精确标注） */
+  /** Sử dụng vật liệu（Seedance 2.0 @Ghi nhãn chính xác việc sử dụng vật liệu） */
   purpose?: AssetPurpose;
 }
 
 /**
- * 生成历史记录
+ * TạoLịch sửBản ghi
  */
 export interface GenerationRecord {
   id: string;
@@ -100,9 +100,9 @@ export interface GenerationRecord {
   videoUrl: string | null;
   status: VideoGenStatus;
   error: string | null;
-  /** 使用的资产引用快照 */
+  /** Ảnh chụp nhanh tham chiếu nội dung đã được sử dụng */
   assetRefs: AssetRef[];
-  /** 生成参数快照 */
+  /** TạoTham sốẢnh chụp nhanh */
   config: {
     aspectRatio: SClassAspectRatio;
     resolution: SClassResolution;
@@ -111,83 +111,83 @@ export interface GenerationRecord {
 }
 
 /**
- * 镜头组 — S级核心数据结构
+ * Cảnh quay group — Cấu trúc dữ liệu cốt lõi cấp S
  *
- * 将 director-store 中的多个 SplitScene 编为一组，
- * 合并它们的首帧图片、提示词，生成一段多镜头叙事视频。
+ * Nhóm nhiều SplitScenes trong cửa hàng giám đốc，
+ * Hợp nhất khung hình đầu tiên của họ Hình ảnh、Prompt，TạoNhiều chữ C trong một đoạn vănảnh quay tường thuậtVideo。
  */
 export interface ShotGroup {
   id: string;
-  /** 组名（自动生成或用户自定义） */
+  /** Tên nhóm（Tự động TạoorNgười dùngTuỳ chỉnh） */
   name: string;
-  /** 引用 director-store 中 SplitScene.id 列表 */
+  /** Tham khảo danh sách SplitScene.id trong cửa hàng giám đốc */
   sceneIds: number[];
-  /** 组内总时长限制（≤15s） */
+  /** Tổng Th trong nhómời lượgiới hạn ng（≤15s） */
   totalDuration: SClassDuration;
-  /** @图片引用 */
+  /** @Hình ảnh tham khảo */
   imageRefs: AssetRef[];
-  /** @视频引用 */
+  /** @Trích dẫn video */
   videoRefs: AssetRef[];
-  /** @音频引用 */
+  /** @Âm thanh quote */
   audioRefs: AssetRef[];
-  /** 合并后的提示词（用户可编辑） */
+  /** Lời nhắc đã hợp nhất（Người dùng can Chỉnh sửa） */
   mergedPrompt: string;
-  /** 生成的视频 URL */
+  /** TạURL video của o */
   videoUrl: string | null;
-  /** 视频媒体库 ID（用于拖拽到时间线） */
+  /** ID thư viện video（Dùng để kéo tới Thờtôi gian dòng） */
   videoMediaId: string | null;
-  /** 视频生成状态 */
+  /** VideoTạoTrạng thái */
   videoStatus: VideoGenStatus;
-  /** 生成进度 0-100 */
+  /** TạoTiến độ 0-100 */
   videoProgress: number;
-  /** 错误信息 */
+  /** Lỗtôi thông tin */
   videoError: string | null;
-  /** 生成历史 */
+  /** TạoLịch sử */
   history: GenerationRecord[];
-  /** 排序索引 */
+  /** Sắp xếchỉ số p */
   sortIndex: number;
-  /** 合并格子图 dataUrl（视频生成时构建，用于预览/下载） */
+  /** Hợp nhất dữ liệu lưới mắt cáoUrl（VideoTạXây dựng tại o，for Xem trước/Tải xuống） */
   gridImageUrl: string | null;
-  /** 最近一次生成使用的完整 prompt（用于复制核对） */
+  /** T gần đây nhấtạo Đã sử dụng toàn bộ lời nhắc（để kiểm tra bản sao） */
   lastPrompt: string | null;
 
-  // ---- 组级 AI 校准 ----
-  /** 组级叙事弧线（AI 校准产物） */
+  // ---- Hiệu chỉnh AI cấp nhóm ----
+  /** vòng kể chuyện nhóm（Sản phẩm hiệu chuẩn AI） */
   narrativeArc?: string;
-  /** 镜头间过渡指令，长度 = sceneIds.length - 1 */
+  /** Cảnh quay phòng Chuyển tiếlệnh p，chiều dài = sceneIds.length - 1 */
   transitions?: string[];
-  /** 组级音频设计（整段 15s 规划） */
+  /** cấp độ nhómÂthiết kế m thanh（Toàn bộ kế hoạch của thập niên 15） */
   groupAudioDesign?: string;
-  /** AI 校准后的组级 prompt（优先级：mergedPrompt > calibratedPrompt > 自动拼接） */
+  /** Lời nhắc cấp nhóm sau khi hiệu chỉnh AI（ưu tiên：mergedPrompt > calibratedPrompt > nối tự động） */
   calibratedPrompt?: string;
-  /** 校准状态 */
+  /** Hiệu chuẩnTrạng thái */
   calibrationStatus?: 'idle' | 'calibrating' | 'done' | 'failed';
-  /** 校准错误信息 */
+  /** Hiệu chuẩnLỗtôi thông tin */
   calibrationError?: string | null;
 
-  // ---- 视频延长 & 视频编辑 ----
-  /** 组生成类型：new=全新生成, extend=延长, edit=编辑 */
+  // ---- Tiện ích mở rộng video & VideoChỉnh sửa ----
+  /** Nhóm TạoLoại：new=T hoàn toàn mớiạo, extend=mở rộng, chỉnh sửa=Chỉnh sửa */
   generationType?: GroupGenerationType;
-  /** 延长方向（仅 extend 时有效） */
+  /** Hướng mở rộng（Chỉ có hiệu lực khi gia hạn） */
   extendDirection?: ExtendDirection;
-  /** 编辑类型（仅 edit 时有效） */
+  /** Chỉnh sửaLoại（Chỉ có hiệu lực khi chỉnh sửa） */
   editType?: EditType;
-  /** 来源组 ID（延长/编辑的原始视频组） */
+  /** Nguồn ID nhóm（mở rộng/Chỉnh sửNhóm Video gốc của một） */
   sourceGroupId?: string;
-  /** 来源视频 URL（冗余存储，避免原组被删后找不到） */
+  /** NguồnVideo URL（lưu trữ dư thừa，Ngăn chặn việc tìm thấy nhóm ban đầu sau khi bị xóa） */
   sourceVideoUrl?: string;
 }
 
 /**
- * 单镜生成记录（保留单镜头独立生成能力）
+ * thấu kính đơn TạoBản ghi（Lệnh dự trữ Cảnh quay độc lập TạoKhả năng）
  */
 export interface SingleShotOverride {
   sceneId: number;
-  /** 单镜头独立提示词（覆盖分镜原始提示词） */
+  /** Đơn Cảnh quay độc lập（Che Phân cảnhoriginPrompt） */
   prompt: string;
-  /** @引用资产 */
+  /** @Nội dung tham chiếu */
   assetRefs: AssetRef[];
-  /** 生成的视频 URL */
+  /** TạURL video của o */
   videoUrl: string | null;
   videoMediaId: string | null;
   videoStatus: VideoGenStatus;
@@ -198,31 +198,31 @@ export interface SingleShotOverride {
 
 // ==================== Project Data ====================
 
-/** S级项目级数据 */
+/** S lớp Dự ádữ liệu cấp độ n */
 export interface SClassProjectData {
-  /** 镜头组列表 */
+  /** Cảdanh sách nhóm nh quay */
   shotGroups: ShotGroup[];
-  /** 单镜生成覆盖表 (sceneId -> override) */
+  /** thấu kính đơn Tạo Bảng lớp phủ (SceneId -> override) */
   singleShotOverrides: Record<number, SingleShotOverride>;
-  /** 全局 @引用资产（自由模式下使用） */
+  /** tình hình chung @Nội dung tham chiếu（Sử dụng ở chế độ miễn phí） */
   globalAssetRefs: AssetRef[];
-  /** 生成配置 */
+  /** TạoCấu hình */
   config: SClassConfig;
-  /** 当前模式 */
+  /** Chế độ hiện tại */
   mode: SClassMode;
-  /** 是否已从 director 数据自动分组过 */
+  /** Liệu nó có được nhóm tự động từ dữ liệu giám đốc hay không */
   hasAutoGrouped: boolean;
-  /** 最近一次九宫格生成的原始大图 URL（用于视频生成时复用，避免重新合并） */
+  /** Jiugongge T gần đây nhấtạo URL hình ảnh lớn ban đầu（cho VideoTạo tái sử dụng thời gian，tránh tái xuất hiện） */
   lastGridImageUrl: string | null;
-  /** lastGridImageUrl 对应的分镜 ID 列表（用于判断是否可复用） */
+  /** Ph tương ứng với LastGridImageUrlân cảdanh sách ID（Được sử dụng để xác định xem nó có thể được tái sử dụng hay không） */
   lastGridSceneIds: number[] | null;
   editorPrefs: SClassEditorPrefs;
 }
 
-/** S级生成配置（共享配置 aspectRatio/resolution 已统一由 director-store 管理） */
+/** S-Class TạoCấu hình（Tỷ lệ khung hình cấu hình được chia sẻ/độ phân giải đã được thống nhất quản lý bởi cửa hàng giám đốc） */
 export interface SClassConfig {
   defaultDuration: SClassDuration;
-  /** 生成并发数 */
+  /** TạoSố đồng thời */
   concurrency: number;
 }
 
@@ -240,48 +240,48 @@ export interface SClassEditorPrefs {
 interface SClassState {
   activeProjectId: string | null;
   projects: Record<string, SClassProjectData>;
-  /** 当前选中的组 ID */
+  /** ID nhóm hiện được chọn */
   selectedGroupId: string | null;
-  /** 生成模式：组生成 / 单镜生成 */
+  /** Tạomode：Nhóm Tạo / thấu kính đơn Tạo */
   generationMode: 'group' | 'single';
 }
 
 interface SClassActions {
-  // 项目管理
+  // Dự ánQuản lý
   setActiveProjectId: (projectId: string | null) => void;
   ensureProject: (projectId: string) => void;
   getProjectData: (projectId: string) => SClassProjectData;
 
-  // 镜头组 CRUD
+  // Cảnh quay nhóm CRUD
   addShotGroup: (group: ShotGroup) => void;
   updateShotGroup: (groupId: string, updates: Partial<ShotGroup>) => void;
   removeShotGroup: (groupId: string) => void;
   setShotGroups: (groups: ShotGroup[]) => void;
   reorderShotGroups: (groupIds: string[]) => void;
 
-  // 镜头组内场景管理
+  // Cảnh quay nhóm Cảnh quản lý
   addSceneToGroup: (groupId: string, sceneId: number) => void;
   removeSceneFromGroup: (groupId: string, sceneId: number) => void;
   moveSceneBetweenGroups: (fromGroupId: string, toGroupId: string, sceneId: number) => void;
 
-  // 镜头组视频生成
+  // Cảnh quay nhómVideoTạo
   updateGroupVideoStatus: (groupId: string, updates: Partial<Pick<ShotGroup, 'videoStatus' | 'videoProgress' | 'videoUrl' | 'videoError' | 'videoMediaId'>>) => void;
   addGroupHistory: (groupId: string, record: GenerationRecord) => void;
 
-  // 单镜生成
+  // thấu kính đơn Tạo
   setSingleShotOverride: (sceneId: number, override: SingleShotOverride) => void;
   updateSingleShotVideo: (sceneId: number, updates: Partial<Pick<SingleShotOverride, 'videoStatus' | 'videoProgress' | 'videoUrl' | 'videoError' | 'videoMediaId'>>) => void;
   removeSingleShotOverride: (sceneId: number) => void;
 
-  // @引用资产
+  // @Nội dung tham chiếu
   addAssetRef: (groupId: string | null, asset: AssetRef) => void;
   removeAssetRef: (groupId: string | null, assetId: string) => void;
 
-  // 配置
+  // Cấu hình
   updateConfig: (config: Partial<SClassConfig>) => void;
   setEditorPrefs: (prefs: Partial<SClassEditorPrefs>) => void;
 
-  // 九宫格缓存
+  // Bộ đệm lưới chín cung điện
   setLastGridImage: (url: string | null, sceneIds: number[] | null) => void;
 
   // UI
@@ -290,7 +290,7 @@ interface SClassActions {
   setMode: (mode: SClassMode) => void;
   setHasAutoGrouped: (value: boolean) => void;
 
-  // 重置
+  // Đặt lại
   reset: () => void;
 }
 
@@ -333,7 +333,7 @@ const initialState: SClassState = {
 
 // ==================== Helpers ====================
 
-/** 获取当前项目数据 */
+/** Lấy D hiện tạiự ádữ liệu */
 const getCurrentProject = (state: SClassState): SClassProjectData | null => {
   if (!state.activeProjectId) return null;
   return state.projects[state.activeProjectId] || null;
@@ -362,7 +362,7 @@ export const useSClassStore = create<SClassStore>()(
     (set, get) => ({
       ...initialState,
 
-      // ========== 项目管理 ==========
+      // ========== Dự ánQuản lý ==========
 
       setActiveProjectId: (projectId) => {
         set({ activeProjectId: projectId });
@@ -384,7 +384,7 @@ export const useSClassStore = create<SClassStore>()(
         return projects[projectId] || defaultProjectData();
       },
 
-      // ========== 镜头组 CRUD ==========
+      // ========== Cảnh quay nhóm CRUD ==========
 
       addShotGroup: (group) => {
         const { activeProjectId, projects } = get();
@@ -470,7 +470,7 @@ export const useSClassStore = create<SClassStore>()(
         });
       },
 
-      // ========== 镜头组内场景管理 ==========
+      // ========== Cảnh quay nhóm Cảnh quản lý ==========
 
       addSceneToGroup: (groupId, sceneId) => {
         const { activeProjectId, projects } = get();
@@ -533,7 +533,7 @@ export const useSClassStore = create<SClassStore>()(
         });
       },
 
-      // ========== 镜头组视频生成 ==========
+      // ========== Cảnh quay nhómVideoTạo ==========
 
       updateGroupVideoStatus: (groupId, updates) => {
         const { activeProjectId, projects } = get();
@@ -571,7 +571,7 @@ export const useSClassStore = create<SClassStore>()(
         });
       },
 
-      // ========== 单镜生成 ==========
+      // ========== thấu kính đơn Tạo ==========
 
       setSingleShotOverride: (sceneId, override) => {
         const { activeProjectId, projects } = get();
@@ -627,7 +627,7 @@ export const useSClassStore = create<SClassStore>()(
         });
       },
 
-      // ========== @引用资产 ==========
+      // ========== @Nội dung tham chiếu ==========
 
       addAssetRef: (groupId, asset) => {
         const { activeProjectId, projects } = get();
@@ -635,7 +635,7 @@ export const useSClassStore = create<SClassStore>()(
         const project = projects[activeProjectId];
 
         if (groupId) {
-          // 添加到指定组
+          // Thêm vào nhóm được chỉ định
           set({
             projects: {
               ...projects,
@@ -659,7 +659,7 @@ export const useSClassStore = create<SClassStore>()(
             },
           });
         } else {
-          // 添加到全局（自由模式）
+          // Thêm đến toàn cầu（chế độ miễn phí）
           set({
             projects: {
               ...projects,
@@ -709,7 +709,7 @@ export const useSClassStore = create<SClassStore>()(
         }
       },
 
-      // ========== 配置 ==========
+      // ========== Cấu hình ==========
 
       updateConfig: (configUpdates) => {
         const { activeProjectId, projects } = get();
@@ -774,7 +774,7 @@ export const useSClassStore = create<SClassStore>()(
         });
       },
 
-      // ========== 九宫格缓存 ==========
+      // ========== Bộ đệm lưới chín cung điện ==========
 
       setLastGridImage: (url, sceneIds) => {
         const { activeProjectId, projects } = get();
@@ -792,7 +792,7 @@ export const useSClassStore = create<SClassStore>()(
         });
       },
 
-      // ========== 重置 ==========
+      // ========== Đặt lại ==========
 
       reset: () => set(initialState),
     }),
@@ -815,7 +815,7 @@ export const useSClassStore = create<SClassStore>()(
       merge: (persisted: any, current: any) => {
         if (!persisted) return current;
 
-        // 迁移辅助：清理 SClassConfig 中已移除的冗余字段（aspectRatio/resolution 已由 director-store 管理）
+        // Hỗ trợ di chuyển：Dọn dẹp các trường thừa đã bị loại bỏ trong SClassConfig（aspectRatio/độ phân giải được quản lý bởi cửa hàng giám đốc）
         const migrateConfig = (config: any) => {
           if (!config) return config;
           const { aspectRatio, resolution, ...clean } = config;
@@ -859,7 +859,7 @@ export const useSClassStore = create<SClassStore>()(
 
 // ==================== Selectors ====================
 
-/** 获取当前活跃项目的 S级数据 */
+/** Nhận hoạt động hiện tại Dự áDữ liệu cấp S của n */
 export const useActiveSClassProject = (): SClassProjectData | null => {
   return useSClassStore((state) => {
     if (!state.activeProjectId) return null;
@@ -867,7 +867,7 @@ export const useActiveSClassProject = (): SClassProjectData | null => {
   });
 };
 
-/** 获取当前项目的镜头组列表 */
+/** Lấy D hiện tạiự ánCảdanh sách nhóm nh quay */
 export const useShotGroups = (): ShotGroup[] => {
   return useSClassStore((state) => {
     if (!state.activeProjectId) return [];
@@ -876,7 +876,7 @@ export const useShotGroups = (): ShotGroup[] => {
   });
 };
 
-/** 获取指定镜头组 */
+/** Lấy C được chỉ địnhảnh quay group */
 export const useShotGroup = (groupId: string): ShotGroup | null => {
   return useSClassStore((state) => {
     if (!state.activeProjectId) return null;

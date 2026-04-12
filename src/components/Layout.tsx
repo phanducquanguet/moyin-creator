@@ -43,7 +43,7 @@ export function Layout() {
   }
 
   // Full-screen views (no resizable panels)
-  // 这些板块有自己的多栏布局，不需要全局的预览和属性面板
+  // \u8fd9\u4e9b\u677f\u5757Có\u81ea\u5df1của\u591a\u680fBố cục，\u4e0d\u9700\u8981tình hình chungcủa\u9884\u89c8vàtài sản\u9762\u677f
   const fullScreenTabs = ["export", "settings", "overview", "script", "characters", "scenes", "freedom", "assets"];
   if (fullScreenTabs.includes(activeTab)) {
     return (
@@ -73,7 +73,7 @@ export function Layout() {
       case "script":
         return <ScriptView />;
       case "director":
-        // 保持原有 AI 导演功能
+        // giữ\u539fCó AI giám đốcchức năng
         return <DirectorView />;
       case "sclass":
         return <SClassView />;

@@ -53,7 +53,7 @@ export function useAngleSwitch({
   updateSplitSceneImage,
   updateSplitSceneEndFrame,
 }: UseAngleSwitchOptions): UseAngleSwitchReturn {
-  // 角度切换状态
+  // góc\u5207\u6362\u72b6\u6001
   const [angleSwitchOpen, setAngleSwitchOpen] = useState(false);
   const [angleSwitchResultOpen, setAngleSwitchResultOpen] = useState(false);
   const [angleSwitchTarget, setAngleSwitchTarget] = useState<AngleSwitchTarget | null>(null);
@@ -71,11 +71,11 @@ export function useAngleSwitch({
 
     const imageUrl = type === "start" ? scene.imageDataUrl : scene.endFrameImageUrl;
     if (!imageUrl) {
-      toast.error(`请先生成${type === "start" ? "首帧" : "尾帧"}`);
+      toast.error(`\u8bf7đầu tiên\u751f\u6210${type === "start" ? "khung hình đầu tiên" : "\u5c3e\u5e27"}`);
       return;
     }
 
-    // 重置选中索引（历史从 store 中读取）
+    // \u91cd\u7f6eđã chọn\u7d22\u5f15（\u5386\u53f2từ store trong\u8bfb\u53d6）
     setSelectedHistoryIndex(-1);
     setAngleSwitchTarget({ sceneId, type });
     setAngleSwitchOpen(true);
@@ -98,7 +98,7 @@ export function useAngleSwitch({
     const runninghubBaseUrl = runninghubProvider?.baseUrl?.trim();
     const runninghubAppId = runninghubProvider?.model?.[0];
     if (!runninghubKey || !runninghubBaseUrl || !runninghubAppId) {
-      toast.error("请先在设置中配置 RunningHub（API Key / Base URL / 模型AppId）");
+      toast.error("\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình RunningHub（API Key / Base URL / \u6a21\u578bAppId）");
       setAngleSwitchOpen(false);
       return;
     }
@@ -108,7 +108,7 @@ export function useAngleSwitch({
 
     const originalImage = angleSwitchTarget.type === "start" ? scene.imageDataUrl : scene.endFrameImageUrl;
     if (!originalImage) {
-      toast.error("找不到原图");
+      toast.error("Không thể tìm thấy hình ảnh gốc");
       return;
     }
 
@@ -138,12 +138,12 @@ export function useAngleSwitch({
       };
       addAngleSwitchHistory(angleSwitchTarget.sceneId, angleSwitchTarget.type, newHistoryItem);
 
-      // 获取更新后的历史（从 scene 中读取）
+      // \u83b7\u53d6\u66f4mới\u540ecủa\u5386\u53f2（Đọc từ cảnh）
       const updatedScene = splitScenes.find(s => s.id === angleSwitchTarget.sceneId);
       const history = angleSwitchTarget.type === "start" 
         ? (updatedScene?.startFrameAngleSwitchHistory || [])
         : (updatedScene?.endFrameAngleSwitchHistory || []);
-      setSelectedHistoryIndex(history.length - 1); // 选中最新的
+      setSelectedHistoryIndex(history.length - 1); // Chọn mới nhất
 
       setAngleSwitchResult({
         originalImage,
@@ -154,9 +154,9 @@ export function useAngleSwitch({
       setAngleSwitchOpen(false);
       setAngleSwitchResultOpen(true);
 
-      toast.success("视角切换生成完成");
+      toast.success("\u89c6\u89d2\u5207\u6362\u751f\u6210Hoàn thành");
     } catch (error) {
-      toast.error(`视角切换失败: ${(error as Error).message}`);
+      toast.error(`\u89c6\u89d2\u5207\u6362\u5931\u8d25: ${(error as Error).message}`);
     } finally {
       setIsAngleSwitching(false);
     }
@@ -166,7 +166,7 @@ export function useAngleSwitch({
   const handleApplyAngleSwitch = useCallback(() => {
     if (!angleSwitchResult || !angleSwitchTarget) return;
 
-    // 从 store 中读取历史
+    // từ store trong\u8bfb\u53d6\u5386\u53f2
     const scene = splitScenes.find(s => s.id === angleSwitchTarget.sceneId);
     const history = angleSwitchTarget.type === "start"
       ? (scene?.startFrameAngleSwitchHistory || [])
@@ -187,7 +187,7 @@ export function useAngleSwitch({
     setAngleSwitchResult(null);
     setAngleSwitchTarget(null);
     setSelectedHistoryIndex(-1);
-    toast.success("视角已应用");
+    toast.success("\u89c6\u89d2Đã rồi\u5e94sử dụng");
   }, [angleSwitchResult, angleSwitchTarget, splitScenes, selectedHistoryIndex, updateSplitSceneImage, updateSplitSceneEndFrame]);
 
   // Helper to get history for current target

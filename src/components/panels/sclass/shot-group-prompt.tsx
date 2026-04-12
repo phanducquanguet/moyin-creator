@@ -4,14 +4,14 @@
 "use client";
 
 /**
- * ShotGroupPrompt — S级组级提示词编辑器
+ * ShotGroupPrompt — lớp Scấp độ nhómPromptChỉnh sửa\u5668
  *
- * 功能：
- * - 自动调用 sclass-prompt-builder 组装多镜头 prompt
- * - 显示 @引用标签（角色图/场景图/首帧/视频/音频）+ 配额
- * - 用户可编辑/覆盖自动 prompt
- * - 实时字符计数（5000上限）
- * - 对白唇形同步预览
+ * chức năng：
+ * - \u81ea\u52a8\u8c03sử dụng sclass-prompt-builder \u7ec4\u88c5Nhiều Cảnh quay prompt
+ * - \u663e\u793a @\u5f15sử dụngnhãn（Nhân vật\u56fe/Cảnh\u56fe/khung hình đầu tiên/Video/Âm thanh）+ \u914d\u989d
+ * - Người dùng can Chỉnh sửa/\u8986\u76d6\u81ea\u52a8 prompt
+ * - \u5b9e\u65f6từ\u7b26\u8ba1\u6570（5000\u4e0a\u9650）
+ * - Đối thoại\u5507\u5f62\u540c\u6b65Xem trước
  */
 
 import React, { useMemo, useState, useCallback } from "react";
@@ -56,9 +56,9 @@ export interface ShotGroupPromptProps {
   styleTokens?: string[];
   aspectRatio?: SClassAspectRatio;
   enableLipSync?: boolean;
-  /** 当用户编辑 prompt 时回调 */
+  /** Khi Người dùngChỉnh sửa prompt \u65f6gọi lại */
   onUpdatePrompt?: (groupId: string, prompt: string) => void;
-  /** 是否只读 */
+  /** \u662f\u5426\u53ea\u8bfb */
   readOnly?: boolean;
 }
 
@@ -78,7 +78,7 @@ export function ShotGroupPrompt({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
 
-  // 构建 prompt
+  // \u6784\u5efa prompt
   const result: GroupPromptResult = useMemo(
     () =>
       buildGroupPrompt({
@@ -93,25 +93,25 @@ export function ShotGroupPrompt({
     [group, scenes, characters, sceneLibrary, styleTokens, aspectRatio, enableLipSync]
   );
 
-  // @引用预估（轻量）
+  // @\u5f15sử dụng\u9884\u4f30（\u8f7b\u91cf）
   const refEstimate = useMemo(
     () => estimateGroupRefs(group, scenes),
     [group, scenes]
   );
 
-  // 开始编辑
+  // Bắt đầuChỉnh sửa
   const handleStartEdit = useCallback(() => {
     setEditValue(result.prompt);
     setIsEditing(true);
   }, [result.prompt]);
 
-  // 保存编辑
+  // LưuChỉnh sửa
   const handleSave = useCallback(() => {
     onUpdatePrompt?.(group.id, editValue);
     setIsEditing(false);
   }, [group.id, editValue, onUpdatePrompt]);
 
-  // 重置为自动生成
+  // Đặt lạichoTự động Tạo
   const handleReset = useCallback(() => {
     onUpdatePrompt?.(group.id, "");
     setIsEditing(false);
@@ -123,9 +123,9 @@ export function ShotGroupPrompt({
 
   return (
     <div className="space-y-2">
-      {/* ========== @引用配额条 ========== */}
+      {/* ========== @\u5f15sử dụng\u914d\u989d\u6761 ========== */}
       <div className="flex items-center gap-3 text-xs">
-        {/* 图片配额 */}
+        {/* Hình ảnh\u914d\u989d */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -145,7 +145,7 @@ export function ShotGroupPrompt({
             </TooltipTrigger>
             <TooltipContent>
               <div className="text-xs space-y-1">
-                <p className="font-medium">图片引用 ({result.refs.images.length}/{SEEDANCE_LIMITS.maxImages})</p>
+                <p className="font-medium">Hình ảnh tham khảo ({result.refs.images.length}/{SEEDANCE_LIMITS.maxImages})</p>
                 {result.refs.images.map((r) => (
                   <p key={r.id} className="text-muted-foreground">
                     {r.tag}: {r.fileName}
@@ -156,7 +156,7 @@ export function ShotGroupPrompt({
           </Tooltip>
         </TooltipProvider>
 
-        {/* 视频配额 */}
+        {/* Video\u914d\u989d */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -176,14 +176,14 @@ export function ShotGroupPrompt({
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                视频引用 ({result.refs.videos.length}/{SEEDANCE_LIMITS.maxVideos})
-                {result.refs.videos.length === 0 && " — 可在镜头卡片中上传"}
+                Trích dẫn video ({result.refs.videos.length}/{SEEDANCE_LIMITS.maxVideos})
+                {result.refs.videos.length === 0 && " — \u53ef\u5728Cảnh quay\u5361\u7247trongTải lên"}
               </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        {/* 音频配额 */}
+        {/* Âm thanh\u914d\u989d */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -203,30 +203,30 @@ export function ShotGroupPrompt({
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                音频引用 ({result.refs.audios.length}/{SEEDANCE_LIMITS.maxAudios})
-                {result.refs.audios.length === 0 && " — 可在镜头卡片中上传"}
+                Âm thanh quote ({result.refs.audios.length}/{SEEDANCE_LIMITS.maxAudios})
+                {result.refs.audios.length === 0 && " — \u53ef\u5728Cảnh quay\u5361\u7247trongTải lên"}
               </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        {/* 对白数 */}
+        {/* đối thoại\u6570 */}
         {result.dialogueSegments.length > 0 && (
           <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
             <MessageCircle className="h-3 w-3" />
-            <span>{result.dialogueSegments.length} 段对白</span>
+            <span>{result.dialogueSegments.length} \u6bb5đối thoại</span>
           </div>
         )}
 
-        {/* 超限警告 */}
+        {/* \u8d85\u9650Cảnh báo */}
         {result.refs.overLimit && (
           <div className="flex items-center gap-1 text-red-500">
             <AlertCircle className="h-3 w-3" />
-            <span>素材超限</span>
+            <span>Chất liệu\u8d85\u9650</span>
           </div>
         )}
 
-        {/* 字符数 */}
+        {/* từ\u7b26\u6570 */}
         <div
           className={cn(
             "ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded",
@@ -242,7 +242,7 @@ export function ShotGroupPrompt({
         </div>
       </div>
 
-      {/* ========== Prompt 编辑区 ========== */}
+      {/* ========== Prompt Chỉnh sửaQuận ========== */}
       <div className="relative">
         {isEditing ? (
           <div className="space-y-1.5">
@@ -254,7 +254,7 @@ export function ShotGroupPrompt({
                 "text-xs font-mono resize-y",
                 isOverLimit && "border-red-500"
               )}
-              placeholder="组级提示词..."
+              placeholder="cấp độ nhómPrompt..."
             />
             <div className="flex items-center gap-1.5">
               <Button
@@ -263,7 +263,7 @@ export function ShotGroupPrompt({
                 onClick={handleSave}
               >
                 <Check className="h-3 w-3 mr-1" />
-                保存
+                Lưu
               </Button>
               <Button
                 variant="outline"
@@ -271,7 +271,7 @@ export function ShotGroupPrompt({
                 className="h-6 px-2 text-xs"
                 onClick={() => setIsEditing(false)}
               >
-                取消
+                Huỷ
               </Button>
               <Button
                 variant="ghost"
@@ -280,7 +280,7 @@ export function ShotGroupPrompt({
                 onClick={handleReset}
               >
                 <RotateCcw className="h-3 w-3 mr-1" />
-                重置为自动
+                Đặt lạicho\u81ea\u52a8
               </Button>
             </div>
           </div>
@@ -293,19 +293,19 @@ export function ShotGroupPrompt({
             )}
             onClick={readOnly ? undefined : handleStartEdit}
           >
-            {/* 编辑提示 */}
+            {/* Chỉnh sửaGợi ý */}
             {!readOnly && (
               <div className="float-right opacity-0 group-hover:opacity-100 transition-opacity">
                 <Edit3 className="h-3 w-3 text-muted-foreground" />
               </div>
             )}
-            {/* Prompt 预览：高亮 @引用标签 */}
+            {/* Prompt Xem trước：\u9ad8\u4eae @\u5f15sử dụngnhãn */}
             {highlightRefs(displayPrompt)}
           </div>
         )}
       </div>
 
-      {/* ========== 超限警告详情 ========== */}
+      {/* ========== \u8d85\u9650Cảnh báoChi tiết ========== */}
       {result.refs.limitWarnings.length > 0 && (
         <div className="flex items-start gap-1.5 text-xs text-red-500 bg-red-500/5 rounded p-1.5">
           <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
@@ -323,12 +323,12 @@ export function ShotGroupPrompt({
 // ==================== Helpers ====================
 
 /**
- * 在 prompt 文本中高亮 @Image/@Video/@Audio 标签
+ * \u5728 prompt \u6587\u672ctrong\u9ad8\u4eae @Image/@Video/@Audio nhãn
  */
 function highlightRefs(text: string): React.ReactNode {
-  if (!text) return <span className="text-muted-foreground">点击编辑组级提示词...</span>;
+  if (!text) return <span className="text-muted-foreground">\u70b9\u51fbChỉnh sửacấp độ nhómPrompt...</span>;
 
-  // 匹配 @Image1, @Video2, @Audio3 等
+  // trận đấu @Image1, @Video2, @Audio3 Đợi đã
   const regex = /(@(?:Image|Video|Audio)\d+)/g;
   const parts = text.split(regex);
 

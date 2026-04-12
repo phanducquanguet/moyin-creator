@@ -48,7 +48,7 @@ export function EditProviderDialog({
       setName(provider.name);
       setBaseUrl(provider.baseUrl);
       setApiKey(provider.apiKey);
-      // 加载已有模型
+      // Tải các model hiện có
       setModel(provider.model?.join(', ') || '');
     }
   }, [provider]);
@@ -57,11 +57,11 @@ export function EditProviderDialog({
     if (!provider) return;
 
     if (!name.trim()) {
-      toast.error("请输入名称");
+      toast.error("Vui lòng nhập tên");
       return;
     }
 
-    // 解析模型列表（支持逗号或换行分隔）
+    // Phân tích danh sách model (hỗ trợ phân tách bằng dấu phẩy hoặc xuống dòng)
     const models = model
       .split(/[,\n]/)
       .map(m => m.trim())
@@ -76,7 +76,7 @@ export function EditProviderDialog({
     });
 
     onOpenChange(false);
-    toast.success("已保存更改");
+    toast.success("Đã lưu thay đổi");
   };
 
   const keyCount = getApiKeyCount(apiKey);
@@ -85,23 +85,23 @@ export function EditProviderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>编辑供应商</DialogTitle>
+          <DialogTitle>Chỉnh sửa nhà cung cấp</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-4">
           {/* Platform (read-only) */}
           <div className="space-y-2">
-            <Label className="text-muted-foreground">平台</Label>
+            <Label className="text-muted-foreground">Nền tảng</Label>
             <Input value={provider?.platform || ""} disabled className="bg-muted" />
           </div>
 
           {/* Name */}
           <div className="space-y-2">
-            <Label>名称</Label>
+            <Label>Tên</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="供应商名称"
+              placeholder="Tên nhà cung cấp"
             />
           </div>
 
@@ -120,39 +120,39 @@ export function EditProviderDialog({
             <div className="flex items-center justify-between">
               <Label>API Keys</Label>
               <span className="text-xs text-muted-foreground">
-                {keyCount} 个 Key
+                {keyCount} Key
               </span>
             </div>
             <Textarea
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="输入 API Keys（每行一个，或用逗号分隔）"
+              placeholder="Nhập API Keys (mỗi dòng một cái, hoặc cách nhau bằng dấu phẩy)"
               className="font-mono text-sm min-h-[100px]"
             />
             <p className="text-xs text-muted-foreground">
-              💡 支持多个 Key 轮换使用，失败时自动切换到下一个
+              💡 Hỗ trợ luân phiên nhiều Key, tự động chuyển sang cái tiếp theo khi thất bại
             </p>
           </div>
 
           {/* Model */}
           <div className="space-y-2">
-            <Label>模型</Label>
+            <Label>Model</Label>
             <Input
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              placeholder="输入模型名称，如 deepseek-v3"
+              placeholder="Nhập tên model, ví dụ deepseek-v3"
             />
             <p className="text-xs text-muted-foreground">
-              多个模型用逗号分隔，第一个为默认模型
+              Nhiều model cách nhau bằng dấu phẩy, model đầu tiên là mặc định
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            Huỷ
           </Button>
-          <Button onClick={handleSave}>保存</Button>
+          <Button onClick={handleSave}>Lưu</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

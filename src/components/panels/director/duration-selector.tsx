@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 时长选择器组件 (Duration Selector)
- * 用于选择视频生成时长：4-12秒（Seedance 1.5 Pro 支持范围）
+ * \u65f6\u957f\u9009\u62e9\u5668\u7ec4\u4ef6 (Duration Selector)
+ * sử dụng\u4e8e\u9009\u62e9\u89c6\u9891\u751f\u6210\u65f6\u957f：4-12 giây（Seedance 1.5 Pro \u652f\u6301\u8303\u56f4）
  */
 
 import {

@@ -97,20 +97,20 @@ export async function callImageGenerationApi(
 ): Promise<{ imageUrl: string; httpUrl: string }> {
   const featureConfig = getImageApiConfig();
   if (!featureConfig) {
-    throw new Error('请先在设置中配置图片生成服务映射');
+    throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
   }
   const platform = featureConfig.platform;
   const model = featureConfig.models?.[0];
   if (!model) {
-    throw new Error('请先在设置中配置图片生成模型');
+    throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u6a21\u578b');
   }
   const apiKeyToUse = apiKey || featureConfig.keyManager?.getCurrentKey?.() || '';
   if (!apiKeyToUse) {
-    throw new Error('请先在设置中配置图片生成服务映射');
+    throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
   }
   const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
   if (!imageBaseUrl) {
-    throw new Error('请先在设置中配置图片生成服务映射');
+    throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
   }
   // Call image generation API with smart routing (auto-selects chat/completions or images/generations)
   const imageKeyManager = featureConfig.keyManager;
@@ -142,8 +142,8 @@ export async function callImageGenerationApi(
     const maxAttempts = 60;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      // 检查外部中止信号
-      if (signal?.aborted) throw new Error('用户已取消');
+      // \u68c0\u67e5Bên ngoài\u90e8trong\u6b62\u4fe1\u53f7
+      if (signal?.aborted) throw new Error('sử dụng\u6237Đã rồi\u53d6\u6d88');
 
       const progress = Math.min(Math.floor((attempt / maxAttempts) * 100), 99);
       onProgress?.(progress);
@@ -161,7 +161,7 @@ export async function callImageGenerationApi(
       });
 
       if (!statusResponse.ok) {
-        if (statusResponse.status === 404) throw new Error('任务不存在');
+        if (statusResponse.status === 404) throw new Error('Nhiệm vụ\u4e0d\u5b58\u5728');
         throw new Error(`Failed to check task status: ${statusResponse.status}`);
       }
 
@@ -177,7 +177,7 @@ export async function callImageGenerationApi(
         }
         imageUrl = imageUrl || normalizeUrl(statusData.output_url) || normalizeUrl(statusData.result_url) || normalizeUrl(statusData.url);
 
-        if (!imageUrl) throw new Error('任务完成但没有图片 URL');
+        if (!imageUrl) throw new Error('Nhiệm vụHoàn thành\u4f46\u6ca1Có\u56fe\u7247 URL');
         
         const httpUrl = imageUrl;
         let finalImageUrl = imageUrl;
@@ -190,16 +190,16 @@ export async function callImageGenerationApi(
       }
 
       if (status === 'failed' || status === 'error') {
-        const errorMsg = statusData.error || statusData.message || statusData.data?.error || '图片生成失败';
+        const errorMsg = statusData.error || statusData.message || statusData.data?.error || '\u56fe\u7247\u751f\u6210\u5931\u8d25';
         throw new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
       }
 
       await new Promise<void>((resolve, reject) => {
         const tid = setTimeout(resolve, pollInterval);
-        signal?.addEventListener('abort', () => { clearTimeout(tid); reject(new Error('用户已取消')); }, { once: true });
+        signal?.addEventListener('abort', () => { clearTimeout(tid); reject(new Error('sử dụng\u6237Đã rồi\u53d6\u6d88')); }, { once: true });
       });
     }
-    throw new Error('图片生成超时');
+    throw new Error('\u56fe\u7247\u751f\u6210\u8d85\u65f6');
   }
 
   throw new Error('Invalid API response: no image URL or task ID');
@@ -267,7 +267,7 @@ export function allocateAngles(count: number, preselected: (string | undefined)[
 }
 
 export function buildAnchorPhrase(_styleTokens?: string[]): string {
-  // styleTokens 不再注入（校准后的 prompt 已包含风格描述，避免双重注入）
+  // styleTokens \u4e0dMột lần nữaLưu ý\u5165（\u6821\u51c6\u540ecủa prompt Đã rồichứagió\u683c\u63cf\u8ff0，\u907f\u514d\u53cc\u91cdLưu ý\u5165）
   const noTextConstraint = 'IMPORTANT: NO TEXT, NO WORDS, NO LETTERS, NO CAPTIONS, NO SPEECH BUBBLES, NO DIALOGUE BOXES, NO SUBTITLES, NO WRITING of any kind.';
   return `Keep character appearance, wardrobe and facial features consistent. Keep lighting and color grading consistent. ${noTextConstraint}`;
 }
@@ -278,7 +278,7 @@ export function composeTilePrompt(scene: SplitScene, angle: Angle, aspect: '16:9
   const vertical = aspect === '9:16' ? 'vertical composition, tighter framing, avoid letterboxing, ' : '';
   const cameraPart = `${angle}, ${shot}`;
   const anchor = buildAnchorPhrase(styleTokens);
-  // styleTokens 不再末尾追加（校准后的 imagePrompt 已包含风格描述）
+  // styleTokens \u4e0dMột lần nữakết thúc\u8ffd\u52a0（\u6821\u51c6\u540ecủa imagePrompt Đã rồichứagió\u683c\u63cf\u8ff0）
   
   const charCount = scene.characterIds?.length || 0;
   const charCountPhrase = charCount === 0 
@@ -316,7 +316,7 @@ export async function sliceGridImage(gridImageUrl: string, count: number): Promi
       }
       resolve(results);
     };
-    img.onerror = () => reject(new Error('加载九宫格图片失败'));
+    img.onerror = () => reject(new Error('\u52a0\u8f7dchíncung điện\u683c\u56fe\u7247\u5931\u8d25'));
     img.src = gridImageUrl;
   });
 }
@@ -352,7 +352,7 @@ export function buildGridPrompt(
     gridPromptParts.push(`Panel [row ${row}, col ${col}] ${charConstraint}: ${desc}`);
   });
   
-  // styleTokens 不再注入（校准后的各 panel prompt 已包含风格描述）
+  // styleTokens \u4e0dMột lần nữaLưu ý\u5165（\u6821\u51c6\u540ecủa\u5404 panel prompt Đã rồichứagió\u683c\u63cf\u8ff0）
   gridPromptParts.push('Keep consistent character appearance, lighting, and color grading across all panels.');
   gridPromptParts.push('CRITICAL: NO TEXT, NO WORDS, NO LETTERS, NO CAPTIONS, NO SPEECH BUBBLES, NO DIALOGUE BOXES, NO SUBTITLES in any panel.');
   

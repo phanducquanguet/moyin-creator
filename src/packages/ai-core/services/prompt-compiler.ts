@@ -20,24 +20,24 @@ const DEFAULT_TEMPLATES: PromptTemplateConfig = {
   sceneImage: `{{style_tokens}}, {{character_description}}, {{visual_content}}, {{camera}}, {{quality_tokens}}`,
   sceneVideo: `{{character_description}}, {{visual_content}}, {{action}}, {{camera}}`,
   negative: `blurry, low quality, watermark, text, logo, signature, bad anatomy, deformed, mutated`,
-  screenplay: `你是一个专业的视频剧本创作者。请根据以下描述创作一个短视频剧本：
+  screenplay: `Bạn là một VideoK chuyên nghiệpịch bảnNgười sáng tạo。Hãy làm theo M sau đâyô tảTạo một VideoK ngắnịch bản：
 
-描述：{{prompt}}
+Mô tả：{{prompt}}
 
-要求：
-1. 创作 {{scene_count}} 个场景
-2. 每个场景包含：场景编号、旁白、视觉内容描述、角色动作、镜头类型、角色外观描述
-3. visualContent/action/camera/characterDescription 用英文描述
-4. narration 用中文
-5. 不要输出 mood/情绪 字段（前端不需要）
+yêu cầu：
+1. Tạo {{scene_count}} Cảnh
+2. Mỗi Cảnh chứa：Cảsố thứ、tường thuật、Nội dung trực quanMô tả、Nhân vậtHành động、Cảnh quayLoại、Nhân vậtNgoại hìnhMô tả
+3. visualContent/action/camera/nhân vậtMô tả bằng tiếng Anh Mô tả
+4. thuyết minh bằng tiếng Trung
+5. ĐừngĐầu ra mood/lĩnh vực cảm xúc（Không cần giao diện người dùng）
 
-输出格式为 JSON：
+Đầu raĐịnh dạng dưới dạng JSON：
 {
-  "title": "视频标题",
+  "title": "Tiêu đề video",
   "scenes": [
     {
       "sceneId": 1,
-      "narration": "中文旁白",
+      "narration": "tường thuật tiếng trung",
       "visualContent": "English visual description",
       "action": "English character action",
       "camera": "Camera type in English (Close-up/Medium Shot/Wide Shot/etc.)",

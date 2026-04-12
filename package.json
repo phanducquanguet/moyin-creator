@@ -1,8 +1,8 @@
 {
   "name": "moyin-creator",
-  "productName": "魔因漫创",
+  "productName": "Sáng tạo truyện tranh Mo Yin",
   "version": "0.2.3",
-  "description": "AI 驱动的动漫/短剧分镜创作工具",
+  "description": "Hoạt hình do AI điều khiển/kịch ngắn Phân cảcông cụ soạn thảo nh",
   "author": "MemeCalculate",
   "license": "AGPL-3.0-or-later",
   "repository": {
@@ -79,7 +79,7 @@
     "@typescript-eslint/parser": "^7.1.1",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.23",
-    "electron": "^30.0.1",
+    "electron": "^30.5.1",
     "electron-builder": "^24.13.3",
     "electron-vite": "^5.0.0",
     "eslint": "^8.57.0",

@@ -52,9 +52,9 @@ export function ExportView() {
   const splitScenes = directorProject?.splitScenes || [];
   const scriptData = scriptProject?.scriptData;
   const targetDuration = scriptProject?.targetDuration || "60s";
-  const projectName = (scriptData?.title || activeProject?.name || '未命名项目').replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_');
+  const projectName = (scriptData?.title || activeProject?.name || 'Chưa đặt tên\u9879\u76ee').replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_');
 
-  // === 进度计算：合并 Script shots 和 Director splitScenes 的状态 ===
+  // === \u8fdb\u5ea6Tính toán：\u5408\u5e76 Script shots và Director splitScenes của\u72b6\u6001 ===
   const hasSplitScenes = splitScenes.length > 0;
 
   // Director stats
@@ -77,7 +77,7 @@ export function ExportView() {
     ? (directorStats?.canExport || false)
     : (scriptStats?.canExport || false);
 
-  // 估算时长
+  // \u4f30\u7b97\u65f6\u957f
   const estimatedDuration = hasSplitScenes
     ? splitScenes.reduce((acc, s) => acc + (s.duration || 5), 0)
     : shots.reduce((acc, s) => acc + (s.duration || 3), 0);
@@ -86,7 +86,7 @@ export function ExportView() {
   const handleExportToFolder = useCallback(async () => {
     if (isExporting) return;
     setIsExporting(true);
-    setExportProgress({ current: 0, total: 0, message: '准备导出...' });
+    setExportProgress({ current: 0, total: 0, message: '\u51c6\u5907\u5bfc\u51fa...' });
 
     try {
       if (hasSplitScenes) {
@@ -100,7 +100,7 @@ export function ExportView() {
           },
           (p) => setExportProgress(p)
         );
-        if (success) toast.success('导出完成！');
+        if (success) toast.success('\u5bfc\u51faHoàn thành！');
       } else if (scriptData) {
         const success = await exportProjectToFolder(
           {
@@ -114,12 +114,12 @@ export function ExportView() {
           },
           (p) => setExportProgress(p)
         );
-        if (success) toast.success('导出完成！');
+        if (success) toast.success('\u5bfc\u51faHoàn thành！');
       } else {
-        toast.error('没有可导出的数据');
+        toast.error('\u6ca1Có\u53ef\u5bfc\u51facủa\u6570\u636e');
       }
     } catch (error) {
-      toast.error(`导出失败: ${(error as Error).message}`);
+      toast.error(`\u5bfc\u51fa\u5931\u8d25: ${(error as Error).message}`);
     } finally {
       setIsExporting(false);
       setExportProgress(null);
@@ -129,7 +129,7 @@ export function ExportView() {
   const handleDownloadFiles = useCallback(async () => {
     if (isExporting) return;
     setIsExporting(true);
-    setExportProgress({ current: 0, total: 0, message: '准备下载...' });
+    setExportProgress({ current: 0, total: 0, message: '\u51c6\u5907\u4e0b\u8f7d...' });
 
     try {
       if (hasSplitScenes) {
@@ -157,9 +157,9 @@ export function ExportView() {
           (p) => setExportProgress(p)
         );
       }
-      toast.success('下载完成！');
+      toast.success('\u4e0b\u8f7dHoàn thành！');
     } catch (error) {
-      toast.error(`下载失败: ${(error as Error).message}`);
+      toast.error(`\u4e0b\u8f7d\u5931\u8d25: ${(error as Error).message}`);
     } finally {
       setIsExporting(false);
       setExportProgress(null);
@@ -173,7 +173,7 @@ export function ExportView() {
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
             <Film className="w-5 h-5 text-primary" />
-            成片与导出
+            \u6210\u7247với\u5bfc\u51fa
             <span className="text-xs text-muted-foreground font-mono font-normal uppercase tracking-wider bg-muted px-2 py-1 rounded">
               Rendering & Export
             </span>
@@ -199,7 +199,7 @@ export function ExportView() {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                      {scriptData?.title || activeProject?.name || "未命名项目"}
+                      {scriptData?.title || activeProject?.name || "Chưa đặt tên\u9879\u76ee"}
                     </h3>
                     <span className="px-2 py-0.5 bg-muted border border-border text-muted-foreground text-[10px] rounded uppercase font-mono tracking-wider">
                       Master Sequence
@@ -280,7 +280,7 @@ export function ExportView() {
                           {/* Hover Tooltip */}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
                             <div className="bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border border-border shadow-xl">
-                              Scene {idx + 1}{hasVideo ? ' ✓视频' : hasImage ? ' ✓图片' : ''}
+                              Scene {idx + 1}{hasVideo ? ' ✓\u89c6\u9891' : hasImage ? ' ✓\u56fe\u7247' : ''}
                             </div>
                           </div>
                         </div>
@@ -313,11 +313,11 @@ export function ExportView() {
                     })
                   )}
                 </div>
-                {/* 图片/视频状态摘要 */}
+                {/* \u56fe\u7247/\u89c6\u9891\u72b6\u6001Tóm tắt */}
                 {hasSplitScenes && (
                   <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
-                    <span>图片: {imageReadyItems}/{totalItems}</span>
-                    <span>视频: {completedItems}/{totalItems}</span>
+                    <span>\u56fe\u7247: {imageReadyItems}/{totalItems}</span>
+                    <span>\u89c6\u9891: {completedItems}/{totalItems}</span>
                   </div>
                 )}
               </div>
@@ -351,9 +351,9 @@ export function ExportView() {
                   )}
                 >
                   {isExporting ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />导出中...</>
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />\u5bfc\u51fatrong...</>
                   ) : (
-                    <><FolderOpen className="w-4 h-4 mr-2" />选择文件夹导出</>
+                    <><FolderOpen className="w-4 h-4 mr-2" />\u9009\u62e9\u6587\u4ef6\u5939\u5bfc\u51fa</>
                   )}
                 </Button>
 
@@ -364,14 +364,14 @@ export function ExportView() {
                   className="h-12 font-bold text-xs uppercase tracking-widest"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  逐个下载素材
+                  \u9010một\u4e0b\u8f7dChất liệu
                 </Button>
               </div>
 
               {/* Export stats hint */}
               {hasSplitScenes && directorStats && (
                 <div className="mt-4 text-xs text-muted-foreground">
-                  可导出: {directorStats.imagesReady} 张首帧 · {directorStats.videosReady} 个视频{directorStats.endFramesReady > 0 ? ` · ${directorStats.endFramesReady} 张尾帧` : ''}
+                  \u53ef\u5bfc\u51fa: {directorStats.imagesReady} \u5f20khung hình đầu tiên · {directorStats.videosReady} một\u89c6\u9891{directorStats.endFramesReady > 0 ? ` · ${directorStats.endFramesReady} \u5f20\u5c3e\u5e27` : ''}
                 </div>
               )}
             </div>
@@ -387,9 +387,9 @@ export function ExportView() {
               >
                 <Layers className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-4 transition-colors" />
                 <div>
-                  <h4 className="text-sm font-bold text-foreground mb-1">素材下载</h4>
+                  <h4 className="text-sm font-bold text-foreground mb-1">Chất liệu\u4e0b\u8f7d</h4>
                   <p className="text-[10px] text-muted-foreground">
-                    下载所有已生成的图片和视频素材
+                    \u4e0b\u8f7d\u6240CóĐã rồi\u751f\u6210của\u56fe\u7247và\u89c6\u9891Chất liệu
                   </p>
                 </div>
               </div>

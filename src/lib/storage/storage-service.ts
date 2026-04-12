@@ -158,15 +158,15 @@ class StorageService {
   }
 
   async deleteProject({ id }: { id: string }): Promise<void> {
-    // 先清理项目关联的媒体和时间线数据，避免僵尸数据残留
+    // Dọn dẹp D trướcự án phương tiện liên quan và Thờtôi gian dòng dữ liệu，Tránh dư lượng dữ liệu zombie
     try {
       await Promise.all([
         this.deleteProjectMedia({ projectId: id }),
         this.deleteProjectTimeline({ projectId: id }),
       ]);
     } catch (err) {
-      console.warn(`[StorageService] 清理项目 ${id} 关联数据失败:`, err);
-      // 即使清理失败也继续删除项目元数据，避免阻塞用户操作
+      console.warn(`[StorageService] Sạch Dự án ${id} Dữ liệu được liên kết Thất bại:`, err);
+      // Ngay cả khi làm sạch Thất bạtôi cũng tiếp tục xoáDự ásiêu dữ liệu，Tránh chặn Người dùngThao tác
     }
     await this.projectsAdapter.remove(id);
   }
@@ -351,7 +351,7 @@ class StorageService {
 
   // Utility methods
   async clearAllData(): Promise<void> {
-    // 先获取所有项目 ID，逐个清理关联的媒体和时间线数据
+    // Nhận T đầu tiênất cảDự án ID，Làm sạch phương tiện liên quan và từng cái mộtờtôi gian dòng dữ liệu
     try {
       const projectIds = await this.projectsAdapter.list();
       await Promise.all(
@@ -363,9 +363,9 @@ class StorageService {
         )
       );
     } catch (err) {
-      console.warn('[StorageService] 清理关联数据失败:', err);
+      console.warn('[StorageService] Dọn dẹp dữ liệu liên quan Thất bại:', err);
     }
-    // 最后清除项目元数据
+    // Cuối cùng xóa Dự ásiêu dữ liệu
     await this.projectsAdapter.clear();
   }
 

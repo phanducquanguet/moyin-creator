@@ -38,16 +38,16 @@ import {
 
 // Mood presets for quick selection
 const MOOD_PRESETS = [
-  { id: "happy", label: "欢快", color: "bg-yellow-500" },
-  { id: "sad", label: "悲伤", color: "bg-blue-500" },
-  { id: "excited", label: "兴奋", color: "bg-orange-500" },
-  { id: "calm", label: "平静", color: "bg-green-500" },
-  { id: "mysterious", label: "神秘", color: "bg-purple-500" },
-  { id: "tense", label: "紧张", color: "bg-red-500" },
-  { id: "romantic", label: "浪漫", color: "bg-pink-500" },
-  { id: "curious", label: "好奇", color: "bg-cyan-500" },
-  { id: "nostalgic", label: "怀旧", color: "bg-amber-600" },
-  { id: "hopeful", label: "希望", color: "bg-emerald-500" },
+  { id: "happy", label: "vui vẻ", color: "bg-yellow-500" },
+  { id: "sad", label: "buồn", color: "bg-blue-500" },
+  { id: "excited", label: "vui mừng", color: "bg-orange-500" },
+  { id: "calm", label: "bình tĩnh", color: "bg-green-500" },
+  { id: "mysterious", label: "bí ẩn", color: "bg-purple-500" },
+  { id: "tense", label: "lo lắng", color: "bg-red-500" },
+  { id: "romantic", label: "lãng mạn", color: "bg-pink-500" },
+  { id: "curious", label: "\u597d\u5947", color: "bg-cyan-500" },
+  { id: "nostalgic", label: "\u6000\u65e7", color: "bg-amber-600" },
+  { id: "hopeful", label: "\u5e0c\u671b", color: "bg-emerald-500" },
 ] as const;
 
 interface SceneCardProps {
@@ -157,26 +157,26 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
         return (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <ImageIcon className="h-3 w-3" />
-            生成图片
+            \u751f\u6210\u56fe\u7247
           </span>
         );
       case "video":
         return (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <VideoIcon className="h-3 w-3" />
-            生成视频
+            \u751f\u6210\u89c6\u9891
           </span>
         );
       case "audio":
         return (
           <span className="text-xs text-muted-foreground">
-            生成音频
+            \u751f\u6210\u97f3\u9891
           </span>
         );
       case "done":
         return (
           <span className="text-xs text-green-500">
-            完成
+            Hoàn thành
           </span>
         );
       default:
@@ -211,7 +211,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
         <div className="flex items-center gap-2">
           {getStatusIcon()}
           <span className="font-medium text-sm">
-            场景 {scene.sceneId}
+            \u573a\u666f {scene.sceneId}
           </span>
           {/* Mood badge */}
           {isPreview && !progress && (
@@ -235,13 +235,13 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
                     className="h-5 px-1.5 text-[10px] text-muted-foreground"
                   >
                     <Plus className="h-3 w-3 mr-0.5" />
-                    情绪
+                    cảm xúc
                   </Button>
                 )}
               </PopoverTrigger>
               <PopoverContent className="w-56 p-2" onClick={(e) => e.stopPropagation()}>
                 <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">选择情绪标签</div>
+                  <div className="text-xs font-medium text-muted-foreground">\u9009\u62e9Thẻ cảm xúc</div>
                   <div className="flex flex-wrap gap-1">
                     {MOOD_PRESETS.map((preset) => (
                       <Badge
@@ -267,7 +267,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
                       onClick={handleRandomMood}
                     >
                       <Shuffle className="h-3 w-3 mr-1" />
-                      随机
+                      \u968f\u673a
                     </Button>
                     {scene.mood && (
                       <Button
@@ -277,7 +277,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
                         onClick={() => handleSetMood(undefined)}
                       >
                         <X className="h-3 w-3 mr-1" />
-                        清除
+                        \u6e05\u9664
                       </Button>
                     )}
                   </div>
@@ -309,7 +309,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
               onClick={handleRetry}
             >
               <RotateCcw className="h-3 w-3 mr-1" />
-              重试
+              \u91cd\u8bd5
             </Button>
           )}
           {canDelete && onDelete && (
@@ -318,7 +318,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
               variant="ghost"
               className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
               onClick={handleDelete}
-              title="删除场景"
+              title="\u5220\u9664\u573a\u666f"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -336,7 +336,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
             onKeyDown={handleNarrationKeyDown}
             onBlur={handleNarrationSave}
             className="min-h-[60px] text-sm resize-none"
-            placeholder="输入场景旁白..."
+            placeholder="\u8f93\u5165\u573a\u666ftường thuật..."
           />
           <div className="flex justify-end gap-1 mt-1">
             <Button
@@ -346,7 +346,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
               onClick={handleNarrationCancel}
             >
               <X className="h-3 w-3 mr-1" />
-              取消
+              \u53d6\u6d88
             </Button>
             <Button
               size="sm"
@@ -355,7 +355,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
               onClick={handleNarrationSave}
             >
               <Check className="h-3 w-3 mr-1" />
-              保存
+              \u4fdd\u5b58
             </Button>
           </div>
         </div>
@@ -366,7 +366,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
             isPreview && !progress && "cursor-text hover:bg-muted/50 rounded px-1 -mx-1"
           )}
           onDoubleClick={handleNarrationDoubleClick}
-          title={isPreview && !progress ? "双击编辑" : undefined}
+          title={isPreview && !progress ? "\u53cc\u51fb\u7f16\u8f91" : undefined}
         >
           {scene.narration}
         </p>
@@ -414,7 +414,7 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
               }}
             >
               <RotateCcw className="h-3 w-3 mr-1" />
-              重新生成
+              \u91cdmới\u751f\u6210
             </Button>
           )}
         </div>
@@ -431,15 +431,15 @@ export function SceneCard({ scene, progress, isPreview, showImage, onRetryImage,
       {isSelected && (
         <div className="mt-3 pt-3 border-t space-y-2">
           <div>
-            <label className="text-xs font-medium text-muted-foreground">镜头</label>
+            <label className="text-xs font-medium text-muted-foreground">\u955c\u5934</label>
             <p className="text-xs">{scene.camera}</p>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">视觉描述</label>
+            <label className="text-xs font-medium text-muted-foreground">\u89c6\u89c9\u63cf\u8ff0</label>
             <p className="text-xs line-clamp-3">{scene.visualContent}</p>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">动作</label>
+            <label className="text-xs font-medium text-muted-foreground">\u52a8\u4f5c</label>
             <p className="text-xs line-clamp-2">{scene.action}</p>
           </div>
         </div>

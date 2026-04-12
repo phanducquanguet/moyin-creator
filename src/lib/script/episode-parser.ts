@@ -2,18 +2,18 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Episode Parser - 中文剧本规则解析器
- * 解析标准中文剧本格式，提取集、场景、对白、动作等结构化信息
+ * Tập Parser - Tiếng Trung Kịch bảtrình phân tích cú pháp nRule
+ * Phân tích cú pháp tiếng Trung chuẩn Kịch bảnĐịnh dạng，Bộ trích xuất、Cảnh、đối thoại、Hành động và thông tin có cấu trúc khác
  * 
- * 支持的格式：
- * - 集标记：第X集
- * - 场景头：**1-1日 内 沪上 张家** 或 1-1 日 内 沪上 张家
- * - 人物行：人物：张明、张父
- * - 字幕：【字幕：2002年夏】
- * - 动作描写：△窗外栀子花绽放...
- * - 对白：张父：（喝酒）我们明明真是太有出息了！
- * - 闪回：【闪回】...【闪回结束】
- * - 旁白/VO：【VO：...】
+ * Hỗ trợcủaĐịnh dạng：
+ * - đặt điểm đánh dấu：Tập X
+ * - Cảnh đầu：**Trong vòng 1-1 ngày, Thượng Hải Zhangjia** Hoặc trong vòng 1-1 ngày Thượng Hải Zhangjia
+ * - Hàng ký tự：nhân vật：Trương Minh、bố của Trương
+ * - phụ đề：【phụ đề：Mùa hè 2002】
+ * - Hành động mô tả：△Hoa dành dành nở ngoài cửa sổ...
+ * - Đối thoại：bố của Trương：（uống）Rõ ràng là chúng tôi rất hứa hẹn.！
+ * - Hồi tưởng：【hồi tưởng】...【Hồi tưởng Kết thúc】
+ * - Người kể chuyện/VO：【VO：...】
  */
 
 import type {
@@ -28,23 +28,23 @@ import type {
 } from "@/types/script";
 
 /**
- * 清理场景地点字符串，移除人物信息等无关内容
- * 如 "乡村公路/大巴车 人物：沈星晴、村民" -> "乡村公路/大巴车"
+ * Làm sạch Cảnh chuỗi vị trí，Xóa nội dung không liên quan như thông tin nhân vật
+ * Chẳng hạn như "đường nông thôn/nhân vật xe buýt：Thẩm Tinh Thanh、dân làng" -> "đường nông thôn/xe buýt"
  */
 function cleanLocationString(location: string): string {
   if (!location) return '';
-  // 移除 "人物：XXX" 部分
-  let cleaned = location.replace(/\s*人物[\uff1a:].*/g, '');
-  // 移除 "角色：XXX" 部分
-  cleaned = cleaned.replace(/\s*角色[\uff1a:].*/g, '');
-  // 移除 "时间：XXX" 部分
-  cleaned = cleaned.replace(/\s*时间[\uff1a:].*/g, '');
-  // 去除首尾空白
+  // Xóa "nhân vật：XXX" một phần
+  let cleaned = location.replace(/\s*nhân vật[\uff1a:].*/g, '');
+  // Xóa "Nhân vật：XXX" một phần
+  cleaned = cleaned.replace(/\s*Nhân vật[\uff1a:].*/g, '');
+  // Xóa "Thời gian：XXX" một phần
+  cleaned = cleaned.replace(/\s*Thời gian[\uff1a:].*/g, '');
+  // Xóa khoảng trắng đầu và cuối
   return cleaned.trim();
 }
 
 /**
- * 解析完整剧本文本，提取背景信息和各集内容
+ * Phân tích K hoàn chỉnhịch bảvăn bản，Trích xuất NềnThông tin và nội dung tập phim
  */
 export function parseFullScript(fullText: string): {
   background: ProjectBackground;
@@ -52,35 +52,35 @@ export function parseFullScript(fullText: string): {
 } {
   const lines = fullText.split('\n');
   
-  // 1. 提取标题
+  // 1. Trích xuất tiêu đề
   const titleMatch = fullText.match(/[《「]([^》」]+)[》」]/);
-  const title = titleMatch ? titleMatch[1] : '未命名剧本';
+  const title = titleMatch ? titleMatch[1] : 'Không tênKịch bản';
   
-  // 2. 提取大纲（从"大纲："到"人物小传："之间的内容）
-  // 支持 Markdown 格式：**大纲：** 或 大纲： 或 【大纲】
-  // 末尾 |$ 兜底：无人物小传/无集标记时匹配到文本末尾
-  const outlineMatch = fullText.match(/(?:\*{0,2}大纲[：:]​?\*{0,2}|【大纲】)([\s\S]*?)(?=(?:\*{0,2}人物小传[：:]|【人物|第[一二三四五六七八九十\d]+集|$))/i);
+  // 2. Trích xuất phác thảo（từ"phác thảo："Đến"Tiểu sử："nội dung giữa）
+  // Hỗ trợ Markdown Định dạng：**phác thảo：** hoặc phác thảo： hoặc 【phác thảo】
+  // kết thúc |$ Hãy ghi nhớ mọi thứ：Không có tiểu sử/Khớp với phần cuối của văn bản khi không có thẻ được đặt
+  const outlineMatch = fullText.match(/(?:\*{0,2}phác thảo[：:]​?\*{0,2}|【phác thảo】)([\s\S]*?)(?=(?:\*{0,2}Tiểu sử[：:]|【nhân vật|Không.[Một, hai, ba, bốn, năm, sáu, bảy, tám, chín mươi\d]+bộ|$))/i);
   const outline = outlineMatch ? outlineMatch[1].trim() : '';
   
-  // 3. 提取人物小传（从"人物小传："到第一集之前的内容）
-  // 支持 Markdown 格式：**人物小传：** 或 人物小传： 或 【人物小传】
-  // 末尾 |$ 兜底：无集标记时匹配到文本末尾
-  const characterBiosMatch = fullText.match(/(?:\*{0,2}人物小传[：:]\*{0,2}|【人物小传】)([\s\S]*?)(?=\*{0,2}第[一二三四五六七八九十\d]+集|$)/i);
+  // 3. Trích xuất tiểu sử nhân vật（từ"Tiểu sử："Nội dung trước tập đầu tiên）
+  // Hỗ trợ Markdown Định dạng：**Tiểu sử：** hoặc tiểu sử： hoặc 【Tiểu sử】
+  // kết thúc |$ Hãy ghi nhớ mọi thứ：Khớp với phần cuối của văn bản khi không có thẻ được đặt
+  const characterBiosMatch = fullText.match(/(?:\*{0,2}Tiểu sử[：:]\*{0,2}|【Tiểu sử】)([\s\S]*?)(?=\*{0,2}Không.[Một, hai, ba, bốn, năm, sáu, bảy, tám, chín mươi\d]+bộ|$)/i);
   const characterBios = characterBiosMatch ? characterBiosMatch[1].trim() : '';
   
-  // 4. 提取时代背景和时间线设定
+  // 4. Trích xuất kỷ nguyên Nền và Thờtôi cài đặt dòng
   const { era, timelineSetting, storyStartYear, storyEndYear } = extractTimelineInfo(outline, characterBios);
   
-  // 5. 提取类型（genre）
+  // 5. Trích xuất Lôại（genre）
   const genre = detectGenre(outline, characterBios);
   
-  // 6. 提取世界观/风格设定
+  // 6. Trích xuất thế giới quan/Phong cácài đặt ch
   const worldSetting = extractWorldSetting(outline, characterBios);
   
-  // 7. 提取主题关键词
+  // 7. Trích xuất từ khóa chủ đề
   const themes = extractThemes(outline, characterBios);
   
-  // 8. 解析各集内容
+  // 8. Phân tích nội dung từng tập phim
   const episodes = parseEpisodes(fullText);
   
   return {
@@ -101,7 +101,7 @@ export function parseFullScript(fullText: string): {
 }
 
 /**
- * 从大纲和人物小传中提取时间线信息
+ * Trích xuất Th từ đề cương và tiểu sửờtôi gian dòng thông tin
  */
 function extractTimelineInfo(outline: string, characterBios: string): {
   era: string;
@@ -111,43 +111,43 @@ function extractTimelineInfo(outline: string, characterBios: string): {
 } {
   const fullText = `${outline}\n${characterBios}`;
   
-  // 1. 提取具体年份（如"2002年"、"1990-2020年"、"2022年夏天"）
+  // 1. Trích xuất năm cụ thể（Chẳng hạn như"2002"、"1990-2020"、"Mùa hè 2022"）
   const yearPatterns = [
-    // 年份范围：1990-2020年、1990年到2020年
-    /(\d{4})\s*[-至到~]\s*(\d{4})\s*年?/,
-    // 单独年份 + 季节/时间：2002年夏天、2022年初
-    /(\d{4})年[\u4e00-\u9fa5]{0,4}/,
-    // 单独年份：2002年
-    /(\d{4})年/,
+    // phạm vi năm：1990-2020、1990 đến 2020
+    /(\d{4})\s*[- đến nơi~]\s*(\d{4})\s*năm?/,
+    // Năm + mùa riêng biệt/Thời gian：mùa hè 2002、Đầu năm 2022
+    /(\d{4}) năm[\u4e00-\u9fa5]{0,4}/,
+    // một năm：2002
+    /(\d{4}) năm/,
   ];
   
   let storyStartYear: number | undefined;
   let storyEndYear: number | undefined;
   let timelineSetting: string | undefined;
   
-  // 尝试匹配年份范围
-  const rangeMatch = fullText.match(/(\d{4})\s*[-至到~]\s*(\d{4})\s*年?/);
+  // Cố gắng khớp phạm vi năm
+  const rangeMatch = fullText.match(/(\d{4})\s*[- đến nơi~]\s*(\d{4})\s*năm?/);
   if (rangeMatch) {
     storyStartYear = parseInt(rangeMatch[1]);
     storyEndYear = parseInt(rangeMatch[2]);
-    timelineSetting = `${storyStartYear}年 - ${storyEndYear}年`;
+    timelineSetting = `${storyStartYear}năm - ${storyEndYear}năm`;
   } else {
-    // 尝试匹配单独年份
-    const singleYearMatch = fullText.match(/(\d{4})年([\u4e00-\u9fa5]{0,6})/);
+    // Cố gắng khớp một năm
+    const singleYearMatch = fullText.match(/(\d{4})năm([\u4e00-\u9fa5]{0,6})/);
     if (singleYearMatch) {
       storyStartYear = parseInt(singleYearMatch[1]);
       const season = singleYearMatch[2] || '';
-      timelineSetting = season ? `${storyStartYear}年${season}` : `${storyStartYear}年`;
+      timelineSetting = season ? `${storyStartYear}năm${season}` : `${storyStartYear}năm`;
     }
   }
   
-  // 2. 提取时代背景（如"现代"、"民国"、"唐朝"）
+  // 2. Trích xuất kỷ nguyên Nền（Chẳng hạn như"hiện đại"、"Cộng hòa Trung Quốc"、"nhà Đường"）
   const eraPatterns = [
-    /(现代|当代|近代|民国|清末|清朝|明朝|宋朝|唐朝|汉朝|三国|战国|春秋|古代|远古|未来)/,
-    /(二十世纪|二十一世纪|20世纪|21世纪|\d{2}年代)/,
+    /(Hiện đại|đương đại|thời hiện đại|Cộng hòa Trung Quốc|Cuối nhà Thanh|nhà Thanh|nhà Minh|Nhà Tống|nhà Đường|nhà Hán|Tam Quốc|Thời Chiến Quốc|mùa xuân và mùa thu|thời cổ đại|thời cổ đại|tương lai)/,
+    /(thế kỷ 20|thế kỷ XXI|thế kỷ 20|thế kỷ 21|\d{2}s)/,
   ];
   
-  let era = '现代'; // 默认现代
+  let era = 'hiện đại'; // Mặc định hiện đại
   for (const pattern of eraPatterns) {
     const eraMatch = fullText.match(pattern);
     if (eraMatch) {
@@ -156,40 +156,40 @@ function extractTimelineInfo(outline: string, characterBios: string): {
     }
   }
   
-  // 3. 根据年份推断时代
+  // 3. Suy ra niên đại dựa vào năm
   if (storyStartYear) {
     if (storyStartYear >= 2000) {
-      era = '现代';
+      era = 'hiện đại';
     } else if (storyStartYear >= 1949) {
-      era = '现代（新中国）';
+      era = 'hiện đại（Trung Quốc mới）';
     } else if (storyStartYear >= 1912) {
-      era = '民国';
+      era = 'Cộng hòa Trung Quốc';
     } else if (storyStartYear >= 1840) {
-      era = '清末/近代';
+      era = 'Cuối nhà Thanh/thời hiện đại';
     }
   }
   
-  // 4. 无显式年代关键词且无年份时，通过古风术语推断
-  // 仅当 era 仍为默认值 '现代' 且没有年份佐证时才推断
-  if (era === '现代' && !storyStartYear) {
-    // 古代官职/封建制度术语（高置信度）
-    const ancientInstitutionTerms = /城主|王爷|太守|县令|丞相|太子|皇帝|太后|嫔妃|将领|部将|大将军|郡守|侯爵|藩王/;
-    // 武侠/古风术语（中置信度，需多个命中）
-    const ancientCultureTerms = /武功|内力|真气|剑法|刀法|门派|武林|江湖|侠客|大侠|掌门|弟子|轻功|暗器/;
-    // 古代场景术语
-    const ancientSettingTerms = /城楼|客栈|驿馆|城门|官府|衙门|兵营|镖局|酒肆|茶楼|府邸|宫殿/;
+  // 4. Khi không có từ khóa năm rõ ràng và không có năm，Chấp nhậSuy luận thuật ngữ cổ
+  // Chỉ khi thời đại vẫn là Mặc địgiá trị nh 'hiện đại' Nó chỉ được suy ra khi không có hỗ trợ năm.
+  if (era === 'hiện đại' && !storyStartYear) {
+    // chức vụ chính thức cổ xưa/thuật ngữ chế độ phong kiến（độ tin cậy cao）
+    const ancientInstitutionTerms = /Chúa thành phố|hoàng tử|Tỉnh trưởng|Thẩm phán quận|thủ tướng|hoàng tử|hoàng đế|Thái hậu|vợ lẽ|chung|chung|chung|cảnh sát trưởng|hầu tước|vua chư hầu/;
+    // võ thuật/Thuật ngữ cổ xưa（độ tin cậy trung bình，Yêu cầu nhiều lượt truy cập）
+    const ancientCultureTerms = /võ thuật|nội lực|tức giận|kiếm thuật|Kỹ năng dùng dao|giáo phái|vũ lâm|giang hồ|hiệp sĩ|anh hùng|lãnh đạo|đệ tử|Thanh Công|Vũ khí ẩn/;
+    // Cổ Cảthuật ngữ nh
+    const ancientSettingTerms = /tháp|quán trọ|Bưu điện|cổng thành|chính phủ|nha môn|doanh trại|cơ quan hộ tống|cửa hàng rượu|quán trà|biệt thự|cung điện/;
     
     if (ancientInstitutionTerms.test(fullText)) {
-      era = '古代';
+      era = 'thời cổ đại';
     } else {
-      // 文化术语 + 场景术语同时出现 → 高置信度古代
+      // Thuật ngữ văn hóa + Cảnh thuật ngữ xuất hiện đồng thời → Độ tin cậy cao cổ xưa
       const hasCulture = ancientCultureTerms.test(fullText);
       const hasSetting = ancientSettingTerms.test(fullText);
       if (hasCulture && hasSetting) {
-        era = '古代';
+        era = 'thời cổ đại';
       } else if (hasCulture) {
-        // 仅有武侠术语，可能是现代武侠，标记为古风
-        era = '古代（推断）';
+        // Chỉ thuật ngữ võ thuật，Có lẽ võ thuật hiện đại，Gắn thẻ đồ cổ
+        era = 'thời cổ đại（suy luận）';
       }
     }
   }
@@ -203,34 +203,34 @@ function extractTimelineInfo(outline: string, characterBios: string): {
 }
 
 /**
- * 从大纲和人物小传中检测剧本类型（genre）
- * 通用检测，不硬编码具体类型名，而是通过关键词模式匹配
+ * Phát hiện K từ phác thảo và tiểu sửịch bảnLoại（genre）
+ * Phát hiện phổ quát，Đừng mã hóa Lo cụ thểạtôi đặt tên，Nhưng Chấp nhậkết hợp mẫu từ khóa
  */
 function detectGenre(outline: string, characterBios: string): string {
   const fullText = `${outline}\n${characterBios}`;
   
-  // 类型关键词映射（按优先级排列）
+  // LoạÁnh xạ iKeyword（Sắp xếp theo mức độ ưu tiên）
   const genrePatterns: Array<{ keywords: RegExp; genre: string }> = [
-    { keywords: /武侠|江湖|门派|武功|剑|刀法|内力|武林/, genre: '武侠' },
-    { keywords: /仙侠|修仙|灵气|渡劫|飞升|法宝|灵根/, genre: '仙侠' },
-    { keywords: /玄幻|魔法|异世界|龙族|精灵|魔族/, genre: '玄幻' },
-    { keywords: /科幻|太空|星际|机器人|AI|外星|未来世界/, genre: '科幻' },
-    { keywords: /悬疑|谋杀|侦探|推理|凶手|案件|警察/, genre: '悬疑' },
-    { keywords: /恐怖|鬼|灵异|诅咒|闹鬼/, genre: '恐怖' },
-    { keywords: /商战|创业|公司|股权|融资|上市|商业帝国|企业/, genre: '商战' },
-    { keywords: /宫斗|后宫|嫔妃|皇上|太后|选秀/, genre: '宫斗' },
-    { keywords: /宅斗|嫡女|庶出|大宅门|内宅/, genre: '宅斗' },
-    { keywords: /谍战|特工|间谍|密码|潜伏|情报/, genre: '谍战' },
-    { keywords: /军旅|军队|战场|部队|军营|战争/, genre: '军旅' },
-    { keywords: /刑侦|刑警|破案|嫌疑人|法医/, genre: '刑侦' },
-    { keywords: /医疗|医院|手术|医生|患者|急诊/, genre: '医疗' },
-    { keywords: /律政|律师|法庭|辩护|诉讼/, genre: '律政' },
-    { keywords: /校园|大学|高中|同学|学校|老师/, genre: '校园' },
-    { keywords: /爱情|恋爱|暗恋|表白|甜蜜|分手/, genre: '爱情' },
-    { keywords: /家庭|父母|兄弟|姐妹|亲情|家族/, genre: '家庭' },
-    { keywords: /喜剧|搞笑|幽默|滑稽/, genre: '喜剧' },
-    { keywords: /历史|朝廷|天子|大臣|变法|改革/, genre: '历史' },
-    { keywords: /农村|乡村|种地|脱贫|振兴/, genre: '乡村' },
+    { keywords: /võ thuật|giang hồ|giáo phái|võ thuật|thanh kiếm|Kỹ năng dùng dao|nội lực|vũ lâm/, genre: 'võ thuật' },
+    { keywords: /Tiên Hạ|trồng trọt|hào quang|Vượt qua hoạn nạn|bay lên|vũ khí ma thuật|cội nguồn tâm linh/, genre: 'Tiên Hạ' },
+    { keywords: /tưởng tượng|ma thuật|Một thế giới khác|tộc rồng|yêu tinh|Ác quỷ/, genre: 'tưởng tượng' },
+    { keywords: /khoa học viễn tưởng|không gian|liên sao|người máy|AI|người ngoài hành tinh|thế giới tương lai/, genre: 'khoa học viễn tưởng' },
+    { keywords: /Hồi hộp|giết người|Thám tử|lý luận|kẻ giết người|trường hợp|cảnh sát/, genre: 'Hồi hộp' },
+    { keywords: /kinh dị|ma|siêu nhiên|Lời nguyền|bị ma ám/, genre: 'kinh dị' },
+    { keywords: /chiến tranh kinh doanh|Bắt đầu kinh doanh|công ty|Vốn chủ sở hữu|Tài chính|Đã niêm yết|đế chế kinh doanh|doanh nghiệp/, genre: 'chiến tranh kinh doanh' },
+    { keywords: /Cuộc chiến cung điện|hậu cung|vợ lẽ|hoàng đế|Thái hậu|bản nháp/, genre: 'Cuộc chiến cung điện' },
+    { keywords: /đánh nhau trong nhà|trực tiếp Nữ|vợ lẽ|Đại Trại Môn|nhà trong/, genre: 'đánh nhau trong nhà' },
+    { keywords: /chiến tranh gián điệp|đại lý|gián điệp|Mật khẩu|rình rập|trí thông minh/, genre: 'chiến tranh gián điệp' },
+    { keywords: /quân sự|quân đội|chiến trường|quân đội|trại quân sự|chiến tranh/, genre: 'quân sự' },
+    { keywords: /điều tra tội phạm|Interpol|Giải quyết vụ án|nghi ngờ|pháp y/, genre: 'điều tra tội phạm' },
+    { keywords: /y tế|bệnh viện|phẫu thuật|bác sĩ|bệnh nhân|khẩn cấp/, genre: 'y tế' },
+    { keywords: /pháp luật|luật sư|tòa án|bảo vệ|kiện tụng/, genre: 'pháp luật' },
+    { keywords: /khuôn viên trường|trường đại học|trường trung học|bạn cùng lớp|trường học|giáo viên/, genre: 'khuôn viên trường' },
+    { keywords: /tình yêu|yêu|tình yêu bí mật|Lời thú tội|ngọt ngào|chia tay/, genre: 'tình yêu' },
+    { keywords: /gia đình|bố mẹ|anh trai|chị em|tình cảm gia đình|gia đình/, genre: 'gia đình' },
+    { keywords: /Hài kịch|Hài hước|hài hước|buồn cười/, genre: 'Hài kịch' },
+    { keywords: /Lịch sử|triều đình|hoàng đế|Bộ trưởng|Cải cách|cải cách/, genre: 'Lịch sử' },
+    { keywords: /khu vực nông thôn|nông thôn|nông nghiệp|Thoát khỏi nghèo đói|hồi sinh/, genre: 'nông thôn' },
   ];
   
   for (const { keywords, genre } of genrePatterns) {
@@ -239,20 +239,20 @@ function detectGenre(outline: string, characterBios: string): string {
     }
   }
   
-  return ''; // 未检测到则留空，不硬编码默认值
+  return ''; // Để trống nếu không được phát hiện，Không mã hóa cứng Mặc địgiá trị nh
 }
 
 /**
- * 从大纲中提取世界观/风格设定
+ * Trích xuất thế giới quan từ phác thảo/Phong cácài đặt ch
  */
 function extractWorldSetting(outline: string, characterBios: string): string {
   const fullText = `${outline}\n${characterBios}`;
   
-  // 匹配常见世界观描述模式
+  // Phù hợp với thế giới quan chung Mô tảchế độ
   const patterns = [
-    /(?:世界观|世界设定|背景设定)[：:] *([^\n]{10,200})/,
-    /(?:故事发生在|故事背景[：:是]) *([^\n]{10,200})/,
-    /(?:设定[：:]) *([^\n]{10,200})/,
+    /(?:Thế giới quan|Bối cảnh thế giới|Nềcài đặt)[：:] *([^\n]{10,200})/,
+    /(?:Câu chuyện diễn ra ở|TruyệnNền[：: Vâng]) *([^\n]{10,200})/,
+    /(?:thiết lập[：:]) *([^\n]{10,200})/,
   ];
   
   for (const pattern of patterns) {
@@ -262,32 +262,32 @@ function extractWorldSetting(outline: string, characterBios: string): string {
     }
   }
   
-  return ''; // 无世界观描述则留空
+  return ''; // Không có thế giới quanMô tảsau đó để trống
 }
 
 /**
- * 从大纲中提取主题关键词
+ * Trích xuất từ khóa chủ đề từ dàn ý
  */
 function extractThemes(outline: string, characterBios: string): string[] {
   const fullText = `${outline}\n${characterBios}`;
   const themes: string[] = [];
   
-  // 主题关键词库（通用，覆盖各类剧本）
+  // Thư viện từ khóa chủ đề（phổ quát，Bao gồm tất cả các loại Kịch bản）
   const themePatterns: Array<{ keywords: RegExp; theme: string }> = [
-    { keywords: /奋斗|拼搏|逆袭|成长/, theme: '奋斗' },
-    { keywords: /复仇|报仇|雪恨/, theme: '复仇' },
-    { keywords: /爱情|爱恋|真爱|恋爱/, theme: '爱情' },
-    { keywords: /亲情|家庭|家人/, theme: '亲情' },
-    { keywords: /友情|兄弟|义气|忠诚/, theme: '友情' },
-    { keywords: /权力|争斗|权谋|阴谋/, theme: '权谋' },
-    { keywords: /正义|公平|法治|真相/, theme: '正义' },
-    { keywords: /自由|解放|独立/, theme: '自由' },
-    { keywords: /救赎|原谅|和解|忏悔/, theme: '救赎' },
-    { keywords: /背叛|出卖|信任/, theme: '背叛与信任' },
-    { keywords: /命运|宿命|天命/, theme: '命运' },
-    { keywords: /战争|和平|反战/, theme: '战争与和平' },
-    { keywords: /传承|继承|使命/, theme: '传承' },
-    { keywords: /生死|生命|死亡|牺牲/, theme: '生死' },
+    { keywords: /đấu tranh|đấu tranh|phản công|phát triển/, theme: 'đấu tranh' },
+    { keywords: /Trả thù|trả thù|trả thù/, theme: 'Trả thù' },
+    { keywords: /tình yêu|tình yêu|tình yêu đích thực|yêu/, theme: 'tình yêu' },
+    { keywords: /tình cảm gia đình|gia đình|gia đình/, theme: 'tình cảm gia đình' },
+    { keywords: /tình bạn|anh trai|lòng trung thành|lòng trung thành/, theme: 'tình bạn' },
+    { keywords: /quyền lực|chiến đấu|Machiavellian|âm mưu/, theme: 'Machiavellian' },
+    { keywords: /công lý|công bằng|pháp quyền|sự thật/, theme: 'công lý' },
+    { keywords: /sự tự do|giải phóng|độc lập/, theme: 'sự tự do' },
+    { keywords: /sự cứu chuộc|tha thứ|Hòa giải|ăn năn/, theme: 'sự cứu chuộc' },
+    { keywords: /sự phản bội|phản bội|tin tưởng/, theme: 'sự phản bội và sự tin tưởng' },
+    { keywords: /định mệnh|số phận|định mệnh/, theme: 'định mệnh' },
+    { keywords: /chiến tranh|hòa bình|phản chiến/, theme: 'chiến tranh và hòa bình' },
+    { keywords: /sự kế thừa|sự kế thừa|Sứ mệnh/, theme: 'sự kế thừa' },
+    { keywords: /sự sống và cái chết|cuộc sống|cái chết|sự hy sinh/, theme: 'sự sống và cái chết' },
   ];
   
   for (const { keywords, theme } of themePatterns) {
@@ -296,26 +296,26 @@ function extractThemes(outline: string, characterBios: string): string[] {
     }
   }
   
-  return themes.slice(0, 5); // 最多返回5个主题
+  return themes.slice(0, 5); // Lên tới Bến Lạchủ đề i5
 }
 
 /**
- * 解析各集剧本
+ * Phân tích từng tập Kịch bản
  */
 export function parseEpisodes(text: string): EpisodeRawScript[] {
   const episodes: EpisodeRawScript[] = [];
   
-  // 匹配集标记：第X集 或 第X集：标题
-  // 支持 **第X集** 或 **第X集：标题** 格式
-  const episodeRegex = /\*{0,2}第([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\u5343\d]+)集[\uff1a:]?\s*([^\n\*]*?)\*{0,2}(?=\n|$)/g;
+  // thẻ tập hợp trận đấu：Tập X hoặc Tập：Tiêu đề
+  // Hỗ trợ **Tập X** hoặc **Tập X：Tiêu đề** Định dạng
+  const episodeRegex = /\*{0,2}Không. ([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\u5343\d]+) đặt[\uff1a:]?\s*([^\n\*]*?)\*{0,2}(?=\n|$)/g;
   const matches = [...text.matchAll(episodeRegex)];
   
   if (matches.length === 0) {
-    // 如果没有找到集标记，把整个文本当作第一集
+    // Nếu không tìm thấy thẻ đặt，Coi toàn bộ văn bản như tập đầu tiên
     const scenes = parseScenes(text);
     return [{
       episodeIndex: 1,
-      title: '第一集',
+      title: 'Tập 1',
       rawContent: text,
       scenes,
       shotGenerationStatus: 'idle',
@@ -325,22 +325,22 @@ export function parseEpisodes(text: string): EpisodeRawScript[] {
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
     const episodeIndex = chineseToNumber(match[1]);
-    // 清理标题：移除前后空格和 ** 符号
+    // tiêu đề rõ ràng：Xóa các khoảng trắng ở đầu và cuối và ** biểu tượng
     let rawTitle = match[2]?.trim().replace(/^\*+|\*+$/g, '').trim() || '';
-    // 确保标题包含集号
+    // Đảm bảo tiêu đề bao gồm số tập
     const episodeTitle = rawTitle 
-      ? `第${episodeIndex}集：${rawTitle}` 
-      : `第${episodeIndex}集`;
+      ? `Không.${episodeIndex}đặt：${rawTitle}` 
+      : `Không.${episodeIndex}đặt`;
     
-    // 获取本集内容（从当前集到下一集之间）
+    // Nhận tập này（Từ tập hiện tại đến tập tiếp theo）
     const startIndex = match.index! + match[0].length;
     const endIndex = i < matches.length - 1 ? matches[i + 1].index! : text.length;
     const rawContent = text.slice(startIndex, endIndex).trim();
     
-    // 解析场景
+    // Phân tích cú pháp Cảnh
     const scenes = parseScenes(rawContent);
     
-    // 从字幕中提取季节
+    // Trích xuất các phần từ phụ đề
     const season = extractSeasonFromScenes(scenes);
     
     episodes.push({
@@ -357,36 +357,36 @@ export function parseEpisodes(text: string): EpisodeRawScript[] {
 }
 
 /**
- * 解析单集内的场景
+ * Phân tích C trong một tập duy nhấtảnh
  */
 export function parseScenes(episodeText: string): SceneRawContent[] {
   const scenes: SceneRawContent[] = [];
   
-  // 场景头格式匹配：
-  // **1-1日 内 沪上 张家** 或
-  // 1-1 日 内 沪上 张家 或
-  // **2-3 夜 外 码头**
-  const sceneHeaderRegex = /\*{0,2}(\d+-\d+)\s*(日|夜|晨|暮|黄昏|黎明|清晨|傍晚)\s*(内|外|内\/外)\s+([^\*\n]+)\*{0,2}/g;
+  // Cảnh đầuĐịnh dạtrận đấu：
+  // **Trong vòng 1-1 ngày, Thượng Hải Zhangjia** hoặc
+  // Trong vòng 1-1 ngày Thượng Hải Zhangjia hoặc
+  // **2-3 đêm ngoài bến tàu**
+  const sceneHeaderRegex = /\*{0,2}(\d+-\d+)\s*(Ngày|đêm|buổi sáng|chạng vạng|Hoàng hôn|Bình minh|sáng sớm|buổi tối)\s*(trong|Bên ngoài|bên trong\/bên ngoài)\s+([^\*\n]+)\*{0,2}/g;
   const sceneMatches = [...episodeText.matchAll(sceneHeaderRegex)];
   
   if (sceneMatches.length === 0) {
-    // 没有找到标准场景头，尝试宽松的 数字-数字 格式
-    // 匹配如：1-1 规则怪谈世界，集合广场，日  或  1-2 全球同一会议直播间，日
+    // Không tìm thấy tiêu chuẩn Cảnh đầu，Hãy thử số-số lỏng lẻo Định dạng
+    // Trận đấu như：1-1 Thế giới luật lệ và truyện ma，Quảng trường hội，Ngày hoặc 1-2 phòng phát sóng trực tiếp hội nghị toàn cầu，ngày
     const looseSceneRegex = /^\*{0,2}(\d+-\d+)\s+([^\*\n]+)\*{0,2}$/gm;
     const looseMatches = [...episodeText.matchAll(looseSceneRegex)];
     
     if (looseMatches.length > 0) {
       for (let i = 0; i < looseMatches.length; i++) {
         const match = looseMatches[i];
-        const sceneNumber = match[1]; // 如 "1-1"
-        const rawDesc = match[2].replace(/\*{1,2}/g, '').trim(); // 如 "规则怪谈世界，集合广场，日"
+        const sceneNumber = match[1]; // Chẳng hạn như "1-1"
+        const rawDesc = match[2].replace(/\*{1,2}/g, '').trim(); // Chẳng hạn như "Thế giới của những quy luật kỳ lạ，Quảng trường hội，ngày"
         
-        // 从描述中智能提取时间（日/夜/晨/暮等），通常在末尾
-        const timeWords = ['日', '夜', '晨', '暮', '黄昏', '黎明', '清晨', '傍晚'];
-        let timeOfDay = '日'; // 默认值
+        // Từ Mô tảKhai thác thông minh của Thời gian（ngày/đêm/buổi sáng/Chạng vạng và những người khác），thường ở cuối
+        const timeWords = ['ngày', 'đêm', 'buổi sáng', 'chạng vạng', 'Hoàng hôn', 'Bình minh', 'sáng sớm', 'buổi tối'];
+        let timeOfDay = 'ngày'; // Mặc địgiá trị nh
         let locationDesc = rawDesc;
         
-        // 检查描述末尾是否以时间词结尾（可能用逗号、空格分隔）
+        // Kiểm tra Mô tảNó có kết thúc bằng chữ Th không?ờtôi gian từ kết thúc（Có thể dùng dấu phẩy、không gian tách biệt）
         for (const tw of timeWords) {
           const endPattern = new RegExp(`[，,\\s]${tw}\\s*$`);
           if (endPattern.test(rawDesc)) {
@@ -394,36 +394,36 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
             locationDesc = rawDesc.replace(endPattern, '').trim();
             break;
           }
-          // 也处理整个描述就是时间词的情况
+          // Cũng xử lý toàn bộ Mô tảĐó là Thờtôi gian từ tình hình
           if (rawDesc === tw) {
             timeOfDay = tw;
-            locationDesc = '未知地点';
+            locationDesc = 'Không rõvị trí';
             break;
           }
         }
         
-        // 尝试从描述中提取 内/外 标记
+        // Hãy thử từ Mô tảchiết xuất bên trong/dấu bên ngoài
         let interior = '';
-        const interiorMatch = locationDesc.match(/[，,\s](内|外|内\/外)\s*/);
+        const interiorMatch = locationDesc.match(/[，,\s](trong|Bên ngoài|bên trong\/bên ngoài)\s*/);
         if (interiorMatch) {
           interior = interiorMatch[1];
           locationDesc = locationDesc.replace(interiorMatch[0], '').trim();
         }
         
-        // 将中文逗号分隔的地点拼接成可读格式
-        const location = locationDesc.replace(/[，,]/g, ' ').replace(/\s+/g, ' ').trim() || '未知地点';
+        // Nối các vị trí được phân cách bằng dấu phẩy của Trung Quốc thành một vị trí có thể đọc đượcĐịnh dạng
+        const location = locationDesc.replace(/[，,]/g, ' ').replace(/\s+/g, ' ').trim() || 'Không rõvị trí';
         
-        // 构建标准格式的场景头，供下游代码使用
+        // Xây dựng tiêu chuẩnĐịnh dạng's Cảnh đầu，Để sử dụng bởi mã xuôi dòng
         const sceneHeader = interior 
           ? `${sceneNumber} ${timeOfDay} ${interior} ${location}`
           : `${sceneNumber} ${timeOfDay} ${location}`;
         
-        // 获取场景内容
+        // GetCảnh nội dung
         const startIndex = match.index! + match[0].length;
         const endIndex = i < looseMatches.length - 1 ? looseMatches[i + 1].index! : episodeText.length;
         const content = episodeText.slice(startIndex, endIndex).trim();
         
-        // 解析人物
+        // Phân tích ký tự
         const characters = parseCharacters(content);
         const dialogues = parseDialogues(content);
         const actions = parseActions(content);
@@ -444,36 +444,36 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
       return scenes;
     }
     
-    // 宽松格式也没匹配到，尝试其他备用格式
+    // lỏng lẻoĐịnh dạng cũng không khớp，Hãy thử các lựa chọn thay thế kh��cĐịnh dạng
     return parseAlternativeSceneFormat(episodeText);
   }
   
   for (let i = 0; i < sceneMatches.length; i++) {
     const match = sceneMatches[i];
     const sceneHeader = match[0].replace(/\*{1,2}/g, '').trim();
-    const sceneNumber = match[1]; // 如 "1-1"
-    const timeOfDay = match[2];   // 如 "日"、"夜"
-    const interior = match[3];    // 如 "内"、"外"
-    const location = match[4]?.trim() || '未知地点';
+    const sceneNumber = match[1]; // Chẳng hạn như "1-1"
+    const timeOfDay = match[2];   // Chẳng hạn như "ngày"、"đêm"
+    const interior = match[3];    // Chẳng hạn như "bên trong"、"Bên ngoài"
+    const location = match[4]?.trim() || 'Không rõvị trí';
     
-    // 获取场景内容（从当前场景头到下一个场景头之间）
+    // GetCảnh nội dung（từ C hiện tạiảnh đi tới C tiếp theoảgiữa nh đầu）
     const startIndex = match.index! + match[0].length;
     const endIndex = i < sceneMatches.length - 1 ? sceneMatches[i + 1].index! : episodeText.length;
     const content = episodeText.slice(startIndex, endIndex).trim();
     
-    // 解析人物
+    // Phân tích ký tự
     const characters = parseCharacters(content);
     
-    // 解析对白
+    // Phân tích đoạn hội thoại
     const dialogues = parseDialogues(content);
     
-    // 解析动作
+    // Phân tích Hành động
     const actions = parseActions(content);
     
-    // 解析字幕
+    // Parse subtitles
     const subtitles = parseSubtitles(content);
     
-    // 检测天气
+    // Kiểm tra thời tiết
     const weather = detectWeather(content, actions);
     
     scenes.push({
@@ -492,17 +492,17 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
 }
 
 /**
- * 解析备用场景格式（当标准格式不匹配时）
+ * phân tích thay thế CảnhĐịnh dạng（Khi đạt tiêu chuẩnĐịnh dạng không khớp）
  */
 function parseAlternativeSceneFormat(text: string): SceneRawContent[] {
   const scenes: SceneRawContent[] = [];
   
-  // 尝试匹配其他常见格式
-  // 格式1: 场景X 或 场景 X
-  // 格式2: [场景描述]
-  // 格式3: 直接按段落分
+  // Cố gắng phù hợp với những điểm chung khácĐịnh dạng
+  // Định dạng1: CảnhX hoặc Cảnh X
+  // Định dạng2: [CảnhMô tả]
+  // Định dạng3: Chia trực tiếp theo đoạn văn
   
-  const altRegex = /(?:场景\s*(\d+)|【场景[：:]?\s*([^\】]+)】)/g;
+  const altRegex = /(?:Cảnh\s*(\d+)|【Cảnh[：:]?\s*([^\】]+)】)/g;
   const matches = [...text.matchAll(altRegex)];
   
   if (matches.length > 0) {
@@ -522,9 +522,9 @@ function parseAlternativeSceneFormat(text: string): SceneRawContent[] {
       });
     }
   } else {
-    // 作为单一场景处理
+    // dưới dạng một C đơnảnh chế biến
     scenes.push({
-      sceneHeader: '主场景',
+      sceneHeader: 'Chính Cảnh',
       characters: parseCharacters(text),
       content: text,
       dialogues: parseDialogues(text),
@@ -537,42 +537,42 @@ function parseAlternativeSceneFormat(text: string): SceneRawContent[] {
 }
 
 /**
- * 从场景内容和动作描写中检测天气
+ * Từ Cảnh nội dung và Hành độPhát hiện thời tiết trong mô tả ng
  */
 function detectWeather(content: string, actions: string[]): string | undefined {
   const fullText = `${content} ${actions.join(' ')}`;
   
-  // 天气关键词检测（通用，不硬编码具体场景）
-  if (/暴雨|大雨|倾盆大雨/.test(fullText)) return '暴雨';
-  if (/小雨|细雨|毛毛雨|淆淆沉沉/.test(fullText)) return '小雨';
-  if (/雨|淅沥|润湿/.test(fullText)) return '雨';
-  if (/暴风雪|鹞毛大雪/.test(fullText)) return '暴雪';
-  if (/雪|飘雪|雪花/.test(fullText)) return '雪';
-  if (/大雾|浓雾/.test(fullText)) return '大雾';
-  if (/雾|薄雾|雾气/.test(fullText)) return '雾';
-  if (/狂风|阵风|暴风/.test(fullText)) return '狂风';
-  if (/风|微风|清风/.test(fullText)) return '微风';
-  if (/阴天|乌云|阴沉沉/.test(fullText)) return '阴';
-  if (/晴朗|艳阳|日光明媚|万里无云/.test(fullText)) return '晴';
-  if (/电闪雷鸣|打雷|闪电/.test(fullText)) return '雷雨';
+  // Phát hiện từ khóa thời tiết（phổ quát，Không mã hóa cụ thể Cảnh）
+  if (/mưa lớn|mưa to|trận mưa như trút nước/.test(fullText)) return 'mưa lớn';
+  if (/mưa nhẹ|mưa phùn|mưa phùn|Bối rối và chìm đắm/.test(fullText)) return 'mưa nhẹ';
+  if (/mưa|người làm công việc pitter|làm ẩm/.test(fullText)) return 'mưa';
+  if (/bão tuyết|Lông chim diều hâu tuyết dày/.test(fullText)) return 'bão tuyết';
+  if (/tuyết|tuyết rơi|bông tuyết/.test(fullText)) return 'tuyết';
+  if (/Sương mù dày đặc|Sương mù dày đặc/.test(fullText)) return 'Sương mù dày đặc';
+  if (/sương mù|sương mù|sương mù/.test(fullText)) return 'sương mù';
+  if (/gió mạnh|gió giật|cơn bão/.test(fullText)) return 'gió mạnh';
+  if (/gió|Gió|gió mát/.test(fullText)) return 'Gió';
+  if (/ngày nhiều mây|những đám mây đen|ảm đạm/.test(fullText)) return 'âm';
+  if (/rõ ràng|mặt trời tươi sáng|ngày nắng|Không có mây/.test(fullText)) return 'rõ ràng';
+  if (/sét và sấm sét|sấm sét|tia sét/.test(fullText)) return 'giông bão';
   
-  return undefined; // 未检测到特定天气
+  return undefined; // Không phát hiện được thời tiết cụ thể
 }
 
 /**
- * 从场景字幕中提取季节
+ * Từ CảTrích xuất các phần từ phụ đề nh
  */
 function extractSeasonFromScenes(scenes: SceneRawContent[]): string | undefined {
   for (const scene of scenes) {
     for (const subtitle of scene.subtitles) {
-      // 匹配字幕中的季节信息，如【字幕：2002年夏】
-      const seasonMatch = subtitle.match(/(春天?|夏天?|秋天?|冬天?|初春|仲夏|深秋|隆冬|盛夏|暖春|寒冬)/);
+      // Khớp thông tin theo mùa trong phụ đề，Chẳng hạn như【phụ đề：Mùa hè 2002】
+      const seasonMatch = subtitle.match(/(Mùa xuân?|Mùa hè?|Mùa thu?|Mùa đông?|đầu xuân|giữa hè|cuối thu|giữa mùa đông|Giữa hè|mùa xuân ấm áp|mùa đông lạnh)/);
       if (seasonMatch) {
         const s = seasonMatch[1];
-        if (s.includes('春')) return '春';
-        if (s.includes('夏')) return '夏';
-        if (s.includes('秋')) return '秋';
-        if (s.includes('冬')) return '冬';
+        if (s.includes('mùa xuân')) return 'mùa xuân';
+        if (s.includes('mùa hè')) return 'mùa hè';
+        if (s.includes('mùa thu')) return 'mùa thu';
+        if (s.includes('mùa đông')) return 'mùa đông';
       }
     }
   }
@@ -580,13 +580,13 @@ function extractSeasonFromScenes(scenes: SceneRawContent[]): string | undefined 
 }
 
 /**
- * 解析场景中的人物
+ * Phân tích cú pháp Cảký tự trong nh
  */
 function parseCharacters(text: string): string[] {
   const characters: Set<string> = new Set();
   
-  // 1. 从"人物："行提取
-  const charLineMatch = text.match(/人物[：:]\s*([^\n]+)/);
+  // 1. từ"nhân vật："trích xuất hàng
+  const charLineMatch = text.match(/nhân vật[：:]\s*([^\n]+)/);
   if (charLineMatch) {
     const charList = charLineMatch[1].split(/[、,，]/);
     charList.forEach(c => {
@@ -595,13 +595,13 @@ function parseCharacters(text: string): string[] {
     });
   }
   
-  // 2. 从对白中提取说话人
+  // 2. Trích xuất người nói ra khỏi đoạn hội thoại
   const dialogueRegex = /^([^：:（\(【\n]{1,10})[：:](?:\s*[（\(][^）\)]+[）\)])?/gm;
   const dialogueMatches = [...text.matchAll(dialogueRegex)];
   dialogueMatches.forEach(m => {
     const name = m[1].trim();
-    // 过滤掉非人名的内容
-    if (name && !name.match(/^[△【字幕旁白VO场景]/)) {
+    // Lọc Xóa tên không riêng tư
+    if (name && !name.match(/^[△【Phụ đề thuyết minh VOCảnh]/)) {
       characters.add(name);
     }
   });
@@ -610,13 +610,13 @@ function parseCharacters(text: string): string[] {
 }
 
 /**
- * 解析对白
+ * Phân tích đoạn hội thoại
  */
 function parseDialogues(text: string): DialogueLine[] {
   const dialogues: DialogueLine[] = [];
   
-  // 对白格式：角色名：（动作）台词
-  // 或：角色名：台词
+  // đối thoạiĐịnh dạng：Nhân vậtên t：（Hành động）dòng
+  // hoặc：Nhân vậtên t：dòng
   const dialogueRegex = /^([^：:（\(【\n△]{1,10})[：:]\s*(?:[（\(]([^）\)]+)[）\)])?\s*(.+)$/gm;
   
   const matches = [...text.matchAll(dialogueRegex)];
@@ -626,8 +626,8 @@ function parseDialogues(text: string): DialogueLine[] {
     const parenthetical = match[2]?.trim();
     const line = match[3]?.trim();
     
-    // 过滤掉非对白内容
-    if (character && line && !character.match(/^[字幕旁白场景人物]/)) {
+    // Lọc Loại bỏ nội dung không có lời thoại
+    if (character && line && !character.match(/^[Thuyết minh phụ đề Cảnh nhân vật]/)) {
       dialogues.push({
         character,
         parenthetical,
@@ -640,12 +640,12 @@ function parseDialogues(text: string): DialogueLine[] {
 }
 
 /**
- * 解析动作描写（△开头的行）
+ * Phân tích Hành động mô tả（△dòng bắt đầu bằng）
  */
 function parseActions(text: string): string[] {
   const actions: string[] = [];
   
-  // △开头的动作描写
+  // △Bắt đầu bằng Hành động mô tả
   const actionRegex = /^△(.+)$/gm;
   const matches = [...text.matchAll(actionRegex)];
   
@@ -658,12 +658,12 @@ function parseActions(text: string): string[] {
 }
 
 /**
- * 解析字幕（【字幕：...】或【VO：...】等）
+ * Parse subtitles（【phụ đề：...】hoặc【VO：...】Đợi đã）
  */
 function parseSubtitles(text: string): string[] {
   const subtitles: string[] = [];
   
-  // 【字幕：...】或【VO：...】或【闪回】等
+  // 【phụ đề：...】hoặc【VO：...】hoặc【hồi tưởng】Đợi đã
   const subtitleRegex = /【([^】]+)】/g;
   const matches = [...text.matchAll(subtitleRegex)];
   
@@ -675,18 +675,18 @@ function parseSubtitles(text: string): string[] {
 }
 
 /**
- * 中文数字转阿拉伯数字
+ * Chuyển đổi chữ số Trung Quốc sang chữ số Ả Rập
  */
 function chineseToNumber(chinese: string): number {
-  // 如果已经是数字
+  // nếu nó đã là một con số
   if (/^\d+$/.test(chinese)) {
     return parseInt(chinese, 10);
   }
   
   const chineseNums: Record<string, number> = {
-    '零': 0, '一': 1, '二': 2, '三': 3, '四': 4,
-    '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,
-    '十': 10, '百': 100, '千': 1000,
+    'không': 0, 'một': 1, 'Hai': 2, 'ba': 3, 'bốn': 4,
+    'năm': 5, 'sáu': 6, 'bảy': 7, 'tám': 8, 'chín': 9,
+    'mười': 10, 'Trăm': 100, 'ngàn': 1000,
   };
   
   let result = 0;
@@ -698,7 +698,7 @@ function chineseToNumber(chinese: string): number {
     if (num === undefined) continue;
     
     if (num >= 10) {
-      // 是单位（十、百、千）
+      // là đơn vị（mười、Trăm、ngàn）
       if (temp === 0) temp = 1;
       result += temp * num;
       temp = 0;
@@ -713,29 +713,29 @@ function chineseToNumber(chinese: string): number {
 }
 
 /**
- * 从人物小传文本中提取角色信息
- * 支持两种格式：
- * 1. 紧凑格式：角色名：年龄：XX身份：... （从 Word/微信复制的无换行文本）
- * 2. 标准格式：角色名：描述 或 角色名（年龄）：描述
+ * Trích xuất Nh từ văn bản tiểu sửân vậthông tin t
+ * Hỗ trợHai loạiĐịnh dạng：
+ * 1. Nhỏ gọnĐịnh dạng：Nhân vậtên t：tuổi tác：Danh tính XX：... （từ từ/Văn bản được sao chép từ WeChat không ngắt dòng）
+ * 2. Tiêu chuẩnĐịnh dạng：Nhân vậtên t：Mô tả hoặc Nhân vậtên t（tuổi tác）：Mô tả
  */
 export function parseCharacterBios(bios: string): ScriptCharacter[] {
   if (!bios || !bios.trim()) return [];
   
-  // 检测紧凑格式：角色名：年龄/年两：XX （至少2个条目才认定为紧凑格式）
-  const compactEntryRegex = /([\u4e00-\u9fa5]{2,12})[：:]\s*(?:年龄|年两)[：:]\s*(\d{1,3})/g;
+  // Phát hiện nhỏ gọnĐịnh dạng：Nhân vậtên t：tuổi tác/Năm thứ hai：XX （Ít nhất 2 mục được coi là nhỏ gọnĐịnh dạng）
+  const compactEntryRegex = /([\u4e00-\u9fa5]{2,12})[：:]\s*(?:Tuổi|Hai năm)[：:]\s*(\d{1,3})/g;
   const compactMatches = [...bios.matchAll(compactEntryRegex)];
   
   if (compactMatches.length >= 2) {
     return parseCompactBioFormat(bios, compactMatches);
   }
   
-  // 标准格式兜底
+  // Tiêu chuẩnĐịnh dạvà điểm mấu chốt
   return parseStandardBioFormat(bios);
 }
 
 /**
- * 紧凑格式解析：角色名：年龄：XX身份：...关键行为：...
- * 自动剥离段落标记（一、核心主角 等）提取真实角色名
+ * Nhỏ gọnĐịnh dạphân tích cú pháp：Nhân vậtên t：tuổi tác：Danh tính XX：...hành động chính：...
+ * Tự động loại bỏ dấu đoạn（một、Nhân vật chính cốt lõi, v.v.）Trích xuất Nh thựcân vậtên t
  */
 function parseCompactBioFormat(bios: string, matches: RegExpMatchArray[]): ScriptCharacter[] {
   const characters: ScriptCharacter[] = [];
@@ -746,17 +746,17 @@ function parseCompactBioFormat(bios: string, matches: RegExpMatchArray[]): Scrip
     let rawName = match[1];
     const age = match[2];
     
-    // 剥离段落关键词提取真实角色名
+    // Tách từ khóa khỏi đoạn văn để trích xuất Nh thậtân vậtên t
     const actualName = stripSectionKeywords(rawName);
     if (!actualName || actualName.length < 2 || actualName.length > 8) continue;
     
-    // 提取描述：从年龄后到下一个角色条目之前
+    // Trích xuất Mô tả：Từ tuổi này sang tuổi khác Nhân vậtrước khi nhập cảnh
     const descStart = match.index! + match[0].length;
     const descEnd = i < matches.length - 1 ? matches[i + 1].index! : bios.length;
     let description = bios.slice(descStart, descEnd).trim();
     
-    // 移除末尾的段落标记（如 "三、反派势力角色"）
-    description = description.replace(/\n?[一二三四五六七八九十\d]+[、.]\s*[\u4e00-\u9fa5]*$/, '').trim();
+    // Xóa dấu đoạn ở cuối（Chẳng hạn như "ba、Lực Lượng Phản Diện Nhân vật"）
+    description = description.replace(/\n?[Một, hai, ba, bốn, năm, sáu, bảy, tám, chín mươi\d]+[、.]\s*[\u4e00-\u9fa5]*$/, '').trim();
     
     characters.push({
       id: `char_${index}`,
@@ -769,44 +769,44 @@ function parseCompactBioFormat(bios: string, matches: RegExpMatchArray[]): Scrip
     index++;
   }
   
-  console.log(`[parseCharacterBios] 紧凑格式检测到 ${characters.length} 个角色`);
+  console.log(`[parseCharacterBios] Nhỏ gọnĐịnh dạngPhát hiệnĐến ${characters.length} Nhân vật`);
   return characters;
 }
 
 /**
- * 从含段落标记的名字中提取真实角色名
- * 如 "核心主角萧惊鸿" → "萧惊鸿"，"正面势力角色赵将军" → "赵将军"
+ * từ\u542b\u6bb5\u843d\u6807\u8bb0củatêntừtrongTrích xuất Nh thựcân vậtên t
+ * Chẳng hạn như "nhân vật chính cốt lõi\u8427\u60ca\u9e3f" → "\u8427\u60ca\u9e3f"，"Lực dương Nhân vật\u8d75chung" → "\u8d75chung"
  */
 function stripSectionKeywords(name: string): string {
-  // 1. 移除开头的中文编号：一、 二. 等
-  name = name.replace(/^[一二三四五六七八九十\d]+[、.]\s*/, '');
-  // 2. 移除段落类别关键词
+  // 1. Xóasự khởi đầuTiếng Trung\u7f16\u53f7：một、 Hai. Đợi đã
+  name = name.replace(/^[Một, hai, ba, bốn, năm, sáu, bảy, tám, chín mươi\d]+[、.]\s*/, '');
+  // 2. Xóa\u6bb5\u843d\u7c7b\u522bchìa khóa\u8bcd
   name = name.replace(
-    /^(?:核心|主要|正面|反面|反派|次要|重要|关键|群众|正派|其他)(?:势力)?(?:角色|主角|配角|人物)?/,
+    /^(?:Lõi|chính|phía trước|mặt trái|nhân vật phản diện|lần\u8981|quan trọng|chìa khóa|\u7fa4\u4f17|đàng hoàng|\u5176\u4ed6)(?:quyền lực)?(?:Nhân vật|nhân vật chính|vai phụ|ký tự)?/,
     ''
   ).trim();
   return name;
 }
 
 /**
- * 标准格式解析（原逻辑）：角色名：描述 或 角色名（年龄）：描述
+ * Tiêu chuẩnĐịnh dạphân tích cú pháp（\u539f\u903b\u8f91）：Nhân vậtên t：Mô tả hoặc Nhân vậtên t（tuổi tác）：Mô tả
  */
 function parseStandardBioFormat(bios: string): ScriptCharacter[] {
   const characters: ScriptCharacter[] = [];
   
-  const charRegex = /([^：:\n，,]+?)(?:[（\(](\d+岁?)[）\)])?[：:]\s*([^\n]+(?:\n(?![^：:\n]+[：:])[^\n]+)*)/g;
+  const charRegex = /([^：:\n，,]+?)(?:[（\(](\d+tuổi?)[）\)])?[：:]\s*([^\n]+(?:\n(?![^：:\n]+[：:])[^\n]+)*)/g;
   const matches = [...bios.matchAll(charRegex)];
   
   let index = 1;
   for (const match of matches) {
     const name = match[1].trim();
-    const age = match[2]?.replace('岁', '') || '';
+    const age = match[2]?.replace('tuổi', '') || '';
     const description = match[3].trim();
     
-    // 跳过非角色内容
-    if (name.length > 10 || name.match(/^[第一二三四五六七八九十\d]/)) continue;
-    // 跳过属性标签和补充说明
-    if (/^(?:年龄|身份|性格|补充|注|备注|核心特质|关键行为)$/.test(name)) continue;
+    // bỏ qua\u975eNhân vậtbên trong\u5bb9
+    if (name.length > 10 || name.match(/^[Không.Một, hai, ba, bốn, năm, sáu, bảy, tám, chín mươi\d]/)) continue;
+    // bỏ qua\u5c5e\u6027nhãnvàbổ sungGiải thích
+    if (/^(?:Tuổi|danh tính|nhân vật|bổ sung|Lưu ý|Bình luận|đặc điểm cốt lõi|hành vi chính)$/.test(name)) continue;
     
     characters.push({
       id: `char_${index}`,
@@ -823,11 +823,11 @@ function parseStandardBioFormat(bios: string): ScriptCharacter[] {
 }
 
 /**
- * 从描述中提取性格特点
+ * Từ Mô tảtrongTrích xuấtĐặc điểm tính cách
  */
 function extractPersonality(description: string): string {
-  // 查找性格相关关键词
-  const personalityKeywords = ['性格', '为人', '品性', '脾气'];
+  // \u67e5\u627enhân vật\u76f8\u5173chìa khóa\u8bcd
+  const personalityKeywords = ['nhân vật', 'cho\u4eba', '\u54c1\u6027', '\u813e\u6c14'];
   for (const keyword of personalityKeywords) {
     const match = description.match(new RegExp(`${keyword}[^，。,\.]+`));
     if (match) return match[0];
@@ -836,14 +836,14 @@ function extractPersonality(description: string): string {
 }
 
 /**
- * 从描述中提取核心特质
+ * Từ Mô tảtrongTrích xuấtđặc điểm cốt lõi
  */
 function extractTraits(description: string): string {
-  // 查找特质相关关键词
+  // \u67e5\u627e\u7279\u8d28\u76f8\u5173chìa khóa\u8bcd
   const traits: string[] = [];
   const traitPatterns = [
-    /聪[明慧]/, /坚[韧强]/, /勤[劳奋]/, /憨厚/, /老实/,
-    /吃苦耐劳/, /脚踏实地/, /感恩/,
+    /\u806a[\u660e\u6167]/, /vững chãi[Khó]/, /siêng năng[làm việc chăm chỉ]/, /trung thực/, /trung thực/,
+    /chịu đựng gian khổ và chịu khó làm việc/, /xuống trái đất/, /tri ân/,
   ];
   
   for (const pattern of traitPatterns) {
@@ -855,60 +855,60 @@ function extractTraits(description: string): string {
 }
 
 /**
- * 清理角色名（去除markdown标记和多余符号）
+ * Clean Nhân vậtên t（\u53bb\u9664markdown\u6807\u8bb0và\u591a\u4f59biểu tượng）
  */
 function cleanCharacterName(rawName: string): string {
   let name = rawName.trim();
-  // 去除 markdown 加粗标记
+  // \u53bb\u9664 markdown In đậm\u6807\u8bb0
   name = name.replace(/\*+/g, '');
-  // 去除括号及其内容，如 "王艳（周妻）" -> "王艳"
+  // \u53bb\u9664dấu ngoặc đơn\u53ca\u5176bên trong\u5bb9，Chẳng hạn như "\u738b\u8273（\u5468\u59bb）" -> "\u738b\u8273"
   name = name.replace(/[（\(][^）\)]*[）\)]?/g, '');
-  // 去除单独的右括号（截断情况）
+  // \u53bb\u9664\u5355\u72eccủa\u53f3dấu ngoặc đơn（\u622a\u65ad\u60c5\u51b5）
   name = name.replace(/[）\)]/g, '');
-  // 去除引号
+  // \u53bb\u9664\u5f15\u53f7
   name = name.replace(/["“”‘’"']/g, '');
-  // 去除 VO/os 后缀
+  // \u53bb\u9664 VO/os \u540e\u7f00
   name = name.replace(/(VO|os)$/i, '');
-  // 去除前后空白和标点
+  // \u53bb\u9664\u524d\u540e\u7a7a\u767dvà\u6807\u70b9
   name = name.replace(/^[\s,，、；;：:\u3000]+|[\s,，、；;：:\u3000]+$/g, '');
   return name.trim();
 }
 
 /**
- * 拆分多人组合名字，如 "张明、老周" -> ["张明", "老周"]
+ * \u62c6\u5206\u591a\u4eba\u7ec4\u5408têntừ，Chẳng hạn như "Trương Minh、\u8001\u5468" -> ["Trương Minh", "\u8001\u5468"]
  */
 function splitMultipleCharacters(rawName: string): string[] {
-  // 先清理 markdown
+  // đầu tiêndọn dẹp markdown
   let name = rawName.replace(/\*+/g, '').trim();
-  // 按常见分隔符拆分
+  // \u6309\u5e38\u89c1\u5206\u9694\u7b26\u62c6\u5206
   const parts = name.split(/[、,，\s]+/).filter(p => p.length > 0);
   return parts;
 }
 
 /**
- * 检查是否为有效角色名（放宽过滤，让 AI 做智能校准）
+ * \u68c0\u67e5\u662f\u5426choCó\u6548Nhân vậtên t（\u653e\u5bbdLọc，\u8ba9 AI \u505a\u667a\u80fd\u6821\u51c6）
  */
 function isValidCharacterName(name: string): boolean {
-  // 跳过空名字
+  // bỏ qua\u7a7atêntừ
   if (!name || name.length < 1) return false;
-  // 跳过太长的名字（放宽到6字，让AI判断）
+  // bỏ qua\u592a\u957fcủatêntừ（\u653e\u5bbdĐến6từ，\u8ba9AI\u5224\u65ad）
   if (name.length > 6) return false;
-  // 跳过纯数字
+  // bỏ qua\u7eafcon số
   if (/^\d+$/.test(name)) return false;
-  // 跳过包含特殊符号的
+  // bỏ quachứa\u7279\u6b8abiểu tượngcủa
   if (/[\*\-\+\=\>\<\|\[\]\{\}]/.test(name)) return false;
-  // 跳过明显的非角色词（只过滤最明显的，其他交给AI）
+  // bỏ qua\u660e\u663ecủa\u975eNhân vật\u8bcd（\u53eaLọc\u6700\u660e\u663ecủa，\u5176\u4ed6\u4ea4\u7ed9AI）
   const obviousNonCharacters = [
-    'VO', '旁白', 'os', '左边', '右边', '中间', '背影', '远处',
-    '效率', '回流率', '分拣', '客户', '眼眶', '微湿', '手持', '笔挺',
-    '上市文件', '眼神', '声音', '电视', '电话'
+    'VO', 'tường thuật', 'os', '\u5de6\u8fb9', '\u53f3\u8fb9', 'trong\u95f4', '\u80cc\u5f71', 'xa\u5904',
+    '\u6548\u7387', '\u56de\u6d41\u7387', '\u5206\u62e3', '\u5ba2\u6237', '\u773c\u7736', '\u5fae\u6e7f', 'cầm tay', '\u7b14\u633a',
+    'Đã niêm yếtTệp', '\u773c\u795e', '\u58f0\u97f3', 'truyền hình', '\u7535\u8bdd'
   ];
   if (obviousNonCharacters.includes(name)) return false;
   return true;
 }
 
 /**
- * 处理单个角色名字并添加到集合
+ * \u5904\u7406\u5355Nhân vậtên ttừ\u5e76ThêmĐếnđặt\u5408
  */
 function processAndAddCharacter(
   rawName: string,
@@ -917,7 +917,7 @@ function processAndAddCharacter(
   index: { value: number },
   role: string
 ): void {
-  // 先拆分多人组合
+  // đầu tiên\u62c6\u5206\u591a\u4eba\u7ec4\u5408
   const parts = splitMultipleCharacters(rawName);
   
   for (const part of parts) {
@@ -936,7 +936,7 @@ function processAndAddCharacter(
 }
 
 /**
- * 从所有场景中提取出场角色（补充人物小传中没有的角色）
+ * từTất cảCảnhtrongTrích xuất Ngoại hình Nhân vật（bổ sungTiểu sửtrong\u6ca1CóNhân vật）
  */
 function extractCharactersFromScenes(
   episodeScripts: EpisodeRawScript[],
@@ -946,12 +946,12 @@ function extractCharactersFromScenes(
   const newCharacters: ScriptCharacter[] = [];
   const index = { value: existingCharacters.length + 1 };
   
-  // 统计每个角色的出场次数
+  // Thống kêMỗi Nhân vậtcủaSố lần xuất hiện
   const appearanceCount = new Map<string, number>();
   
   for (const ep of episodeScripts) {
     for (const scene of ep.scenes) {
-      // 从场景的 characters 字段提取
+      // Từ Cảnh characters từ\u6bb5Trích xuất
       for (const charName of scene.characters) {
         const parts = splitMultipleCharacters(charName);
         for (const part of parts) {
@@ -962,7 +962,7 @@ function extractCharactersFromScenes(
         }
       }
       
-      // 从对白中提取说话人
+      // từđối thoạitrongTrích xuấtnói\u4eba
       for (const dialogue of scene.dialogues) {
         const parts = splitMultipleCharacters(dialogue.character);
         for (const part of parts) {
@@ -975,17 +975,17 @@ function extractCharactersFromScenes(
     }
   }
   
-  // 按出场次数排序，添加新角色
+  // \u6309Số lần xuất hiệnSắp xếp，Thêm\u65b0Nhân vật
   const sortedNames = [...appearanceCount.entries()]
     .filter(([name]) => !existingNames.has(name))
-    .sort((a, b) => b[1] - a[1]); // 按出场次数降序
+    .sort((a, b) => b[1] - a[1]); // \u6309Số lần xuất hiện\u964d\u5e8f
   
   for (const [name, count] of sortedNames) {
     existingNames.add(name);
     newCharacters.push({
       id: `char_${index.value}`,
       name,
-      role: count > 5 ? `重要配角（出场${count}次）` : `次要角色（出场${count}次）`,
+      role: count > 5 ? `quan trọngvai phụ（xuất hiện${count}lần）` : `MinorNhân vật（xuất hiện${count}lần）`,
     });
     index.value++;
   }
@@ -994,22 +994,22 @@ function extractCharactersFromScenes(
 }
 
 /**
- * 将解析后的剧本转换为 ScriptData 格式（用于系统显示）
+ * Liệu K được phân tích cú phápịch bảnChuyển sang ScriptData Định dạng（cho Hệ thốngdisplay）
  */
 export function convertToScriptData(
   background: ProjectBackground,
   episodeScripts: EpisodeRawScript[]
 ): ScriptData {
-  // 1. 从人物小传提取主要角色
+  // 1. Trích xuất Nh chính từ tiểu sử nhân vậtân vật
   const mainCharacters = parseCharacterBios(background.characterBios);
   
-  // 2. 从场景中补充其他角色
+  // 2. Từ CảBổ sung các Nh khác trong nhân vật
   const additionalCharacters = extractCharactersFromScenes(episodeScripts, mainCharacters);
   
-  // 3. 合并角色列表（人物小传的角色排在前面）
+  // 3. Hợp nhất Nhân vậdanh sách t（Nh của tiểu sửân vật xếp ở phía trước）
   const characters = [...mainCharacters, ...additionalCharacters];
   
-  console.log(`[convertToScriptData] 角色统计: 人物小传 ${mainCharacters.length} 个, 场景补充 ${additionalCharacters.length} 个, 共 ${characters.length} 个`);
+  console.log(`[convertToScriptData] Nhân vậtThống kê: Tiểu sử ${mainCharacters.length} một, Cảnh bổ sung ${additionalCharacters.length} một, tổng cộng ${characters.length} một`);
   
   const episodes: Episode[] = [];
   const scenes: ScriptScene[] = [];
@@ -1024,17 +1024,17 @@ export function convertToScriptData(
       const sceneId = `scene_${sceneIndex}`;
       sceneIds.push(sceneId);
       
-      // 解析场景头获取时间和地点
-      // 支持两种格式：
-      // 标准格式: "1-1 日 内 地点名" (headerParts: [number, time, interior, ...location])
-      // 宽松格式: "1-1 日 地点名" (headerParts: [number, time, ...location])
+      // Phân tích cú pháp Cảnh đầu\u83b7\u53d6Thời gianvàvị trí
+      // Hỗ trợHai loạiĐịnh dạng：
+      // Tiêu chuẩnĐịnh dạng: "1-1 ngày bên trong vị trítên" (headerParts: [number, time, interior, ...location])
+      // lỏng lẻoĐịnh dạng: "1-1 ngày vị trítên" (headerParts: [number, time, ...location])
       const headerParts = scene.sceneHeader.split(/\s+/);
-      const timeOfDay = headerParts[1] || '日';
-      const hasInterior = headerParts[2] && /^(内|外|内\/外)$/.test(headerParts[2]);
+      const timeOfDay = headerParts[1] || 'ngày';
+      const hasInterior = headerParts[2] && /^(trong|Bên ngoài|bên trong\/bên ngoài)$/.test(headerParts[2]);
       const locationStartIndex = hasInterior ? 3 : 2;
-      let rawLocation = headerParts.slice(locationStartIndex).join(' ') || headerParts[headerParts.length - 1] || '未知';
+      let rawLocation = headerParts.slice(locationStartIndex).join(' ') || headerParts[headerParts.length - 1] || 'Không rõ';
       
-      // 清理 location，移除人物信息等无关内容
+      // dọn dẹp location，Xóa nội dung không liên quan như thông tin nhân vật
       const location = cleanLocationString(rawLocation);
       
       scenes.push({
@@ -1061,7 +1061,7 @@ export function convertToScriptData(
     title: background.title,
     genre: detectGenre(background.outline, background.characterBios),
     logline: extractLogline(background.outline),
-    language: '中文',
+    language: 'Tiếng Trung',
     characters,
     episodes,
     scenes,
@@ -1070,48 +1070,48 @@ export function convertToScriptData(
 }
 
 /**
- * 标准化时间
+ * Tiêu chuẩn\u5316Thời gian
  */
 function normalizeTime(time: string): string {
   const timeMap: Record<string, string> = {
-    '日': 'day',
-    '夜': 'night',
-    '晨': 'dawn',
-    '暮': 'dusk',
-    '黄昏': 'dusk',
-    '黎明': 'dawn',
-    '清晨': 'dawn',
-    '傍晚': 'dusk',
+    'ngày': 'day',
+    'đêm': 'night',
+    'buổi sáng': 'dawn',
+    'chạng vạng': 'dusk',
+    'Hoàng hôn': 'dusk',
+    'Bình minh': 'dawn',
+    'sáng sớm': 'dawn',
+    'buổi tối': 'dusk',
   };
   return timeMap[time] || 'day';
 }
 
 /**
- * 检测场景氛围
+ * Phát hiệnCảbầu không khí nh
  */
 function detectAtmosphere(content: string): string {
-  if (content.match(/紧张|危险|冲突|打斗|怒/)) return '紧张';
-  if (content.match(/温馨|幸福|笑|欢/)) return '温馨';
-  if (content.match(/悲伤|哭|痛|泪/)) return '悲伤';
-  if (content.match(/神秘|阴森|黑暗/)) return '神秘';
-  return '平静';
+  if (content.match(/lo lắng|nguy hiểm|xung đột|chiến đấu|tức giận/)) return 'lo lắng';
+  if (content.match(/Sự ấm áp|hạnh phúc|cười|Huân/)) return 'Sự ấm áp';
+  if (content.match(/buồn|khóc|đau đớn|nước mắt/)) return 'buồn';
+  if (content.match(/bí ẩn|kỳ lạ|bóng tối/)) return 'bí ẩn';
+  return 'bình tĩnh';
 }
 
-// detectGenre 已移至文件顶部，支持完整的类型检测
+// detectGenre Đã rồi\u79fb\u81f3Tệp\u9876\u90e8，Hỗ trợ\u5b8c\u6574củaLoạiPhát hiện
 
 /**
- * 提取剧本概述
+ * Trích xuấtKịch bảnTổng quan
  */
 function extractLogline(outline: string): string {
-  // 取大纲的第一句话作为概述
+  // \u53d6phác thảocủaKhông.một\u53e5\u8bdd\u4f5cchoTổng quan
   const firstSentence = outline.match(/^[^。！？\n]+[。！？]/);
   return firstSentence ? firstSentence[0] : outline.slice(0, 100);
 }
 
 /**
- * 提取集概述
+ * Bộ trích xuấtTổng quan
  */
 function extractEpisodeDescription(content: string): string {
-  // 取前100个字符作为概述
+  // \u53d6\u524d100mộttừ\u7b26\u4f5cchoTổng quan
   return content.replace(/\*{1,2}/g, '').slice(0, 100).trim() + '...';
 }

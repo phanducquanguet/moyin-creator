@@ -5,7 +5,7 @@
 
 /**
  * EditableTextField Component
- * 可双击编辑的文本字段组件
+ * \u53ef\u53cc\u51fb\u7f16\u8f91của\u6587\u672cCánh đồng\u7ec4\u4ef6
  */
 
 import React, { useState, useRef } from "react";
@@ -37,14 +37,14 @@ export function EditableTextField({
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  // 开始编辑
+  // \u5f00\u59cb\u7f16\u8f91
   const startEditing = () => {
     if (disabled) return;
     setEditValue(value);
     setIsEditing(true);
   };
 
-  // 保存编辑
+  // \u4fdd\u5b58\u7f16\u8f91
   const saveEdit = () => {
     if (editValue !== value) {
       onChange(editValue);
@@ -52,13 +52,13 @@ export function EditableTextField({
     setIsEditing(false);
   };
 
-  // 取消编辑
+  // \u53d6\u6d88\u7f16\u8f91
   const cancelEdit = () => {
     setEditValue(value);
     setIsEditing(false);
   };
 
-  // 处理键盘事件
+  // \u5904\u7406\u952e\u76d8\u4e8b\u4ef6
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -68,7 +68,7 @@ export function EditableTextField({
     }
   };
 
-  // 自动聚焦
+  // \u81ea\u52a8\u805a\u7126
   React.useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
@@ -110,7 +110,7 @@ export function EditableTextField({
     <div 
       className={cn("cursor-pointer group/field", className)}
       onDoubleClick={startEditing}
-      title="双击编辑"
+      title="\u53cc\u51fb\u7f16\u8f91"
     >
       <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
         {label}
@@ -121,7 +121,7 @@ export function EditableTextField({
         value ? "text-foreground/80" : "text-muted-foreground/50 italic",
         multiline && "line-clamp-2"
       )}>
-        {value || placeholder || "双击编辑..."}
+        {value || placeholder || "\u53cc\u51fb\u7f16\u8f91..."}
       </p>
     </div>
   );

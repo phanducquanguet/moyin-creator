@@ -4,26 +4,26 @@
 /**
  * Character Stage Analyzer
  * 
- * 分析剧本大纲，自动识别主要角色的阶段变化，生成多阶段变体。
+ * Phân tíchKịch bảnphác thảo，\u81ea\u52a8\u8bc6\u522bMainNhân vậtcủa\u9636\u6bb5thay đổi，Tạo\u591abiến thể sân khấu。
  * 
- * 功能：
- * 1. 分析大纲中的时间跨度和角色成长轨迹
- * 2. 为主要角色生成阶段变体（青年版、中年版等）
- * 3. 每个变体包含集数范围，供分镜时自动调用
+ * chức năng：
+ * 1. Phân tíchphác thảotrongThời gian\u8de8\u5ea6vàNhân vậtphát triển\u8f68\u8ff9
+ * 2. choMainNhân vậtTạobiến thể sân khấu（phiên bản trẻ、phiên bản trung niên v.v.）
+ * 3. \u6bcfmộtthay đổi\u4f53chứađặt\u6570\u8303\u56f4，\u4f9bPhân cảnh thời gian\u81ea\u52a8\u8c03sử dụng
  */
 
 import type { ProjectBackground, ScriptCharacter, PromptLanguage } from '@/types/script';
 import type { CharacterVariation } from '@/stores/character-library-store';
 import { callFeatureAPI } from '@/lib/ai/feature-router';
 
-// ==================== 类型定义 ====================
+// ==================== LoạiĐịnh nghĩa ====================
 
 export interface CharacterStageAnalysis {
   characterName: string;
-  needsMultiStage: boolean;        // 是否需要多阶段
-  reason: string;                   // 判断理由
-  stages: StageVariationData[];     // 阶段列表
-  consistencyElements: {            // 一致性元素
+  needsMultiStage: boolean;        // \u662f\u5426\u9700\u8981\u591a\u9636\u6bb5
+  reason: string;                   // \u5224\u65ad\u7406\u7531
+  stages: StageVariationData[];     // \u9636\u6bb5danh sách
+  consistencyElements: {            // yếu tố nhất quán
     facialFeatures: string;
     bodyType: string;
     uniqueMarks: string;
@@ -31,25 +31,25 @@ export interface CharacterStageAnalysis {
 }
 
 export interface StageVariationData {
-  name: string;                     // "青年版"、"中年版"
+  name: string;                     // "phiên bản trẻ"、"phiên bản trung niên"
   episodeRange: [number, number];   // [1, 15]
-  ageDescription: string;           // "25岁"
-  stageDescription: string;         // "创业初期，意气风发"
-  visualPromptEn: string;           // 英文提示词
-  visualPromptZh: string;           // 中文提示词
+  ageDescription: string;           // "25 tuổi"
+  stageDescription: string;         // "Giai đoạn đầu kinh doanh，\u610f\u6c14gió\u53d1"
+  visualPromptEn: string;           // Tiếng AnhNhắc
+  visualPromptZh: string;           // Lời nhắc tiếng Trung
 }
 
-// AnalyzeOptions 已经不需要了，统一从服务映射获取配置
+// AnalyzeOptions Đã rồi\u7ecf\u4e0d\u9700\u8981\u4e86，Thống nhất có được cấu hình từ ánh xạ dịch vụ
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 分析剧本角色，识别需要多阶段形象的角色
+ * Phân tíchKịch bảnNhân vật，\u8bc6\u522b\u9700\u8981\u591a\u9636\u6bb5\u5f62\u8c61Nhân vật
  * 
- * @param background 项目背景（包含大纲）
- * @param characters 角色列表
- * @param totalEpisodes 总集数
- * @param options API配置
+ * @param background Dự ánNền（Chứa một phác thảo）
+ * @param characters Nhân vậdanh sách t
+ * @param totalEpisodes tổng số tập
+ * @param options APICấu hình
  */
 export async function analyzeCharacterStages(
   background: ProjectBackground,
@@ -58,79 +58,79 @@ export async function analyzeCharacterStages(
   promptLanguage: PromptLanguage = 'zh+en'
 ): Promise<CharacterStageAnalysis[]> {
   
-  // 只分析主要角色（前3个或有详细描述的）
+  // \u53eaPhân tíchMainNhân vật（\u524d3mộthoặcCóChi tiếtMô tảcủa）
   const mainCharacters = characters.slice(0, 5).filter(c => 
     c.role || c.personality || c.appearance
   );
   
   if (mainCharacters.length === 0) {
-    console.log('[CharacterStageAnalyzer] 没有找到需要分析的主要角色');
+    console.log('[CharacterStageAnalyzer] \u6ca1Cótìm thấy\u9700\u8981Phân tíchcủaMainNhân vật');
     return [];
   }
   
-  const systemPrompt = `你是专业的影视角色设计顾问，擅长分析角色在长篇剧集中的形象变化。
+  const systemPrompt = `\u4f60\u662f\u4e13\u4e1acủa\u5f71\u89c6Nhân vật\u8bbe\u8ba1\u987e\u95ee，giỏi tiến sĩân tíchNhân vật\u5728\u957f\u7bc7\u5267đặttrongcủa\u5f62\u8c61thay đổi。
 
-你的任务是分析剧本大纲，判断每个主要角色是否需要多个阶段的形象变体。
+của bạnNhiệm vụ\u662fPhân tíchKịch bảnphác thảo，\u5224\u65ad\u6bcfmộtMainNhân vật\u662f\u5426\u9700\u8981\u591amột\u9636\u6bb5của\u5f62\u8c61thay đổi\u4f53。
 
-【判断标准】
-角色需要多阶段形象的情况：
-1. 时间跨度大（如从25岁到50岁）
-2. 身份地位变化（从普通人到成功企业家）
-3. 外貌有显著变化（年轻→成熟→老年）
-4. 剧集数量多（30集以上的主角通常需要）
+【\u5224\u65adTiêu chuẩn】
+Nhân vật\u9700\u8981\u591a\u9636\u6bb5\u5f62\u8c61của\u60c5\u51b5：
+1. Thời gian\u8de8\u5ea6\u5927（Chẳng hạn nhưtừ25 tuổiĐến50 tuổi）
+2. danh tínhtrạng tháithay đổi（từ\u666e\u901a\u4ebaĐếnThành côngdoanh nghiệpnhà）
+3. Bên ngoài\u8c8cCó\u663e\u8457thay đổi（năm\u8f7b→Trưởng thành→tuổi già）
+4. Số lượng tập phim lớn（Nhân vật chính có hơn 30 tập thường cần）
 
-不需要多阶段的情况：
-1. 配角、出场少的角色
-2. 时间跨度短的剧集
-3. 角色外貌无明显变化
+Không cần tình huống nhiều giai đoạn：
+1. Vai phụ、Nh ai chơi ít hơnân vật
+2. Thờtôi gian phim truyền hình ngắn tập
+3. Nhân vật Không có sự thay đổi rõ rệt về ngoại hình
 
-【阶段划分原则】
-- 根据总集数合理划分，每个阶段至少10集
-- 阶段之间要有明显的形象区分
-- 保持面部特征、体型等一致性元素
+【Nguyên tắc phân chia giai đoạn】
+- Phân chia hợp lý theo tổng số tập，\u6bcfmột\u9636\u6bb5\u81f3\u5c1110đặt
+- \u9636\u6bb5\u4e4b\u95f4\u8981Có\u660e\u663ecủa\u5f62\u8c61Quận\u5206
+- giữđặc điểm khuôn mặt、\u4f53\u578bĐợi đãyếu tố nhất quán
 
-请以JSON格式返回分析结果。`;
+Vui lòng sử dụng JSONĐịnh dạngQuay lạiPhân tích kết quả。`;
 
-  const userPrompt = `【剧本信息】
-剧名：《${background.title}》
-总集数：${totalEpisodes}集
-类型：${background.genre || '未知'}
-时代：${background.era || '现代'}
+  const userPrompt = `【Kịch bảthông tin】
+Tiêu đề phim truyền hình：《${background.title}》
+tổng số tập：${totalEpisodes}đặt
+Loại：${background.genre || 'Không rõ'}
+thời đại：${background.era || 'hiện đại'}
 
-【故事大纲】
-${background.outline?.slice(0, 1500) || '无'}
+【Tóm tắt】
+${background.outline?.slice(0, 1500) || 'không có'}
 
-【需要分析的角色】
+【\u9700\u8981Phân tíchNhân vật】
 ${mainCharacters.map(c => `
-角色：${c.name}
-年龄：${c.age || '未知'}
-身份：${c.role || '未知'}
-外貌：${c.appearance || '未知'}
+Nhân vật：${c.name}
+tuổi tác：${c.age || 'Không rõ'}
+danh tính：${c.role || 'Không rõ'}
+Bên ngoài\u8c8c：${c.appearance || 'Không rõ'}
 `).join('\n')}
 
-请为每个角色分析是否需要多阶段形象，并生成阶段变体数据。
+\u8bf7choMỗi Nhân vậtPhân tích\u662f\u5426\u9700\u8981\u591a\u9636\u6bb5\u5f62\u8c61，\u5e76Tạobiến thể sân khấu\u6570\u636e。
 
-返回JSON格式：
+Quay lạiJSONĐịnh dạng：
 {
   "analyses": [
     {
-      "characterName": "角色名",
+      "characterName": "Nhân vậtên t",
       "needsMultiStage": true,
-      "reason": "时间跨度25年，从青年到中年...",
+      "reason": "Thời gian\u8de8\u5ea625năm，từtuổi trẻĐếntuổi trung niên...",
       "stages": [
         {
-          "name": "青年版",
+          "name": "phiên bản trẻ",
           "episodeRange": [1, 15],
-          "ageDescription": "25岁",
-          "stageDescription": "985毕业生，意气风发，白衬衫",
-${promptLanguage !== 'en' ? '          "visualPromptZh": "25岁中国男性，干净利落的外表，白色衬衫，自信有抱负的神态"' : ''}${promptLanguage !== 'zh' ? `${promptLanguage === 'zh+en' ? ',' : ''}\n          "visualPromptEn": "25 year old Chinese male, clean-cut appearance, white dress shirt, confident and ambitious look"` : ''}
+          "ageDescription": "25 tuổi",
+          "stageDescription": "985\u6bd5\u4e1a\u751f，\u610f\u6c14gió\u53d1，\u767d\u886c\u886b",
+${promptLanguage !== 'en' ? '          "visualPromptZh": "25 tuổitrong\u56fdNam\u6027，\u5e72\u51c0\u5229\u843dcủaBên ngoài\u8868，\u767d\u8272\u886c\u886b，\u81ea\u4fe1Có\u62b1\u8d1fcủa\u795e\u6001"' : ''}${promptLanguage !== 'zh' ? `${promptLanguage === 'zh+en' ? ',' : ''}\n          "visualPromptEn": "25 year old Chinese male, clean-cut appearance, white dress shirt, confident and ambitious look"` : ''}
         },
         {
-          "name": "中年版",
+          "name": "phiên bản trung niên",
           "episodeRange": [16, 40],
-          "ageDescription": "35-40岁",
-          "stageDescription": "事业有成的企业家，更加沉稳",
-${promptLanguage !== 'en' ? '          "visualPromptZh": "35-40岁中国男性，成熟商人形象，剪裁合身的西装"' : ''}${promptLanguage !== 'zh' ? `${promptLanguage === 'zh+en' ? ',' : ''}\n          "visualPromptEn": "35-40 year old Chinese male, mature businessman look, tailored suit, commanding presence"` : ''}
+          "ageDescription": "35-40tuổi",
+          "stageDescription": "\u4e8b\u4e1aCó\u6210củadoanh nghiệpnhà，\u66f4\u52a0\u6c89\u7a33",
+${promptLanguage !== 'en' ? '          "visualPromptZh": "35-40tuổitrong\u56fdNam\u6027，Trưởng thành\u5546\u4eba\u5f62\u8c61，\u526a\u88c1\u5408\u8eabcủa\u897f\u88c5"' : ''}${promptLanguage !== 'zh' ? `${promptLanguage === 'zh+en' ? ',' : ''}\n          "visualPromptEn": "35-40 year old Chinese male, mature businessman look, tailored suit, commanding presence"` : ''}
         }
       ],
       "consistencyElements": {
@@ -143,10 +143,10 @@ ${promptLanguage !== 'en' ? '          "visualPromptZh": "35-40岁中国男性�
 }`;
 
   try {
-    // 统一从服务映射获取配置
+    // Thống nhất có được cấu hình từ ánh xạ dịch vụ
     const result = await callFeatureAPI('script_analysis', systemPrompt, userPrompt);
     
-    // 解析JSON结果
+    // phân tích cú phápJSONkết quả
     let cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const jsonStart = cleaned.indexOf('{');
     const jsonEnd = cleaned.lastIndexOf('}');
@@ -157,14 +157,14 @@ ${promptLanguage !== 'en' ? '          "visualPromptZh": "35-40岁中国男性�
     const parsed = JSON.parse(cleaned);
     return parsed.analyses || [];
   } catch (error) {
-    console.error('[CharacterStageAnalyzer] AI分析失败:', error);
+    console.error('[CharacterStageAnalyzer] AIPhân tíchThất bại:', error);
     return [];
   }
 }
 
 /**
- * 将阶段分析结果转换为 CharacterVariation 格式
- * 可直接用于 addVariation()
+ * \u5c06\u9636\u6bb5Phân tích kết quả\u8f6c\u6362cho CharacterVariation Định dạng
+ * \u53ef\u76f4\u63a5sử dụng\u4e8e addVariation()
  */
 export function convertStagesToVariations(
   analysis: CharacterStageAnalysis
@@ -190,24 +190,24 @@ export function convertStagesToVariations(
 }
 
 /**
- * 根据集数获取角色应使用的变体
+ * \u6839\u636eđặt\u6570\u83b7\u53d6Nhân vật\u5e94sử dụngcủathay đổi\u4f53
  * 
- * @param variations 角色的变体列表
- * @param episodeIndex 当前集数
- * @returns 匹配的变体，如果没有阶段变体则返回 undefined
+ * @param variations Nhân vậtcủathay đổi\u4f53danh sách
+ * @param episodeIndex hiện tạiđặt\u6570
+ * @returns trận đấucủathay đổi\u4f53，nếu khôngbiến thể sân khấu\u5219Quay lại undefined
  */
 export function getVariationForEpisode(
   variations: CharacterVariation[],
   episodeIndex: number
 ): CharacterVariation | undefined {
-  // 只查找阶段变体
+  // \u53ea\u67e5\u627ebiến thể sân khấu
   const stageVariations = variations.filter(v => v.isStageVariation && v.episodeRange);
   
   if (stageVariations.length === 0) {
     return undefined;
   }
   
-  // 找到匹配集数范围的变体
+  // tìm thấytrận đấuđặt\u6570\u8303\u56f4củathay đổi\u4f53
   return stageVariations.find(v => {
     const [start, end] = v.episodeRange!;
     return episodeIndex >= start && episodeIndex <= end;
@@ -215,8 +215,8 @@ export function getVariationForEpisode(
 }
 
 /**
- * 快速检测大纲是否包含多阶段线索
- * 用于在导入剧本时提示用户
+ * Nhanh\u901fPhát hiệnphác thảo\u662f\u5426chứa\u591a\u9636\u6bb5\u7ebf\u7d22
+ * sử dụng\u4e8e\u5728NhậpKịch bản\u65f6Gợi ýNgười dùng
  */
 export function detectMultiStageHints(outline: string, totalEpisodes: number): {
   hasTimeSpan: boolean;
@@ -226,11 +226,11 @@ export function detectMultiStageHints(outline: string, totalEpisodes: number): {
 } {
   const hints: string[] = [];
   
-  // 检测时间跨度（多种格式）
+  // Phát hiệnThời gian\u8de8\u5ea6（khác nhauĐịnh dạng）
   const yearPatterns = [
-    /(\d{4})年.*?(\d{4})年/,           // 2000年...2020年
+    /(\d{4}) năm.*?(\d{4}) năm/,           // 2000năm...2020năm
     /(\d{4})-(\d{4})/,                   // 2000-2020
-    /从(\d{4})到(\d{4})/,              // 从2000到2020
+    /từ(\d{4})Đến(\d{4})/,              // từ2000Đến2020
   ];
   let hasTimeSpan = false;
   for (const pattern of yearPatterns) {
@@ -239,50 +239,50 @@ export function detectMultiStageHints(outline: string, totalEpisodes: number): {
       const span = parseInt(yearMatch[2]) - parseInt(yearMatch[1]);
       if (span >= 5) {
         hasTimeSpan = true;
-        hints.push(`时间跨度${span}年（${yearMatch[1]}-${yearMatch[2]}）`);
+        hints.push(`Thời gian\u8de8\u5ea6${span}năm（${yearMatch[1]}-${yearMatch[2]}）`);
         break;
       }
     }
   }
   
-  // 检测年龄变化（多种格式）
+  // Phát hiệntuổi tácthay đổi（khác nhauĐịnh dạng）
   const agePatterns = [
-    /(\d+)岁.*?(\d+)岁/,              // 25岁...50岁
-    /(\d+)-(\d+)岁/,                   // 25-50岁
-    /从(\d+)岁到(\d+)岁/,             // 从25岁到50岁
-    /(\d+)到(\d+)岁/,                  // 25到50岁
+    /(\d+)tuổi.*?(\d+)tuổi/,              // 25 tuổi...50 tuổi
+    /(\d+)-(\d+)tuổi/,                   // 25-50 tuổi
+    /từ(\d+)tuổiĐến(\d+)tuổi/,             // từ25 tuổiĐến50 tuổi
+    /(\d+)Đến(\d+)tuổi/,                  // 25Đến50 tuổi
   ];
   let hasAgeChange = false;
   for (const pattern of agePatterns) {
     const ageMatch = outline.match(pattern);
     if (ageMatch) {
       const ageSpan = parseInt(ageMatch[2]) - parseInt(ageMatch[1]);
-      if (ageSpan >= 10) { // 年龄跨度至少10岁
+      if (ageSpan >= 10) { // tuổi tác\u8de8\u5ea6\u81f3\u5c1110tuổi
         hasAgeChange = true;
-        hints.push(`年龄跨度${ageMatch[1]}岁到${ageMatch[2]}岁`);
+        hints.push(`tuổi tác\u8de8\u5ea6${ageMatch[1]}tuổiĐến${ageMatch[2]}tuổi`);
         break;
       }
     }
   }
   
-  // 检测阶段关键词（扩展列表）
+  // Phát hiện\u9636\u6bb5chìa khóa\u8bcd（Danh sách mở rộng）
   const stageKeywords = [
-    '青年', '中年', '老年', '少年', '成年', '晚年', 
-    '初期', '后期', '前期', '末期',
-    '年轻', '年迈', '成长', '岁月', '年华',
-    '创业初', '事业巅峰', '事业有成', '功成名就',
+    'tuổi trẻ', 'tuổi trung niên', 'tuổi già', 'vị thành niên', 'người lớn', 'tuổi già', 
+    'Giai đoạn đầu', 'giai đoạn sau', 'Giai đoạn đầu', 'Cuối kỳ',
+    'năm\u8f7b', 'cũ', 'phát triển', 'năm', 'năm\u534e',
+    'Bắt đầu kinh doanh\u521d', 'đỉnh cao sự nghiệp', '\u4e8b\u4e1aCó\u6210', '\u529f\u6210tên\u5c31',
   ];
   const foundKeywords = stageKeywords.filter(k => outline.includes(k));
   if (foundKeywords.length > 0) {
-    hints.push(`包含阶段关键词：${foundKeywords.join('、')}`);
+    hints.push(`chứa\u9636\u6bb5chìa khóa\u8bcd：${foundKeywords.join('、')}`);
   }
   
-  // 综合判断 - 降低门槛
-  // 1. 20集以上且有任何线索
-  // 2. 或者40集以上的主角剧默认需要多阶段
+  // \u7efc\u5408\u5224\u65ad - \u964d\u4f4ecửa\u69db
+  // 1. 20đặt\u4ee5\u4e0a\u4e14Có\u4efb\u4f55\u7ebf\u7d22
+  // 2. hoặc\u800540đặt\u4ee5\u4e0acủanhân vật chính\u5267Mặc định\u9700\u8981\u591a\u9636\u6bb5
   const suggestMultiStage = (
     (totalEpisodes >= 20 && (hasTimeSpan || hasAgeChange || foundKeywords.length >= 1)) ||
-    (totalEpisodes >= 40) // 40集以上的主角剧默认需要
+    (totalEpisodes >= 40) // 40đặt\u4ee5\u4e0acủanhân vật chính\u5267Mặc định\u9700\u8981
   );
   
   console.log('[detectMultiStageHints]', {

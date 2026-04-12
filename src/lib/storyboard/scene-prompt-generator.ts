@@ -12,9 +12,9 @@
  * 2. Only fall back to Vision API when scene has NO text descriptions.
  * 
  * Three-tier prompt system:
- * 1. Image Prompt (首帧提示词) - Static description for first frame image generation
- * 2. End Frame Prompt (尾帧提示词) - Static description for end frame (if needed)
- * 3. Video Prompt (视频提示词) - Dynamic action description for video generation
+ * 1. Lời nhắc hình ảnh (Lời nhắc khung hình đầu tiên) - Mô tả tĩnh cho việc tạo hình ảnh khung hình đầu tiên
+ * 2. Dấu nhắc khung kết thúc (Nhắc khung cuối cùng) - Mô tả tĩnh cho khung kết thúc (nếu cần)
+ * 3. Video Prompt (VideoPrompt) - Dynamic action description for video generation
  * 
  * Also determines whether each scene needs an end frame based on:
  * - Large position changes (walk in/out, transformation)
@@ -52,19 +52,19 @@ export interface ScenePromptRequest {
 export interface GeneratedPrompt {
   id: number;
   
-  // === 首帧提示词 (First Frame - Static) ===
+  // === Lời nhắc khung hình đầu tiên (Khung hình đầu tiên - Tĩnh) ===
   // For image generation: composition, lighting, character appearance, starting pose
   imagePrompt: string;      // English
   imagePromptZh: string;    // Chinese
   
-  // === 尾帧提示词 (End Frame - Static) ===
+  // === Lời nhắc khung kết thúc (Khung kết thúc - Tĩnh) ===
   // For image generation: ending pose, position after movement
   needsEndFrame: boolean;   // Whether this scene needs an end frame
   endFramePrompt: string;   // English (empty if not needed)
   endFramePromptZh: string; // Chinese (empty if not needed)
   endFrameReason?: string;  // Why end frame is needed (for debugging)
   
-  // === 视频提示词 (Video Action - Dynamic) ===
+  // === VideoPrompt (Video Action - Dynamic) ===
   // For video generation: action process, camera movement, atmosphere change
   videoPrompt: string;      // English
   videoPromptZh: string;    // Chinese
@@ -97,25 +97,25 @@ function inferNeedsEndFrame(scene: ScenePromptRequest['scenes'][0]): { needs: bo
   const camera = (scene.cameraMovement || '').toLowerCase();
   
   // Keywords indicating large movement
-  const movementKeywords = ['走', '跑', '冲', '离开', '进入', '走进', '走出', '冲向', '奔向', 'walk', 'run', 'enter', 'exit', 'move', 'rush'];
-  const transformKeywords = ['变', '转变', '蜕变', '化为', 'transform', 'change'];
-  const cameraKeywords = ['360', '环绕', '推进', '拉远', '航拍', '穿梭', '变焦', '摇臂', '升降', '左移', '右移', '左摇', '右摇', '上仰', '下俯', 'dolly', 'pan', 'tilt', 'rotate', 'orbit', 'zoom', 'truck', 'crane', 'drone', 'fpv', 'tracking'];
+  const movementKeywords = ['đi', 'chạy', 'vội vàng', 'rời đi', 'nhập', 'bước vào', 'đi ra ngoài', 'lao về phía', 'chạy về phía', 'walk', 'run', 'enter', 'exit', 'move', 'rush'];
+  const transformKeywords = ['thay đổi', 'thay đổi', 'biến thái', 'biến thành', 'transform', 'change'];
+  const cameraKeywords = ['360', 'bao quanh', 'tiến lên', 'Thu nhỏ', 'chụp ảnh trên không', 'đưa đón', 'thu phóng', 'cánh tay rocker', 'nâng', 'Chuyển sang trái', 'Di chuyển sang phải', 'Lắc trái', 'Lắc phải', 'Nghiêng người lên', 'cúi xuống', 'dolly', 'pan', 'tilt', 'rotate', 'orbit', 'zoom', 'truck', 'crane', 'drone', 'fpv', 'tracking'];
   
   for (const kw of movementKeywords) {
     if (action.includes(kw)) {
-      return { needs: true, reason: `位置移动: ${kw}` };
+      return { needs: true, reason: `Vị tríDi chuyển: ${kw}` };
     }
   }
   
   for (const kw of transformKeywords) {
     if (action.includes(kw)) {
-      return { needs: true, reason: `状态变化: ${kw}` };
+      return { needs: true, reason: `Trạng thátôi thay đổi: ${kw}` };
     }
   }
   
   for (const kw of cameraKeywords) {
     if (camera.includes(kw)) {
-      return { needs: true, reason: `镜头运动: ${kw}` };
+      return { needs: true, reason: `Cảnh quay thể thao: ${kw}` };
     }
   }
   
@@ -130,20 +130,20 @@ function generatePromptFromText(scene: ScenePromptRequest['scenes'][0], storyCon
   const camera = scene.cameraMovement || '';
   const dialogue = scene.dialogue || '';
   const sceneDesc = scene.sceneDescription || '';
-  const sceneName = scene.sceneName || `场景 ${scene.id}`;
+  const sceneName = scene.sceneName || `Cảnh ${scene.id}`;
   
   // Build image prompt (static first frame description)
   const imagePromptParts: string[] = [];
   if (sceneDesc) imagePromptParts.push(sceneDesc);
   if (action) imagePromptParts.push(action);
-  const imagePromptZh = imagePromptParts.join('。') || `${sceneName} 的画面`;
+  const imagePromptZh = imagePromptParts.join('。') || `${sceneName} bức tranh`;
   
   // Build video prompt (dynamic action)
   const videoPromptParts: string[] = [];
   if (action) videoPromptParts.push(action);
-  if (camera) videoPromptParts.push(`镜头: ${camera}`);
-  if (dialogue) videoPromptParts.push(`对白: "${dialogue.substring(0, 50)}"`);
-  const videoPromptZh = videoPromptParts.join('。') || `${sceneName} 的动态画面`;
+  if (camera) videoPromptParts.push(`Cảnh quay: ${camera}`);
+  if (dialogue) videoPromptParts.push(`Đối thoại: "${dialogue.substring(0, 50)}"`);
+  const videoPromptZh = videoPromptParts.join('。') || `${sceneName} hình ảnh năng động`;
   
   // Determine end frame need
   const endFrameInfo = inferNeedsEndFrame(scene);
@@ -152,7 +152,7 @@ function generatePromptFromText(scene: ScenePromptRequest['scenes'][0], storyCon
   let endFramePromptZh = '';
   if (endFrameInfo.needs && action) {
     // Try to infer ending state from action description
-    endFramePromptZh = `${action} 之后的画面`;
+    endFramePromptZh = `${action} Cảnh tượng sau đó`;
   }
   
   return {
@@ -222,15 +222,15 @@ export async function generateScenePrompts(
       console.warn('[ScenePromptGenerator] No Vision API configured, using placeholder for scenes without text');
       const placeholderResults = scenesWithoutText.map(s => ({
         id: s.id,
-        imagePrompt: `场景 ${s.id}`,
-        imagePromptZh: `场景 ${s.id}`,
+        imagePrompt: `Cảnh ${s.id}`,
+        imagePromptZh: `Cảnh ${s.id}`,
         needsEndFrame: false,
         endFramePrompt: '',
         endFramePromptZh: '',
-        videoPrompt: `场景 ${s.id} 的动态画面`,
-        videoPromptZh: `场景 ${s.id} 的动态画面`,
-        prompt: `场景 ${s.id} 的动态画面`,
-        promptZh: `场景 ${s.id} 的动态画面`,
+        videoPrompt: `Cảnh ${s.id} hình ảnh năng động`,
+        videoPromptZh: `Cảnh ${s.id} hình ảnh năng động`,
+        prompt: `Cảnh ${s.id} hình ảnh năng động`,
+        promptZh: `Cảnh ${s.id} hình ảnh năng động`,
       }));
       return [...textResults, ...placeholderResults].sort((a, b) => a.id - b.id);
     }
@@ -239,15 +239,15 @@ export async function generateScenePrompts(
       console.warn('[ScenePromptGenerator] No Vision model configured, using placeholder for scenes without text');
       const placeholderResults = scenesWithoutText.map(s => ({
         id: s.id,
-        imagePrompt: `场景 ${s.id}`,
-        imagePromptZh: `场景 ${s.id}`,
+        imagePrompt: `Cảnh ${s.id}`,
+        imagePromptZh: `Cảnh ${s.id}`,
         needsEndFrame: false,
         endFramePrompt: '',
         endFramePromptZh: '',
-        videoPrompt: `场景 ${s.id} 的动态画面`,
-        videoPromptZh: `场景 ${s.id} 的动态画面`,
-        prompt: `场景 ${s.id} 的动态画面`,
-        promptZh: `场景 ${s.id} 的动态画面`,
+        videoPrompt: `Cảnh ${s.id} hình ảnh năng động`,
+        videoPromptZh: `Cảnh ${s.id} hình ảnh năng động`,
+        prompt: `Cảnh ${s.id} hình ảnh năng động`,
+        promptZh: `Cảnh ${s.id} hình ảnh năng động`,
       }));
       return [...textResults, ...placeholderResults].sort((a, b) => a.id - b.id);
     }
@@ -268,15 +268,15 @@ export async function generateScenePrompts(
       console.error('[ScenePromptGenerator] Vision API failed, using placeholders:', error);
       const placeholderResults = scenesWithoutText.map(s => ({
         id: s.id,
-        imagePrompt: `场景 ${s.id}`,
-        imagePromptZh: `场景 ${s.id}`,
+        imagePrompt: `Cảnh ${s.id}`,
+        imagePromptZh: `Cảnh ${s.id}`,
         needsEndFrame: false,
         endFramePrompt: '',
         endFramePromptZh: '',
-        videoPrompt: `场景 ${s.id} 的动态画面`,
-        videoPromptZh: `场景 ${s.id} 的动态画面`,
-        prompt: `场景 ${s.id} 的动态画面`,
-        promptZh: `场景 ${s.id} 的动态画面`,
+        videoPrompt: `Cảnh ${s.id} hình ảnh năng động`,
+        videoPromptZh: `Cảnh ${s.id} hình ảnh năng động`,
+        prompt: `Cảnh ${s.id} hình ảnh năng động`,
+        promptZh: `Cảnh ${s.id} hình ảnh năng động`,
       }));
       return [...textResults, ...placeholderResults].sort((a, b) => a.id - b.id);
     }
@@ -324,9 +324,9 @@ Your Expertise:
 - **Storytelling Through Camera**: Understand how each shot serves the overall narrative
 
 You understand the THREE-TIER PROMPT SYSTEM for video generation:
-1. **First Frame Prompt** (首帧提示词): STATIC description for generating the starting image
-2. **End Frame Prompt** (尾帧提示词): STATIC description for generating the ending image (only if needed)
-3. **Video Prompt** (视频提示词): DYNAMIC description for the motion/action between frames
+1. **First Frame Prompt** (Lời nhắc khung đầu tiên): Mô tả STATIC để tạo hình ảnh bắt đầu
+2. **End Frame Prompt** (Lời nhắc khung kết thúc): Mô tả TĨNH để tạo hình ảnh kết thúc (chỉ khi cần)
+3. **Video Prompt** (VideoPrompt): DYNAMIC description for the motion/action between frames
 
 # Context
 - Input: A storyboard contact sheet containing multiple frames arranged in a grid.
@@ -375,13 +375,13 @@ Return a RAW JSON array (no markdown code block). BILINGUAL output required.
   {
     "id": 1,
     "imagePrompt": "English static first frame description...",
-    "imagePromptZh": "中文首帧静态描述...",
+    "imagePromptZh": "Khung hình đầu tiên của Trung Quốc tĩnh Mô tả...",
     "needsEndFrame": true,
     "endFramePrompt": "English static end frame description...",
-    "endFramePromptZh": "中文尾帧静态描述...",
+    "endFramePromptZh": "Khung hình cuối cùng của Trung Quốc tĩnh Mô tả...",
     "endFrameReason": "Character walks into room - position change",
     "videoPrompt": "English action/motion description...",
-    "videoPromptZh": "中文动作/运动描述..."
+    "videoPromptZh": "Tiếng Trung Hành động/Phong trào Mô tả..."
   },
   {
     "id": 2,
@@ -407,18 +407,18 @@ Return a RAW JSON array (no markdown code block). BILINGUAL output required.
         id: s.id,
         // First frame (static)
         imagePrompt: `(Mock) A character in scene ${s.id}, composition based on "${storyPrompt}".`,
-        imagePromptZh: `(测试) 场景 ${s.id} 的角色，基于“${storyPrompt}”的构图。`,
+        imagePromptZh: `(Kiểm tra) Cảnh ${s.id} Nhân vật，Dựa trên“${storyPrompt}”thành phần。`,
         // End frame (static, only if needed)
         needsEndFrame,
         endFramePrompt: needsEndFrame ? `(Mock) Same character after action, new position in scene ${s.id}.` : '',
-        endFramePromptZh: needsEndFrame ? `(测试) 动作后的同一角色，场景 ${s.id} 中的新位置。` : '',
+        endFramePromptZh: needsEndFrame ? `(Kiểm tra) Hành độTương tự Nh sau ngân vật，Cảnh ${s.id} V mới trongị trí。` : '',
         endFrameReason: needsEndFrame ? 'Mock: position change' : undefined,
         // Video action (dynamic)
         videoPrompt: `(Mock) Slow zoom in. Scene ${s.id} action based on "${storyPrompt}".`,
-        videoPromptZh: `(测试) 缓慢推进。场景 ${s.id} 基于“${storyPrompt}”的动作。`,
+        videoPromptZh: `(Kiểm tra) tiến lên từ từ。Cảnh ${s.id} Dựa trên“${storyPrompt}”Hành động。`,
         // Legacy compatibility
         prompt: `(Mock) Slow zoom in. Scene ${s.id} action based on "${storyPrompt}".`,
-        promptZh: `(测试) 缓慢推进。场景 ${s.id} 基于“${storyPrompt}”的动作。`,
+        promptZh: `(Kiểm tra) tiến lên từ từ。Cảnh ${s.id} Dựa trên“${storyPrompt}”Hành động。`,
         action: 'Mock action',
         camera: 'Zoom In'
       };
@@ -468,7 +468,7 @@ Return a RAW JSON array (no markdown code block). BILINGUAL output required.
       }
       
       if (response.status === 401 || response.status === 403) {
-        throw new Error('API Key 无效或已过期');
+        throw new Error('Khóa API không hợp lệ hoặc đã hết hạn');
       }
       throw new Error(errorMessage);
     }
@@ -487,11 +487,11 @@ Return a RAW JSON array (no markdown code block). BILINGUAL output required.
       parsed = JSON.parse(cleanContent);
     } catch (e) {
       console.error('[ScenePromptGenerator] Failed to parse JSON:', content);
-      throw new Error('AI 响应不是有效的 JSON 格式');
+      throw new Error('Phản hồi AI không hợp lệ JSON Định dạng');
     }
 
     if (!Array.isArray(parsed)) {
-      throw new Error('AI 响应不是数组格式');
+      throw new Error('Phản hồi của AI không phải là một mảngĐịnh dạng');
     }
 
     // Validate and map to three-tier prompt result

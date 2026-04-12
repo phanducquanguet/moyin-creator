@@ -72,7 +72,7 @@ export function ProjectHeader() {
       {/* Left: Project Name + Stage + Episode Breadcrumb */}
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-white truncate max-w-[200px]">
-          {activeProject?.name || "未命名项目"}
+          {activeProject?.name || "Chưa đặt tên\u9879\u76ee"}
         </span>
         {activeEpisodeIndex != null && (
           <>
@@ -80,9 +80,9 @@ export function ProjectHeader() {
             <button
               className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
               onClick={backToSeries}
-              title="返回全剧视图"
+              title="\u8fd4\u56de\u5168\u5267\u89c6\u56fe"
             >
-              第{activeEpisodeIndex}集
+              Không.{activeEpisodeIndex}đặt
             </button>
           </>
         )}

@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 环境声输入组件 (Ambient Sound Input)
- * 用于输入场景的环境声描述，如"森林鸟鸣"、"城市喧嚣"等
+ * âm thanh xung quanh\u8f93\u5165\u7ec4\u4ef6 (Ambient Sound Input)
+ * sử dụng\u4e8e\u8f93\u5165\u573a\u666fcủaâm thanh xung quanh\u63cf\u8ff0，Chẳng hạn như"rừngTiếng chim hót"、"thành phố\u55a7\u56a3"Đợi đã
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -23,7 +23,7 @@ export function AmbientSoundInput({
   value,
   onChange,
   disabled,
-  placeholder = "如：森林鸟鸣、城市喧嚣...",
+  placeholder = "Chẳng hạn như：rừngTiếng chim hót、thành phố\u55a7\u56a3...",
 }: AmbientSoundInputProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);

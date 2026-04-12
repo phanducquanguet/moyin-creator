@@ -2,15 +2,15 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * 5阶段分镜校准模块
+ * Giai đoạn 5Phân cảmô-đun hiệu chuẩn nh
  * 
- * 将 30+ 字段拆分为 5 个独立 AI 调用，避免推理模型 token 耗尽
+ * Chia hơn 30 trường thành 5 cuộc gọi AI độc lập，Tránh lý luậnMô hình token đã hết
  * 
- * Stage 1: 叙事骨架 (9 fields) — 景别/运动/时长 + 叙事分析
- * Stage 2: 视觉描述 (6 fields) — 中英文描述 + 角色 + 音频
- * Stage 3: 拍摄控制 (15 fields) — 灯光/景深/器材/角度/焦距等
- * Stage 4: 首帧提示词 (3 fields) — imagePrompt + needsEndFrame
- * Stage 5: 动态+尾帧提示词 (4 fields) — videoPrompt + endFramePrompt
+ * Giai đoạn 1: Khung tường thuật (9 trường) — Cỡ cảnh/các môn thể thao/Thời lượng + tường thuật Phân tích
+ * Giai đoạn 2: VisionMô tả (6 fields) — Tiếng Trung và tiếng Anh Mô tả + Nhân vật + Âm thanh
+ * Giai đoạn 3: Điều khiển bắn súng (15 trường) — đèn/độ sâu trường ảnh/Thiết bị/góc/Tiêu cự v.v.
+ * Giai đoạn 4: Lời nhắc khung đầu tiên (3 trường) — imagePrompt + needsEndFrame
+ * Giai đoạn 5: Động + khung cuối cùng Nhắc (4 trường) — videoPrompt + endFramePrompt
  */
 
 import type { PromptLanguage } from '@/types/script';
@@ -55,7 +55,7 @@ export interface GlobalContext {
   episodeSeason?: string;
   totalEpisodes?: number;
   currentEpisode?: number;
-  /** 剧级上下文摘要（由 buildSeriesContextSummary 生成） */
+  /** Tóm tắt theo ngữ cảnh ở cấp độ kịch（Bởi buildSeriesContextSummary Tạo） */
   seriesContextSummary?: string;
 }
 
@@ -66,7 +66,7 @@ export interface CalibrationOptions {
 }
 
 /**
- * 5阶段分镜校准主函数
+ * Giai đoạn 5Phân cảnh hiệu chuẩn chức năng chính
  */
 export async function calibrateShotsMultiStage(
   shots: ShotInputData[],
@@ -87,42 +87,42 @@ export async function calibrateShotsMultiStage(
     : '';
   const contextLine = [
     `《${title}》`, genre || '', era || '',
-    totalEpisodes ? `共${totalEpisodes}集` : '',
-    `第${currentEpisode}集「${episodeTitle}」`,
+    totalEpisodes ? `tổng cộng${totalEpisodes}đặt` : '',
+    `Không.${currentEpisode}đặt「${episodeTitle}」`,
     episodeSeason || '',
   ].filter(Boolean).join(' | ');
 
-  // 剧级上下文摘要：来自 SeriesMeta
+  // Tóm tắt theo ngữ cảnh ở cấp độ kịch：từ SeriesMeta
   const seriesCtx = globalContext.seriesContextSummary || '';
 
-  // 叙事锚点：故事核心 + 世界观 + 核心冲突（截断避免过长）
+  // mỏ neo tường thuật：Cốt lõi câu chuyện + thế giới quan + xung đột cốt lõi（Cắt ngắn để tránh quá dài）
   const narrativeAnchorParts = [
-    seriesCtx ? `【剧级知识】\n${seriesCtx}` : '',
-    outline ? `【故事核心】\n${outline.slice(0, 600)}` : '',
-    worldSetting ? `【世界观/规则】\n${worldSetting.slice(0, 400)}` : '',
-    themes?.length ? `【核心主题】${themes.join('、')}` : '',
-    characterBios ? `【主要人物】\n${characterBios.slice(0, 400)}` : '',
+    seriesCtx ? `【Kiến thức cấp độ kịch】\n${seriesCtx}` : '',
+    outline ? `【Cốt lõi câu chuyện】\n${outline.slice(0, 600)}` : '',
+    worldSetting ? `【thế giới quan/quy tắc】\n${worldSetting.slice(0, 400)}` : '',
+    themes?.length ? `【cốt lõichủ đề】${themes.join('、')}` : '',
+    characterBios ? `【nhân vật chính】\n${characterBios.slice(0, 400)}` : '',
   ].filter(Boolean);
   const narrativeAnchorBlock = narrativeAnchorParts.length > 0
     ? `\n\n${narrativeAnchorParts.join('\n\n')}`
     : '';
 
-  // 媒介类型约束（非电影风格时追加）
+  // Lò vừaạtôi hạn chế（Phim Phong Cánối thêm khi ch）
   const mt = getMediaType(styleId || 'cinematic');
-  const mediaTypeHint = mt !== 'cinematic' ? `\n【媒介类型】${getMediaTypeGuidance(mt)}` : '';
+  const mediaTypeHint = mt !== 'cinematic' ? `\n【Lò vừaại】${getMediaTypeGuidance(mt)}` : '';
 
-  // 时代/世界观上下文：供 Stage 2/4/5 视觉生成使用（避免 AI 产生与时代不符的幻觉）
+  // thời đại/bối cảnh thế giới quan：Đối với giai đoạn 2/4/5 hình ảnh TạoSử dụng（Ngăn chặn AI tạo ra những ảo tưởng lỗi thời với thời đại）
   const eraContextParts = [
     contextLine,
-    era ? `⚠️ 时代背景：${era}——所有人物服装、发型、道具、建筑必须严格符合「${era}」时期，禁止出现其他时代的元素（如古装剧禁止西装/T恤/手机等现代物品）` : '',
-    worldSetting ? `世界观设定：${worldSetting.slice(0, 300)}` : '',
-    characterBios ? `人物造型参考：${characterBios.slice(0, 300)}` : '',
+    era ? `⚠️ Thời đại Nền：${era}——Tất cảQuần áo nhân vật、kiểu tóc、đạo cụ、Tòa nhà phải tuân thủ nghiêm ngặt các quy định「${era}」thời kỳ，Các yếu tố từ thời đại khác bị cấm（Ví dụ, phim truyền hình cổ trang cấm mặc vest/áo phông/Điện thoạtôi và các mặt hàng hiện đại khác）` : '',
+    worldSetting ? `Cài đặt chế độ xem thế giới：${worldSetting.slice(0, 300)}` : '',
+    characterBios ? `Tham khảo mô hình nhân vật：${characterBios.slice(0, 300)}` : '',
   ].filter(Boolean);
   const eraContextBlock = eraContextParts.length > 0
-    ? `\n\n【⚠️ 剧本背景 — 视觉生成必须严格遵循】\n${eraContextParts.join('\n')}`
+    ? `\n\n【⚠️ Kịch bảnNền — Thị giác Tạo Phải tuân thủ nghiêm ngặt】\n${eraContextParts.join('\n')}`
     : '';
 
-  // JSON 解析辅助
+  // Hỗ trợ phân tích cú pháp JSON
   function parseStageJSON(raw: string): Record<string, any> {
     let cleaned = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
     const jsonStart = cleaned.indexOf('{');
@@ -134,7 +134,7 @@ export async function calibrateShotsMultiStage(
     return parsed.shots || parsed || {};
   }
 
-  // 通用 Stage 执行器：使用 processBatched 自动分批（30+ shots 时自动拆分 sub-batch）
+  // Thiết bị truyền động sân khấu phổ quát：Tự động tạo khối bằng cách sử dụng processBatched（Tự động chia lô phụ khi chụp trên 30 ảnh）
   async function runStage(
     stageName: string,
     buildPrompts: (batch: ShotInputData[]) => { system: string; user: string },
@@ -167,247 +167,247 @@ export async function calibrateShotsMultiStage(
       }
     }
     if (failedBatches > 0) {
-      console.warn(`[MultiStage] ${stageName}: ${failedBatches} 批次失败`);
+      console.warn(`[MultiStage] ${stageName}: ${failedBatches} đợt thứất bại`);
     }
   }
 
-  // 初始化合并结果
+  // Khởi tạo kết quả hợp nhất
   const merged: Record<string, any> = {};
   for (const shot of shots) {
     merged[shot.shotId] = {};
   }
 
-  // ===================== Stage 1: 叙事骨架 =====================
-  onStageProgress?.(1, 5, '叙事骨架');
-  console.log('[MultiStage] Stage 1/5: 叙事骨架');
+  // ===================== Giai đoạn 1: Bộ xương tường thuật =====================
+  onStageProgress?.(1, 5, 'bộ xương tường thuật');
+  console.log('[MultiStage] Stage 1/5: Bộ xương tường thuật');
 
-  const s1System = `你是电影叙事分析师，精通镜头语言和叙事结构。分析每个分镜的叙事功能并确定镜头参数。
+  const s1System = `Bạn là người kể chuyện phim Phân tích chia，Thành thạo Cảnh quay ngôn ngữ và cấu trúc trần thuật。Phân tích mọi phân cảhàm trần thuật của nh và xác định Cảnh quayTham số。
 
-${contextLine}${narrativeAnchorBlock}${episodeSynopsis ? `\n\n【本集大纲】\n${episodeSynopsis}` : ''}${episodeKeyEvents?.length ? `\n关键事件：${episodeKeyEvents.join('、')}` : ''}
+${contextLine}${narrativeAnchorBlock}${episodeSynopsis ? `\n\n【Tóm tắt tập phim】\n${episodeSynopsis}` : ''}${episodeKeyEvents?.length ? `\nkeySự kiện：${episodeKeyEvents.join('、')}` : ''}
 
-【⚠️ 叙事一致性校验 — 必须执行】
-每个分镜必须回答：
-1. 此镜头如何推动本集核心冲突的发展？（铺垫→升级→高潮→转折→尾声）
-2. 此镜头是否违反世界观设定？（如有违反，在 storyAlignment 中标注）
-3. shotPurpose 必须体现该镜头与故事核心的关系，不能只描述画面
+【⚠️ Kiểm tra tính nhất quán tường thuật — Phải được thực thi】
+Mỗi tiến sĩân cảnh phải trả lời：
+1. C nàyảNh quay dẫn dắt xung đột trung tâm của tập phim như thế nào？（điềm báo→Nâng cấp→đỉnh điểm→bước ngoặt→Lời kết）
+2. C nàyảnh quay có vi phạm thiết lập thế giới quan không?？（Nếu có bất kỳ vi phạm nào，Chú thích trong câu chuyệnAlignment）
+3. shotPurpose phải phản ánh CảMối quan hệ giữa nh quay và cốt lõi của câu chuyện，Không thể chỉ Mô tảbức tranh
 
-为每个分镜输出 JSON：
+cho mỗi tiến sĩân cảnhĐầu ra JSON：
 - shotSize: ECU/CU/MCU/MS/MLS/LS/WS/FS
 - cameraMovement: none/static/tracking/orbit/zoom-in/zoom-out/pan-left/pan-right/tilt-up/tilt-down/dolly-in/dolly-out/truck-left/truck-right/crane-up/crane-down/drone-aerial/360-roll
 - specialTechnique: none/hitchcock-zoom/timelapse/crash-zoom-in/crash-zoom-out/whip-pan/bullet-time/fpv-shuttle/macro-closeup/first-person/slow-motion/probe-lens/spinning-tilt
-- duration: 秒数(整数)，纯动作3-5秒/简短对白4-6秒/长对白6-10秒/复杂动作5-8秒
-- narrativeFunction: 铺垫/升级/高潮/转折/过渡/尾声
-- conflictStage: 此镜头在本集核心冲突中的阶段（引入/激化/对抗/转折/解决/余波，无关填"辅助"）
-- shotPurpose: 一句话说明此镜头如何服务于故事核心（中文）
-- storyAlignment: 与世界观/故事核心的一致性（aligned/minor-deviation/needs-review）
-- visualFocus: 视觉焦点顺序（用→表示）
-- cameraPosition: 机位描述（中文）
-- characterBlocking: 人物布局（中文）
-- rhythm: 节奏感（中文）
+- thời lượng: số giây (số nguyên)，H nguyên chấtành động3-5 giây/Đoạn hội thoại ngắn 4-6 giây/Đoạn hội thoại dài 6-10 giây/Phức hợp Hành động5-8 giây
+- Chức năng tường thuật: báo trước/Nâng cấp/đỉnh điểm/bước ngoặt/Chuyển tiếp/Lời kết
+- xung độtStage: C nàyảsân khấu của nh quay trong xung đột trung tâm của tập phim（giới thiệu/tăng cường/Đối đầu/bước ngoặt/giải quyết/hậu quả，Điền vào những chỗ không liên quan"phụ trợ"）
+- shotMục đích: Gi trong một câuải thíchthisCảNh quay phục vụ cốt lõi của câu chuyện như thế nào（Tiếng Trung）
+- StoryAlignment: và thế giới quan/Sự nhất quán ở cốt lõi của câu chuyện（aligned/minor-deviation/needs-review）
+- visualFocus: thứ tự lấy nét trực quan（sử dụng→thể hiện）
+- cameraPosition: Góc máyMô tả（Tiếng Trung）
+- CharacterBlocking: bố cục ký tự（Tiếng Trung）
+- nhịp điệu: cảm giác về nhịp điệu（Tiếng Trung）
 
-格式：{"shots":{"shot_id":{...}}}`;
+Định dạng：{"shots":{"shot_id":{...}}}`;
 
   try {
-    await runStage('Stage 1/5: 叙事骨架', (batch) => {
+    await runStage('Stage 1/5: Bộ xương tường thuật', (batch) => {
       const userShots = batch.map(s => {
-        const chars = s.characterNames?.join('、') || '无';
-        return `ID: ${s.shotId}\n场景: ${s.sceneLocation} | 时间: ${s.sceneTime}${s.sceneWeather ? ` | 天气: ${s.sceneWeather}` : ''}\n原文: ${s.sourceText || s.actionSummary}${s.dialogue ? `\n对白: 「${s.dialogue}」` : ''}\n角色: ${chars} | 氛围: ${s.sceneAtmosphere}\n当前: 景别=${s.currentShotSize || '?'} 运动=${s.currentCameraMovement || '?'}`;
+        const chars = s.characterNames?.join('、') || 'không có';
+        return `ID: ${s.shotId}\nCảnh: ${s.sceneLocation} | Thời gian: ${s.sceneTime}${s.sceneWeather ? ` | Thời tiết: ${s.sceneWeather}` : ''}\nVăn bản gốc: ${s.sourceText || s.actionSummary}${s.dialogue ? `\nĐối thoại: 「${s.dialogue}」` : ''}\nNhân vật: ${chars} | Bầu không khí: ${s.sceneAtmosphere}\nHiện tại: Cỡ cảnh=${s.currentShotSize || '?'} các môn thể thao=${s.currentCameraMovement || '?'}`;
       }).join('\n\n---\n\n');
-      return { system: s1System, user: `分析以下分镜：\n\n${userShots}` };
+      return { system: s1System, user: `Phân tích dưới Phân cảnh：\n\n${userShots}` };
     }, 200, 4096);
   } catch (e) {
     console.error('[MultiStage] Stage 1 failed:', e);
   }
 
-  // ===================== Stage 2: 视觉描述 + 音频 =====================
-  onStageProgress?.(2, 5, '视觉描述');
-  console.log('[MultiStage] Stage 2/5: 视觉描述');
+  // ===================== Giai đoạn 2: VisionMô tả + Âm thanh =====================
+  onStageProgress?.(2, 5, 'Tầm nhìn Mô tả');
+  console.log('[MultiStage] Stage 2/5: Tầm nhìn Mô tả');
   const includeEnVisualPrompt = promptLanguage !== 'zh';
   const s2VisualPromptRule = includeEnVisualPrompt
-    ? '\n- visualPrompt: 纯英文，40词内，AI绘图用'
+    ? '\n- visualPrompt: tiếng Anh thuần túy，Trong vòng 40 từ，Để vẽ AI'
     : '';
   const s2JsonFormat = includeEnVisualPrompt
     ? '{"shots":{"shot_id":{"visualDescription":"","visualPrompt":"","characterNames":[],"emotionTags":[],"ambientSound":"","soundEffect":""}}}'
     : '{"shots":{"shot_id":{"visualDescription":"","characterNames":[],"emotionTags":[],"ambientSound":"","soundEffect":""}}}';
 
-  const s2System = `你是影视视觉描述师。基于原始剧本文本和叙事分析，生成视觉描述和音频设计。${eraContextBlock}
+  const s2System = `Bạn là hình ảnh phim và truyền hình Mô tảphép chia。Dựa trên bản gốc Kịch bảnText và NarrativePhân tích，TạoVisual Mô tảvàÂthiết kế m thanh。${eraContextBlock}
 
-⚠️ 规则：
-- 场景归属绝对固定：主场景不可更改，闪回用"画面叠加"描述
-- 角色列表必须完整来自原文，不增不减
-- **时代一致性**：人物服装、发型、道具、环境细节必须严格符合剧本设定的时代背景，禁止混入其他时代元素
-- visualDescription: 纯中文，详细画面描述（服装/道具必须符合时代）
+⚠️ quy tắc：
+- CảQuyền sở hữu NH là hoàn toàn cố định：Chính Cảnh không thể thay đổi，Để hồi tưởng"lớp phủ màn hình"Mô tả
+- Nhân vậDanh sách t phải hoàn toàn từ văn bản gốc，Không tăng cũng không giảm
+- **tính nhất quán thời đại**：Quần áo nhân vật、kiểu tóc、đạo cụ、Các chi tiết về môi trường phải tuân thủ nghiêm ngặt Kịch bản đặt kỷ nguyên Nền，Cấm trộn lẫn các yếu tố từ thời đại khác
+- Mô tả trực quan: thuần Trung Quốc，Màn hình chi tiết Mô tả（quần áo/Đạo cụ phải phù hợp với thời điểm）
 ${s2VisualPromptRule}
-- emotionTags 选项: happy/sad/angry/surprised/fearful/calm/tense/excited/mysterious/romantic/funny/touching/serious/relaxed/playful/gentle/passionate/low
-- ambientSound/soundEffect: 纯中文
-格式：${s2JsonFormat}`;
+- tùy chọn thẻ cảm xúc: hạnh phúc/sad/angry/surprised/fearful/calm/tense/excited/mysterious/romantic/funny/touching/serious/relaxed/playful/gentle/passionate/low
+- ambientSound/Hiệu ứng âm thanh: thuần Trung Quốc
+Định dạng：${s2JsonFormat}`;
 
   try {
-    await runStage('Stage 2/5: 视觉描述', (batch) => {
+    await runStage('Stage 2/5: Tầm nhìn Mô tả', (batch) => {
       const userShots = batch.map(s => {
         const prev = merged[s.shotId] || {};
-        const hasFlashback = /闪回|叠画|回忆|穿插/.test(s.sourceText || '');
-        return `ID: ${s.shotId}\n【主场景（不可更改）】: ${s.sceneLocation}${hasFlashback ? ' ⚠️含闪回，主场景不变！' : ''}\n原文: ${s.sourceText || s.actionSummary}${s.dialogue ? `\n对白: 「${s.dialogue}」` : ''}\n角色: ${s.characterNames?.join('、') || '无'}\n叙事: 景别=${prev.shotSize || '?'} | 功能=${prev.narrativeFunction || '?'} | 目的=${prev.shotPurpose || '?'}\n焦点: ${prev.visualFocus || '?'} | 布局: ${prev.characterBlocking || '?'}`;
+        const hasFlashback = /hồi tưởng|sơn phủ|ký ức|xen kẽ/.test(s.sourceText || '');
+        return `ID: ${s.shotId}\n【Chính Cảnh（không thể thay đổi）】: ${s.sceneLocation}${hasFlashback ? ' ⚠️Chứa hồi tưởng，Chính Cảnh vẫn không thay đổi！' : ''}\nVăn bản gốc: ${s.sourceText || s.actionSummary}${s.dialogue ? `\nĐối thoại: 「${s.dialogue}」` : ''}\nNhân vật: ${s.characterNames?.join('、') || 'không có'}\tường thuật: Cỡ cảnh=${prev.shotSize || '?'} | chức năng=${prev.narrativeFunction || '?'} | mục đích=${prev.shotPurpose || '?'}\nTập trung: ${prev.visualFocus || '?'} | Bố cục: ${prev.characterBlocking || '?'}`;
       }).join('\n\n---\n\n');
-      return { system: s2System, user: `请生成视觉描述：\n\n${userShots}` };
+      return { system: s2System, user: `Xin vui lòng TạoVisual Mô tả：\n\n${userShots}` };
     }, 200, 4096);
   } catch (e) {
     console.error('[MultiStage] Stage 2 failed:', e);
   }
 
-  // ===================== Stage 3: 拍摄控制 =====================
-  onStageProgress?.(3, 5, '拍摄控制');
-  console.log('[MultiStage] Stage 3/5: 拍摄控制');
+  // ===================== Giai đoạn 3: Điều khiển bắn súng =====================
+  onStageProgress?.(3, 5, 'Kiểm soát chụp');
+  console.log('[MultiStage] Stage 3/5: Điều khiển chụp');
 
-  const s3System = `你是电影摄影指导(DP)。根据视觉描述确定专业拍摄参数。${cinematographyGuidance ? `\n\n${cinematographyGuidance}` : ''}
+  const s3System = `Bạn là Đạo diễn quay phim (DP)。Theo hình ảnh Mô tảQuyết tâm được Thẩm s chụp ảnh chuyên nghiệpố。${cinematographyGuidance ? `\n\n${cinematographyGuidance}` : ''}
 
-为每个分镜输出：
+cho mỗi tiến sĩân cảnhĐầu ra：
 - lightingStyle: natural/high-key/low-key/silhouette/chiaroscuro/neon
 - lightingDirection: front/side/back/top/bottom/rim
 - colorTemperature: warm-3200K/neutral-5600K/cool-7500K/mixed/golden-hour/blue-hour
-- lightingNotes: 中文灯光细节
+- ánh sángGhi chú: chi tiết ánh sáng Trung Quốc
 - depthOfField: shallow/medium/deep/split-diopter
-- focusTarget: 中文对焦主体
+- focusTarget: Chủ đề trọng tâm tiếng Trung
 - focusTransition: none/rack-focus/pull-focus/follow-focus
 - cameraRig: tripod/handheld/steadicam/dolly/crane/drone/gimbal/shoulder
 - movementSpeed: static/slow/normal/fast/whip
-- atmosphericEffects: 数组（中文），如["雾气"]
+- Hiệu ứng khí quyển: mảng（Tiếng Trung），Chẳng hạn như["sương mù"]
 - effectIntensity: subtle/moderate/heavy
 - playbackSpeed: slow-0.25x/slow-0.5x/normal/fast-1.5x/fast-2x/timelapse
 - cameraAngle: eye-level/low-angle/high-angle/birds-eye/worms-eye/dutch-angle/over-shoulder/pov/aerial
 - focalLength: 14mm/18mm/24mm/28mm/35mm/50mm/85mm/100mm-macro/135mm/200mm
-- photographyTechnique: long-exposure/double-exposure/high-speed/timelapse-photo/tilt-shift/silhouette/reflection/bokeh (可留空)
+- photographyTechnique: long-exposure/double-exposure/high-speed/timelapse-photo/tilt-shift/silhouette/reflection/hiệu ứng mờ ảo (có thể để trống)
 
-格式：{"shots":{"shot_id":{...}}}`;
+Định dạng：{"shots":{"shot_id":{...}}}`;
 
   try {
-    await runStage('Stage 3/5: 拍摄控制', (batch) => {
+    await runStage('Stage 3/5: Điều khiển chụp', (batch) => {
       const userShots = batch.map(s => {
         const prev = merged[s.shotId] || {};
         const artParts = [
-          s.architectureStyle ? `建筑:${s.architectureStyle}` : '',
-          s.colorPalette ? `色彩:${s.colorPalette}` : '',
-          s.eraDetails ? `时代:${s.eraDetails}` : '',
-          s.lightingDesign ? `光影:${s.lightingDesign}` : '',
+          s.architectureStyle ? `Kiến trúc:${s.architectureStyle}` : '',
+          s.colorPalette ? `Màu sắc:${s.colorPalette}` : '',
+          s.eraDetails ? `Thời đại:${s.eraDetails}` : '',
+          s.lightingDesign ? `Ánh sáng:${s.lightingDesign}` : '',
         ].filter(Boolean);
-        return `ID: ${s.shotId}\n场景: ${s.sceneLocation} | 时间: ${s.sceneTime}${s.sceneWeather ? ` | 天气:${s.sceneWeather}` : ''}\n景别: ${prev.shotSize || '?'} | 运动: ${prev.cameraMovement || '?'} | 节奏: ${prev.rhythm || '?'}\n视觉描述: ${prev.visualDescription || '?'}${artParts.length ? `\n场景美术: ${artParts.join(' | ')}` : ''}`;
+        return `ID: ${s.shotId}\nCảnh: ${s.sceneLocation} | Thời gian: ${s.sceneTime}${s.sceneWeather ? ` | Thời tiết:${s.sceneWeather}` : ''}\nCỡ cảnh: ${prev.shotSize || '?'} | Phong trào: ${prev.cameraMovement || '?'} | Nhịp điệu: ${prev.rhythm || '?'}\nVisual Mô tả: ${prev.visualDescription || '?'}${artParts.length ? `\nCảnh\u7f8e\u672f: ${artParts.join(' | ')}` : ''}`;
       }).join('\n\n---\n\n');
-      return { system: s3System, user: `请确定拍摄参数：\n\n${userShots}` };
+      return { system: s3System, user: `Hãy chắc chắn để bắn Tham số：\n\n${userShots}` };
     }, 200, 4096);
   } catch (e) {
     console.error('[MultiStage] Stage 3 failed:', e);
   }
 
-  // ===================== Stage 4: 首帧提示词 =====================
-  onStageProgress?.(4, 5, '首帧提示词');
-  console.log('[MultiStage] Stage 4/5: 首帧提示词');
+  // ===================== Giai đoạn 4: Nhắc khung hình đầu tiên =====================
+  onStageProgress?.(4, 5, 'Lời nhắc khung đầu tiên');
+  console.log('[MultiStage] Stage 4/5: Lời nhắc khung đầu tiên');
 
-  // Stage 4: 根据 promptLanguage 动态调整输出字段
+  // Giai đoạn 4: Điều chỉnh động theo ngôn ngữ nhắc nhởĐầu ra field
   const s4Fields = promptLanguage === 'zh'
-    ? 'imagePromptZh (纯中文, 60-100字)'
+    ? 'imagePromptZh (Tiếng Trung thuần túy, 60-100 từ)'
     : promptLanguage === 'en'
-    ? 'imagePrompt (纯英文, 60-80词)'
-    : 'imagePrompt (纯英文, 60-80词) 和 imagePromptZh (纯中文, 60-100字)';
+    ? 'imagePrompt (Tiếng Anh thuần túy, 60-80 từ)'
+    : 'imagePrompt (thuần tiếng Anh, 60-80 từ) và imagePromptZh (thuần tiếng Trung, 60-100 từ)';
   const s4JsonFormat = promptLanguage === 'zh'
     ? '{"shots":{"shot_id":{"imagePromptZh":"","needsEndFrame":true}}}'
     : promptLanguage === 'en'
     ? '{"shots":{"shot_id":{"imagePrompt":"","needsEndFrame":true}}}'
     : '{"shots":{"shot_id":{"imagePrompt":"","imagePromptZh":"","needsEndFrame":true}}}';
   const s4LangWarning = promptLanguage === 'zh'
-    ? '\n⚠️ imagePromptZh 必须纯中文'
+    ? '\n⚠️ imagePromptZh phải là tiếng Trung thuần túy'
     : promptLanguage === 'en'
-    ? '\n⚠️ imagePrompt 必须100%纯英文，禁止任何中文字符'
-    : '\n⚠️ imagePrompt 必须100%纯英文，禁止任何中文字符\n⚠️ imagePromptZh 必须纯中文';
+    ? '\n⚠️ imagePrompt phải là 100%Tiếng Anh thuần túy，Bất kỳ ký tự Trung Quốc nào đều bị cấm'
+    : '\n⚠️ imagePrompt phải là 100%Tiếng Anh thuần túy，Bất kỳ ký tự Trung Quốc nào đều bị cấm\n⚠️ imagePromptZh phải là tiếng Trung thuần túy';
 
-  const s4System = `你是AI图像生成专家。根据视觉描述和拍摄参数，生成首帧提示词。${eraContextBlock}
+  const s4System = `Bạn là hình ảnh AI TạoChuyên gia。Theo hình ảnh Mô tảvà quay phim Thắmố，TạoKhung đầu tiên Nhắc。${eraContextBlock}
 
 ${styleDesc}${mediaTypeHint}
 
-⚠️ 时代一致性（最重要）：人物的服装、发型、配饰必须严格符合剧本设定的时代背景。例如古装剧中人物必须穿古代服饰，禁止出现西装、T恤、现代发型等。
+⚠️ tính nhất quán thời đại（quan trọng nhất）：Quần áo của nhân vật、kiểu tóc、Phụ kiện phải tuân thủ nghiêm ngặt Kịch bản đặt kỷ nguyên Nền。Ví dụ, nhân vật trong phim cổ trang phải mặc trang phục cổ trang，Không có bộ đồ、áo phông、Kiểu tóc hiện đại, v.v.。
 
-${s4Fields} 必须包含：
-a) 场景环境（地点+环境细节+时间氛围）
-b) 光线设计（光源+质感+氛围）
-c) 人物描述（年龄+服装+表情+姿势，每个角色都写）
-d) 构图与景别（景别+人物位置关系+焦点）
-e) 重要道具（关键道具+状态）
-f) 画面风格（电影感/色调）
+${s4Fields} phải chứa：
+a) Cảmôi trường（Vị trí+Chi tiết môi trường+Thờtôi gian bầu không khí）
+b) Thiết kế ánh sáng（Nguồn sáng + kết cấu + bầu không khí）
+c) Ký tự Mô tả（Tuổi+Quần áo+Biểu cảm+tư thế，Mỗi Nhân vậViết cả hai t）
+d) Thành phần và Cỡ cảnh（Cỡ cảnh+ký tự Vị trímối quan hệ + trọng tâm）
+e) Đạo cụ quan trọng（Đạo cụ chính+Trạng thái）
+f) Màn hình Phong cách（Cảm giác điện ảnh/Tông màu）
 ${s4LangWarning}
 
-needsEndFrame 判断：
-- true: 人物位置变化/动作序列/物品状态变化/镜头运动(非Static)
-- false: 纯对白+位置不变/仅微表情
-- 不确定时设 true
+nhu cầu phán xétEndFrame：
+- đúng: ký tự Vị tríthay đổi/Hành độtrình tự ng/MụcTrạng thátôi thay đổi/Cảnh quay thể thao (không tĩnh)
+- false: đối thoại thuần túy + Vị tríkhông thay đổi/Chỉ có WeiBiểu cảm
+- đặt đúng khi không chắc chắn
 
-格式：${s4JsonFormat}`;
+Định dạng：${s4JsonFormat}`;
 
   try {
-    await runStage('Stage 4/5: 首帧提示词', (batch) => {
+    await runStage('Stage 4/5: Lời nhắc khung đầu tiên', (batch) => {
       const userShots = batch.map(s => {
         const prev = merged[s.shotId] || {};
-        return `ID: ${s.shotId}\n景别: ${prev.shotSize || '?'} | 角度: ${prev.cameraAngle || '?'} | 焦距: ${prev.focalLength || '?'}\n运动: ${prev.cameraMovement || '?'}\n视觉描述: ${prev.visualDescription || '?'}\n角色: ${(prev.characterNames || s.characterNames || []).join('、')}\n灯光: ${prev.lightingStyle || '?'}, ${prev.lightingDirection || '?'}, ${prev.colorTemperature || '?'}\n景深: ${prev.depthOfField || '?'} | 焦点: ${prev.focusTarget || '?'}\n大气: ${(prev.atmosphericEffects || []).join(',')}${prev.lightingNotes ? `\n灯光备注: ${prev.lightingNotes}` : ''}`;
+        return `ID: ${s.shotId}\nCỡ cảnh: ${prev.shotSize || '?'} | Góc: ${prev.cameraAngle || '?'} | Độ dài tiêu cự: ${prev.focalLength || '?'}\nChuyển động: ${prev.cameraMovement || '?'}\nVisual Mô tả: ${prev.visualDescription || '?'}\nNhân vật: ${(prev.characterNames || s.characterNames || []).join('、')}\nÁnh sáng: ${prev.lightingStyle || '?'}, ${prev.lightingDirection || '?'}, ${prev.colorTemperature || '?'}\Độ sâu trường ảnh: ${prev.depthOfField || '?'} | Tập trung: ${prev.focusTarget || '?'}\nKhí quyển: ${(prev.atmosphericEffects || []).join(',')}${prev.lightingNotes ? `\nLighting nhận xét: ${prev.lightingNotes}` : ''}`;
       }).join('\n\n---\n\n');
-      return { system: s4System, user: `请生成首帧提示词：\n\n${userShots}` };
+      return { system: s4System, user: `Xin vui lòng TạoKhung đầu tiên Nhắc：\n\n${userShots}` };
     }, 400, 8192);
   } catch (e) {
     console.error('[MultiStage] Stage 4 failed:', e);
   }
 
-  // ===================== Stage 5: 动态 + 尾帧提示词 =====================
-  onStageProgress?.(5, 5, '动态+尾帧提示词');
-  console.log('[MultiStage] Stage 5/5: 动态+尾帧提示词');
+  // ===================== Giai đoạn 5: Động + khung cuối cùng Lời nhắc =====================
+  onStageProgress?.(5, 5, 'Động + khung cuối cùng Lời nhắc');
+  console.log('[MultiStage] Stage 5/5: Động + khung cuối cùng Nhắc');
 
-  // Stage 5: 根据 promptLanguage 动态调整输出字段
+  // Giai đoạn 5: Tự động điều chỉnh theo ngôn ngữ nhắc nhởĐầu ra field
   const s5VideoFields = promptLanguage === 'zh'
-    ? 'videoPromptZh (纯中文)'
+    ? 'videoPromptZh (Thuần Trung Quốc)'
     : promptLanguage === 'en'
-    ? 'videoPrompt (纯英文)'
-    : 'videoPrompt (纯英文) / videoPromptZh (纯中文)';
+    ? 'videoPrompt (tiếng Anh thuần túy)'
+    : 'videoPrompt (tiếng Anh thuần túy) / videoPromptZh (Thuần Trung Quốc)';
   const s5EndFields = promptLanguage === 'zh'
-    ? 'endFramePromptZh (纯中文, 60-100字)'
+    ? 'endFramePromptZh (Tiếng Trung thuần túy, 60-100 từ)'
     : promptLanguage === 'en'
-    ? 'endFramePrompt (纯英文, 60-80词)'
-    : 'endFramePrompt (纯英文, 60-80词) / endFramePromptZh (纯中文, 60-100字)';
+    ? 'endFramePrompt (Tiếng Anh thuần túy, 60-80 từ)'
+    : 'endFramePrompt (Tiếng Anh thuần túy, 60-80 từ) / endFramePromptZh (Tiếng Trung thuần túy, 60-100 từ)';
   const s5JsonFormat = promptLanguage === 'zh'
     ? '{"shots":{"shot_id":{"videoPromptZh":"","endFramePromptZh":""}}}'
     : promptLanguage === 'en'
     ? '{"shots":{"shot_id":{"videoPrompt":"","endFramePrompt":""}}}'
     : '{"shots":{"shot_id":{"videoPrompt":"","videoPromptZh":"","endFramePrompt":"","endFramePromptZh":""}}}';
   const s5LangWarning = promptLanguage === 'zh'
-    ? '\n⚠️ 中文字段必须纯中文'
+    ? '\n⚠️ Cánh đồng Trung Quốc phải thuần Trung Quốc'
     : promptLanguage === 'en'
-    ? '\n⚠️ 英文字段必须100%纯英文'
-    : '\n⚠️ 英文字段100%纯英文，中文字段纯中文';
+    ? '\n⚠️ Trường tiếng Anh phải là 100%Tiếng Anh thuần túy'
+    : '\n⚠️ lĩnh vực tiếng anh 100%Tiếng Anh thuần túy，Cánh đồng thuần Trung Hoa';
 
-  const s5System = `你是AI视频生成专家。根据首帧画面，生成视频动作描述和尾帧画面。${eraContextBlock}
+  const s5System = `Bạn là AIVideoTạoChuyên gia。Theo khung đầu tiên，Tạo videoHành độngMô tảvà khung hình cuối cùng。${eraContextBlock}
 
 ${s5VideoFields}：
-- 描述视频中的动态动作（人物动作、物体移动、镜头运动）
-- 强调动词，描述运动过程
-- ⚠️ 所有描述必须保持时代一致性（服装/道具/环境不能偏离剧本设定的时代）
+- Mô tảH động trong videoành động（Nhân vật Hành động、vật chuyển động、Cảnh quay thể thao）
+- nhấn mạnh động từ，Mô tảQuá trình di chuyển
+- ⚠️ Tất cảMô tảPhải duy trì tính nhất quán của thời đại（quần áo/đạo cụ/Môi trường không thể lệch khỏi Kịch bảnBộ thời đại）
 
 ${s5EndFields}：
-仅当 needsEndFrame=true 时生成，否则设为空字符串。
-- 描述动作完成后的最终画面
-- 包含与首帧相同的场景环境和光线
-- 重点描述与首帧的差异（新位置/新姿势/新表情/道具新状态）
-- 保持与首帧相同的画面风格和时代设定
+Chỉ khi cầnEndFrame=đúng khi Tạo，Nếu không thì đặt thành chuỗi trống。
+- Mô tảHành độBức ảnh cuối cùng sau khi ng hoàn thành
+- Chứa cùng chữ C với khung đầu tiênảnh môi trường và ánh sáng
+- Nhấn mạnh Mô tảSự khác biệt so với khung hình đầu tiên（MớiVị trí/tư thế mới/Bi mớiểu cảm/Đạo cụ TR mớiạng thái）
+- Giữ nguyên hình ảnh như khung hình đầu tiên Phong cácài đặt ch và thời đại
 ${s5LangWarning}
 
-格式：${s5JsonFormat}`;
+Định dạng：${s5JsonFormat}`;
 
   try {
-    await runStage('Stage 5/5: 动态+尾帧', (batch) => {
+    await runStage('Stage 5/5: Động + khung hình cuối cùng', (batch) => {
       const userShots = batch.map(s => {
         const prev = merged[s.shotId] || {};
-        return `ID: ${s.shotId}\n时长: ${prev.duration || '?'}秒 | 运动: ${prev.cameraMovement || '?'}\nneedsEndFrame: ${prev.needsEndFrame ?? true}\n动作: ${s.actionSummary || '?'}${s.dialogue ? `\n对白: 「${s.dialogue}」` : ''}\n首帧(EN): ${prev.imagePrompt || '?'}\n首帧(ZH): ${prev.imagePromptZh || '?'}`;
+        return `ID: ${s.shotId}\nThời lượng: ${prev.duration || '?'}giây | Phong trào: ${prev.cameraMovement || '?'}\nneedsEndFrame: ${prev.needsEndFrame ?? true}\nHành động: ${s.actionSummary || '?'}${s.dialogue ? `\nĐối thoại: 「${s.dialogue}」` : ''}\nKhung hình đầu tiên (EN): ${prev.imagePrompt || '?'}\nKhung đầu tiên (ZH): ${prev.imagePromptZh || '?'}`;
       }).join('\n\n---\n\n');
-      return { system: s5System, user: `请生成视频和尾帧提示词：\n\n${userShots}` };
+      return { system: s5System, user: `Xin vui lòng Tạo lời nhắc video và khung hình cuối cùng：\n\n${userShots}` };
     }, 400, 8192);
   } catch (e) {
     console.error('[MultiStage] Stage 5 failed:', e);
   }
 
-  console.log('[MultiStage] 全部 5 阶段完成，已校准字段:', Object.keys(merged[shots[0]?.shotId] || {}).length);
+  console.log('[MultiStage] Tất cả 5 giai đoạn đã hoàn thành，Các trường đã hiệu chỉnh:', Object.keys(merged[shots[0]?.shotId] || {}).length);
   return merged;
 }

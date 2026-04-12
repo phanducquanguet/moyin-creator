@@ -38,7 +38,7 @@ export interface ScriptCalibrationState {
   calibrationDialogOpen: boolean;
   pendingCalibrationCharacters: ScriptCharacter[] | null;
   pendingFilteredCharacters: FilteredCharacterRecord[];
-  // 面板切换后需恢复的导入/大纲生成状态
+  // Nh đó cần được khôi phục sau khi chuyển đổi bảng điều khiểnập/phác thảo TạoTrạng thái
   importStatus: ScriptImportStatus;
   synopsisStatus: ScriptSynopsisStatus;
 }
@@ -62,8 +62,8 @@ export interface ScriptProjectData {
   targetDuration: string;
   styleId: string;
   inputDraft: ScriptInputDraft;
-  sceneCount?: string; // 鍦烘櫙鏁伴噺锛堝彲閫夛級
-  shotCount?: string;  // 鍒嗛暅鏁伴噺锛堝彲閫夛級
+  sceneCount?: string; // Mức độ của
+  shotCount?: string;  // Mức độ của
   scriptData: ScriptData | null;
   parseStatus: ParseStatus;
   parseError?: string;
@@ -74,16 +74,16 @@ export interface ScriptProjectData {
   characterIdMap: Record<string, string>; // scriptCharId -> characterId
   sceneIdMap: Record<string, string>; // scriptSceneId -> sceneId
   updatedAt: number;
-  // 鏂板锛氬畬鏁村墽鏈瓨鍌?
-  projectBackground: ProjectBackground | null;  // 椤圭洰鑳屾櫙锛堝ぇ绾层€佷汉鐗╁皬浼犵瓑锛?
-  episodeRawScripts: EpisodeRawScript[];        // 鍚勯泦鍘熷鍓ф湰鍐呭
-  metadataMarkdown: string;                     // 鑷姩鐢熸垚鐨勯」鐩厓鏁版嵁 MD锛堜綔涓?AI 鐢熸垚鐨勫叏灞€鍙傝€冿級
-  metadataGeneratedAt?: number;                 // 鍏冩暟鎹敓鎴愭椂闂?
-  promptLanguage: PromptLanguage;               // 鎻愮ず璇嶈瑷€閫夐」锛堥粯璁や粎涓枃锛?
-  calibrationStrictness: CalibrationStrictness;  // AI瑙掕壊鏍″噯涓ユ牸搴?
-  lastFilteredCharacters: FilteredCharacterRecord[];  // 涓婃鏍″噯琚繃婊ょ殑瑙掕壊锛堢敤浜庢仮澶嶏級
-  calibrationState: ScriptCalibrationState;           // 鏍″噯浠诲姟鐘舵€侊紙鎸佷箙鍖栵紝鏀寔鍒囨崲鏉垮潡鎭㈠锛?
-  seriesMeta: SeriesMeta | null;                      // 鍓х骇鍏冩暟鎹紙璺ㄩ泦鍏变韩锛?
+  // tấm khắcChuỗi củaQuản Bảo?
+  projectBackground: ProjectBackground | null;  // \u6924gui\u6c30\u5473\u5c7e\u5ad9\u651b\u77daぇlớp bánh bao€làn đường\u6c49\u9417╁tình yêu?
+  episodeRawScripts: EpisodeRawScript[];        // \u9496\u52ef\u6bf3\u94e1\u7df7beriф\u6e70\u934d\u546d
+  metadataMarkdown: string;                     // Nhíp\u5a69\u9422\u71b8\u579a\u5544\u52ef」\u9429YaJinBan\u5041 MD\u951b\u581c\u7514nhỏ giọt?AI \u9422\u71b8\u579a\u9104\u52eb\u53cf\u705e€\u9359\u535d€mức độ tội phạm
+  metadataGeneratedAt?: number;                 // \u93cf\u51a9\u769f\u93b9\u94d3\u9d34\u612d\u6082\u9082?
+  promptLanguage: PromptLanguage;               // \u9efb\u612eずhuyền cơAi€\u5603\u5910」\u951b\u5ea5\u7cafRực rỡやTinh QuyênMột quảng cáo?
+  calibrationStrictness: CalibrationStrictness;  // AI Nao Shan Lei Huân″AijuanユCái gì?
+  lastFilteredCharacters: FilteredCharacterRecord[];  // juanli\u9559″AijuCăng chó cáiょMức độ của
+  calibrationState: ScriptCalibrationState;           // \u9559″Ái Hảo Chung Đa€giấy tờ\u5514\u5352\u56e8\u5d32tối thiểu sụp đổ\u6861\u93ad㈠Quảng cáo?
+  seriesMeta: SeriesMeta | null;                      // beriх\u534f\u51a9\u569f\u73b9con dấu giấyㄩLuân Lý biến thành Hán Diệt?
 }
 
 interface ScriptStoreState {
@@ -113,7 +113,7 @@ interface ScriptStoreActions {
   addEpisode: (projectId: string, episode: Episode) => void;
   updateEpisode: (projectId: string, episodeId: string, updates: Partial<Episode>) => void;
   deleteEpisode: (projectId: string, episodeId: string) => void;
-  // Episode Bundle 鍘熷瓙鎿嶄綔锛堝悓姝?scriptData.episodes + episodeRawScripts锛?
+  // Gói tập Gói tập
   addEpisodeBundle: (projectId: string, title: string, synopsis?: string) => void;
   deleteEpisodeBundle: (projectId: string, episodeIndex: number) => void;
   reindexEpisodes: (projectId: string) => void;
@@ -129,7 +129,7 @@ interface ScriptStoreActions {
   // Shot CRUD
   addShot: (projectId: string, shot: Shot) => void;
   deleteShot: (projectId: string, shotId: string) => void;
-  // 瀹屾暣鍓ф湰绠＄悊
+  // \u7039\u5c7e\u66a3\u94d3ф\u6c30\u7ee0＄\u628a
   setProjectBackground: (projectId: string, background: ProjectBackground) => void;
   setEpisodeRawScripts: (projectId: string, scripts: EpisodeRawScript[]) => void;
   updateEpisodeRawScript: (projectId: string, episodeIndex: number, updates: Partial<EpisodeRawScript>) => void;
@@ -153,7 +153,7 @@ const defaultInputDraft: ScriptInputDraft = {
 
 const defaultProjectData = (): ScriptProjectData => ({
   rawScript: "",
-  language: "涓枃",
+  language: "nhỏ giọtrăng nanh",
   targetDuration: "60s",
   styleId: "2d_ghibli",
   inputDraft: { ...defaultInputDraft },
@@ -169,7 +169,7 @@ const defaultProjectData = (): ScriptProjectData => ({
   characterIdMap: {},
   sceneIdMap: {},
   updatedAt: Date.now(),
-  // 鏂板榛樿鍊?
+  // tấm khắchạt phỉChuỗi?
   projectBackground: null,
   episodeRawScripts: [],
   metadataMarkdown: '',
@@ -564,7 +564,7 @@ export const useScriptStore = create<ScriptStore>()(
         });
       },
 
-      // ==================== Episode Bundle 鍘熷瓙鎿嶄綔 ====================
+      // ==================== Gói tập phim \u94e1\u7df7\u74d9\u93bf\u93b4\u7514 ====================
 
       addEpisodeBundle: (projectId, title, synopsis) => {
         get().ensureProject(projectId);
@@ -580,13 +580,13 @@ export const useScriptStore = create<ScriptStore>()(
           const newEpisode: Episode = {
             id: newEpisodeId,
             index: newIndex,
-            title: title || `第${newIndex}集`,
+            title: title || `Không.${newIndex}đặt`,
             description: synopsis || '',
             sceneIds: [],
           };
           const newRawScript: EpisodeRawScript = {
             episodeIndex: newIndex,
-            title: title || `第${newIndex}集`,
+            title: title || `Không.${newIndex}đặt`,
             synopsis: synopsis || '',
             keyEvents: [],
             rawContent: '',
@@ -624,7 +624,7 @@ export const useScriptStore = create<ScriptStore>()(
           const reindexedRaw = newRawScripts.map((e, i) => ({
             ...e,
             episodeIndex: i + 1,
-            title: e.title.replace(/^第\d+集/, `第${i + 1}集`),
+            title: e.title.replace(/^Không.\bộ d+/, `Không.${i + 1}đặt`),
           }));
           return {
             projects: {
@@ -884,7 +884,7 @@ export const useScriptStore = create<ScriptStore>()(
         });
       },
 
-      // 瀹屾暣鍓ф湰绠＄悊鏂规硶
+      // \u7039\u5c7e\u66a3\u94d3ф\u6c30\u7ee0＄Các quy tắc
       setProjectBackground: (projectId, background) => {
         get().ensureProject(projectId);
         set((state) => ({

@@ -30,21 +30,21 @@ export interface NavItem {
 
 // Main navigation items (top section)
 export const mainNavItems: NavItem[] = [
-  { id: "overview", label: "概览", icon: LayoutDashboardIcon },
-  { id: "script", label: "剧本", icon: FileTextIcon, phase: "01" },
-  { id: "characters", label: "角色", icon: UsersIcon, phase: "02" },
-  { id: "scenes", label: "场景", icon: MapPinIcon, phase: "02" },
-  { id: "director", label: "导演", icon: ClapperboardIcon, phase: "03" },
-  { id: "sclass", label: "S级", icon: SparklesIcon, phase: "03" },
-  { id: "assets", label: "资产", icon: FolderOpenIcon },
-  { id: "media", label: "素材", icon: VideoIcon },
-  { id: "export", label: "导出", icon: FilmIcon, phase: "04" },
-  { id: "freedom", label: "自由", icon: PaletteIcon, phase: "02" },
+  { id: "overview", label: "Tổng quan", icon: LayoutDashboardIcon },
+  { id: "script", label: "Kịch bản", icon: FileTextIcon, phase: "01" },
+  { id: "characters", label: "Nhân vật", icon: UsersIcon, phase: "02" },
+  { id: "scenes", label: "Cảnh", icon: MapPinIcon, phase: "02" },
+  { id: "director", label: "giám đốc", icon: ClapperboardIcon, phase: "03" },
+  { id: "sclass", label: "lớp S", icon: SparklesIcon, phase: "03" },
+  { id: "assets", label: "tài sản", icon: FolderOpenIcon },
+  { id: "media", label: "Chất liệu", icon: VideoIcon },
+  { id: "export", label: "Xuất", icon: FilmIcon, phase: "04" },
+  { id: "freedom", label: "sự tự do", icon: PaletteIcon, phase: "02" },
 ];
 
 // Bottom navigation items
 export const bottomNavItems: NavItem[] = [
-  { id: "settings", label: "设置", icon: SettingsIcon },
+  { id: "settings", label: "Cài đặt", icon: SettingsIcon },
 ];
 
 // Legacy exports for compatibility
@@ -57,25 +57,25 @@ export interface StageConfig {
   tabs: Tab[];
 }
 export const stages: StageConfig[] = [
-  { id: "script", label: "剧本", phase: "Phase 01", icon: FileTextIcon, tabs: ["script"] },
-  { id: "assets", label: "角色与场景", phase: "Phase 02", icon: UsersIcon, tabs: ["characters", "scenes"] },
-  { id: "director", label: "导演工作台", phase: "Phase 03", icon: ClapperboardIcon, tabs: ["director"] },
-  { id: "export", label: "成片与导出", phase: "Phase 04", icon: FilmIcon, tabs: ["export"] },
+  { id: "script", label: "Kịch bản", phase: "Phase 01", icon: FileTextIcon, tabs: ["script"] },
+  { id: "assets", label: "Nhân vật và Cảnh", phase: "Phase 02", icon: UsersIcon, tabs: ["characters", "scenes"] },
+  { id: "director", label: "Bàn giám đốc", phase: "Phase 03", icon: ClapperboardIcon, tabs: ["director"] },
+  { id: "export", label: "Làm phim và Xuất", phase: "Phase 04", icon: FilmIcon, tabs: ["export"] },
 ];
 
 export const tabs: { [key in Tab]: { icon: LucideIcon; label: string; stage?: Stage } } = {
-  dashboard: { icon: FileTextIcon, label: "项目" },
-  overview: { icon: LayoutDashboardIcon, label: "概览" },
-  script: { icon: FileTextIcon, label: "剧本", stage: "script" },
-  characters: { icon: UsersIcon, label: "角色", stage: "assets" },
-  scenes: { icon: MapPinIcon, label: "场景", stage: "assets" },
-  freedom: { icon: PaletteIcon, label: "自由" },
-  director: { icon: ClapperboardIcon, label: "导演", stage: "director" },
-  sclass: { icon: SparklesIcon, label: "S级", stage: "director" },
-  assets: { icon: FolderOpenIcon, label: "资产" },
-  media: { icon: VideoIcon, label: "素材" },
-  export: { icon: FilmIcon, label: "导出", stage: "export" },
-  settings: { icon: SettingsIcon, label: "设置" },
+  dashboard: { icon: FileTextIcon, label: "Dự án" },
+  overview: { icon: LayoutDashboardIcon, label: "Tổng quan" },
+  script: { icon: FileTextIcon, label: "Kịch bản", stage: "script" },
+  characters: { icon: UsersIcon, label: "Nhân vật", stage: "assets" },
+  scenes: { icon: MapPinIcon, label: "Cảnh", stage: "assets" },
+  freedom: { icon: PaletteIcon, label: "sự tự do" },
+  director: { icon: ClapperboardIcon, label: "giám đốc", stage: "director" },
+  sclass: { icon: SparklesIcon, label: "lớp S", stage: "director" },
+  assets: { icon: FolderOpenIcon, label: "tài sản" },
+  media: { icon: VideoIcon, label: "Chất liệu" },
+  export: { icon: FilmIcon, label: "Xuất", stage: "export" },
+  settings: { icon: SettingsIcon, label: "Cài đặt" },
 };
 
 // Data passed from script panel to director
@@ -89,7 +89,7 @@ export interface PendingDirectorData {
   sceneCount?: number; // 1 for single shot, N for scene with N shots
   styleId?: string; // Visual style from script
   sourceType?: 'shot' | 'scene' | 'episode'; // What triggered this jump
-  // 集作用域透传
+  // Đặt thông qua phạm vi
   sourceEpisodeIndex?: number;
   sourceEpisodeId?: string;
 }
@@ -106,24 +106,24 @@ export interface PendingCharacterData {
   keyActions?: string;
   appearance?: string;
   relationships?: string;
-  tags?: string[];    // 角色标签
-  notes?: string;     // 角色备注
+  tags?: string[];    // Nhân vậthẻ t
+  notes?: string;     // Nhân vậtNhận xét
   styleId?: string;
-  // 集作用域透传
+  // Đặt thông qua phạm vi
   sourceEpisodeIndex?: number;
   sourceEpisodeId?: string;
-  // === 年代信息（从剧本元数据传递）===
-  storyYear?: number;  // 故事年份，如 2002
-  era?: string;        // 时代背景描述
-  // === 提示词语言偏好（从剧本面板透传）===
+  // === thông tin tuổi tác（từKịch bảtruyền dữ liệu phần tử n）===
+  storyYear?: number;  // năm câu chuyện，Chẳng hạn như năm 2002
+  era?: string;        // Thời đại NềnMô tả
+  // === Tùy chọn ngôn ngữ nhắc nhở（từKịch bản bảng truyền trong suốt）===
   promptLanguage?: import('@/types/script').PromptLanguage;  // 'zh' | 'en' | 'zh+en'
-  // === 专业角色设计字段（世界级大师生成） ===
-  visualPromptEn?: string;  // 英文视觉提示词
-  visualPromptZh?: string;  // 中文视觉提示词
-  // === 6层身份锚点（角色一致性） ===
-  identityAnchors?: CharacterIdentityAnchors;  // 身份锚点 - 6层特征锁定
-  negativePrompt?: CharacterNegativePrompt;    // 负面提示词
-  // === 多阶段角色支持 ===
+  // === NH chuyên nghiệpân vậlĩnh vực thiết kế t（Bậc thầy đẳng cấp thế giới Tạo） ===
+  visualPromptEn?: string;  // Lời nhắc trực quan bằng tiếng Anh
+  visualPromptZh?: string;  // Lời nhắc trực quan của Trung Quốc
+  // === Neo nhận dạng lớp 6（Nhân vậtTính nhất quán） ===
+  identityAnchors?: CharacterIdentityAnchors;  // Identity Anchors – Khóa tính năng 6 lớp
+  negativePrompt?: CharacterNegativePrompt;    // Lời nhắc tiêu cực
+  // === Nh nhiều giai đoạnân vậtHỗ trợ ===
   stageInfo?: {
     stageName: string;
     episodeRange: [number, number];
@@ -138,54 +138,54 @@ export interface PendingCharacterData {
 
 // Data passed from script panel to scene library
 export interface PendingSceneData {
-  // === 基础信息 ===
+  // === Cơ bảthông tin ===
   name: string;
   location: string;
   time?: string;
   atmosphere?: string;
   styleId?: string;
-  tags?: string[];        // 场景标签
-  notes?: string;         // 场景备注
-  // 集作用域透传
+  tags?: string[];        // Cảthẻ nh
+  notes?: string;         // CảnhNhận xét
+  // Đặt thông qua phạm vi
   sourceEpisodeIndex?: number;
   sourceEpisodeId?: string;
-  // 提示词语言偏好
+  // Tùy chọn ngôn ngữ nhắc nhở
   promptLanguage?: import('@/types/script').PromptLanguage;
   
-  // === 专业场景设计（完整传递）===
-  visualPrompt?: string;       // 中文视觉描述
-  visualPromptEn?: string;     // 英文视觉描述
-  architectureStyle?: string;  // 建筑风格
-  lightingDesign?: string;     // 光影设计
-  colorPalette?: string;       // 色彩基调
-  eraDetails?: string;         // 时代特征
-  keyProps?: string[];         // 关键道具
-  spatialLayout?: string;      // 空间布局
+  // === C chuyên nghiệpảnh thiết kế（Giao hàng đầy đủ）===
+  visualPrompt?: string;       // Tầm nhìn Trung Quốc Mô tả
+  visualPromptEn?: string;     // Tiếng Anh Visual Mô tả
+  architectureStyle?: string;  // Kiến trúcPhong cách
+  lightingDesign?: string;     // Ánh sáthiết kế
+  colorPalette?: string;       // Màu sắgiai điệu c
+  eraDetails?: string;         // Đặc điểm của thời đại
+  keyProps?: string[];         // đạo cụ chính
+  spatialLayout?: string;      // bố trí không gian
   
-  // === 多视角联合图数据 ===
-  viewpoints?: PendingViewpointData[];           // 视角列表
-  contactSheetPrompts?: ContactSheetPromptSet[]; // 联合图提示词（可能多张）
+  // === Nhiều Góc nhìdữ liệu đồ thị nối ===
+  viewpoints?: PendingViewpointData[];           // Góc nhìnDanh sách
+  contactSheetPrompts?: ContactSheetPromptSet[]; // Biểu đồ công đoàn（Có thể nhiều）
 }
 
-// 待生成的视角数据
+// Đợi T.ạo'sGóc nhìdữ liệu
 export interface PendingViewpointData {
-  id: string;           // 视角ID
-  name: string;         // 中文名：餐桌区、沙发区
-  nameEn: string;       // 英文名
-  shotIds: string[];    // 关联的分镜ID
-  shotIndexes: number[]; // 关联的分镜序号（用于展示）
-  keyProps: string[];   // 道具（中文）
-  keyPropsEn: string[]; // 道具（英文）
-  gridIndex: number;    // 在联合图中的位置
-  pageIndex: number;    // 属于第几张联合图（从0开始）
+  id: string;           // Góc nhìnID
+  name: string;         // Tên tiếng Trung：khu vực bàn ăn、khu vực ghế sofa
+  nameEn: string;       // tên tiếng anh
+  shotIds: string[];    // liên kết tiến sĩân cảnhID
+  shotIndexes: number[]; // liên kết tiến sĩân cảsố sê-ri（để trưng bày）
+  keyProps: string[];   // đạo cụ（Tiếng Trung）
+  keyPropsEn: string[]; // đạo cụ（Tiếng Anh）
+  gridIndex: number;    // V trong sơ đồ chungị trí
+  pageIndex: number;    // Nó thuộc về bức tranh chung nào?（từ 0Bắt đầu）
 }
 
-// 联合图提示词集合（支持多张）
+// Bộ sưu tập lời nhắc biểu đồ liên minh（Hỗ trợNhiều hình ảnh）
 export interface ContactSheetPromptSet {
-  pageIndex: number;          // 第几张联合图（从0开始）
-  prompt: string;             // 英文提示词
-  promptZh: string;           // 中文提示词
-  viewpointIds: string[];     // 包含哪些视角ID
+  pageIndex: number;          // Hình ảnh chung nào（từ 0Bắt đầu）
+  prompt: string;             // Tiếng AnhNhắc
+  promptZh: string;           // Lời nhắc tiếng Trung
+  viewpointIds: string[];     // Gs nào được bao gồm?óc nhìnID
   gridLayout: { rows: number; cols: number };
 }
 
@@ -196,7 +196,7 @@ interface MediaPanelStore {
   setActiveTab: (tab: Tab) => void;
   setActiveStage: (stage: Stage) => void;
   setInProject: (inProject: boolean) => void;
-  // Episode scope (子项目作用域)
+  // Phạm vi tập (subDự ánscope)
   activeEpisodeIndex: number | null;
   activeEpisodeScopeKey: string | null; // `${projectId}::ep-${episodeIndex}`
   enterEpisode: (index: number, projectId?: string) => void;
@@ -230,7 +230,7 @@ export const useMediaPanelStore = create<MediaPanelStore>((set) => ({
     } else if (tab === "dashboard") {
       set({ activeTab: tab, inProject: false, activeEpisodeIndex: null, activeEpisodeScopeKey: null });
     } else if (tab === "overview" || tab === "freedom") {
-      // 项目级 tab（无 stage 但属于项目内）
+      // Dự átab cấp độ n（Không có giai đoạn nhưng thuộc về Dự átrong vòng n）
       set({ activeTab: tab, inProject: true });
     } else {
       set({ activeTab: tab });

@@ -3,8 +3,8 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 
 /**
- * 品牌 SVG 图标（源自 MemeFast pricing 页面 lobe-icons）
- * 拆分为多个文件避免单文件过大
+ * Brand SVG icons (lấy từ trang pricing MemeFast lobe-icons)
+ * Tách thành nhiều file để tránh một file quá lớn
  */
 
 import type { ReactNode } from "react";
@@ -15,7 +15,7 @@ import { iconsLarge } from "./icons-large";
 
 export type BrandIconFn = (size: number) => ReactNode;
 
-/** 合并所有图标 */
+/** Gộp tất cả icon */
 const ALL_ICONS: Record<string, BrandIconFn> = {
   ...iconsSmall,
   ...iconsMedium,
@@ -23,16 +23,16 @@ const ALL_ICONS: Record<string, BrandIconFn> = {
 };
 
 /**
- * 获取品牌图标
- * @param brandId 品牌 ID（来自 extractBrandFromModel）
- * @param size 图标尺寸（px），默认 16
+ * Lấy icon thương hiệu
+ * @param brandId Brand ID (lấy từ extractBrandFromModel)
+ * @param size Kích thước icon (px), mặc định 16
  * @returns ReactNode
  */
 export function getBrandIcon(brandId: string, size = 16): ReactNode {
   const iconFn = ALL_ICONS[brandId];
   if (iconFn) return iconFn(size);
 
-  // Fallback: 首字母彩色圆形
+  // Fallback: vòng tròn màu chữ cái đầu
   const brand = BRAND_REGISTRY[brandId];
   const letter = (brand?.displayName || brandId || "?")[0].toUpperCase();
   const color = brand?.color || "#6B7280";

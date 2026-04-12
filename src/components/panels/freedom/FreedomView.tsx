@@ -19,13 +19,13 @@ export function FreedomView() {
         <div className="h-12 border-b flex items-center px-4 shrink-0">
           <TabsList className="h-9">
             <TabsTrigger value="image" className="text-sm px-4">
-              🖼️ 图片工作室
+              🖼️ \u56fe\u7247\u5de5\u4f5c\u5ba4
             </TabsTrigger>
             <TabsTrigger value="video" className="text-sm px-4">
-              🎥 视频工作室
+              🎥 \u89c6\u9891\u5de5\u4f5c\u5ba4
             </TabsTrigger>
             <TabsTrigger value="cinema" className="text-sm px-4">
-              🎬 电影工作室
+              🎬 \u7535\u5f71\u5de5\u4f5c\u5ba4
             </TabsTrigger>
           </TabsList>
         </div>

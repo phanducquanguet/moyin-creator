@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * AssetSidebar - 资产面板左侧导航树
- * 可插拔设计，后续可扩展素材库、作品库等子模块
+ * AssetSidebar - tài sản\u9762\u677f\u5de6\u4fa7\u5bfc\u822acây
+ * \u53ef\u63d2\u62d4\u8bbe\u8ba1，\u540e\u7eed\u53ef\u6269\u5c55Chất liệu\u5e93、hoạt động\u5e93Đợi đã\u5b50\u6a21\u5757
  */
 
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-// 导航节点类型
+// \u5bfc\u822a\u8282\u70b9\u7c7b\u578b
 export type AssetSection = "style-default" | "style-custom" | "props-library";
 
 interface AssetSidebarProps {
@@ -28,7 +28,7 @@ interface AssetSidebarProps {
   onSectionChange: (section: AssetSection) => void;
 }
 
-// 顶层模块定义（可插拔，后续在此数组追加新模块）
+// \u9876\u5c42\u6a21\u5757\u5b9a\u4e49（\u53ef\u63d2\u62d4，\u540e\u7eed\u5728\u6b64\u6570\u7ec4\u8ffd\u52a0mới\u6a21\u5757）
 interface NavModule {
   id: string;
   label: string;
@@ -39,19 +39,19 @@ interface NavModule {
 const NAV_MODULES: NavModule[] = [
   {
     id: "styles",
-    label: "风格库",
+    label: "gió\u683c\u5e93",
     icon: Palette,
     children: [
-      { id: "style-default", label: "默认风格", icon: Layers },
-      { id: "style-custom", label: "我的风格", icon: UserCircle },
+      { id: "style-default", label: "\u9ed8\u8ba4gió\u683c", icon: Layers },
+      { id: "style-custom", label: "\u6211củagió\u683c", icon: UserCircle },
     ],
   },
   {
     id: "props",
-    label: "道具库",
+    label: "đạo cụ\u5e93",
     icon: Box,
     children: [
-      { id: "props-library", label: "我的道具", icon: Box },
+      { id: "props-library", label: "\u6211củađạo cụ", icon: Box },
     ],
   },
 ];
@@ -72,19 +72,19 @@ export function AssetSidebar({ activeSection, onSectionChange }: AssetSidebarPro
 
   return (
     <div className="h-full flex flex-col bg-panel border-r border-border">
-      {/* 标题 */}
+      {/* Tiêu đề */}
       <div className="px-3 py-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <FolderOpen className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold">个人资产库</span>
+          <span className="text-sm font-semibold">một\u4ebatài sản\u5e93</span>
         </div>
       </div>
 
-      {/* 导航树 */}
+      {/* \u5bfc\u822acây */}
       <div className="flex-1 overflow-y-auto py-2">
         {NAV_MODULES.map((mod) => (
           <div key={mod.id} className="mb-1">
-            {/* 模块标题 */}
+            {/* \u6a21\u5757Tiêu đề */}
             <button
               className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => toggleModule(mod.id)}
@@ -98,7 +98,7 @@ export function AssetSidebar({ activeSection, onSectionChange }: AssetSidebarPro
               {mod.label}
             </button>
 
-            {/* 子项 */}
+            {/* \u5b50\u9879 */}
             {expanded.has(mod.id) && (
               <div className="ml-3">
                 {mod.children.map((child) => (

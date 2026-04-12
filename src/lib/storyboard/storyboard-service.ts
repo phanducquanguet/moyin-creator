@@ -58,10 +58,10 @@ async function submitImageGenTask(
   baseUrl?: string
 ): Promise<{ taskId?: string; imageUrl?: string; estimatedTime?: number }> {
   if (!model) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆鍥剧墖鐢熸垚妯″瀷');
+    throw new Error('Huyền Phong Huyền MặcㄨTương\u8151\u95b0\u5c30\u55b0\u9532\u5267\u5896\u9422\u71b8\u569a\u59af″kiêu ngạo');
   }
   if (!baseUrl) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆鍥剧墖鐢熸垚鏈嶅姟鏄犲皠');
+    throw new Error('Huyền Phong Huyền MặcㄨTương\u8151\u95b0\u59f0\u9544\u76a0');
   }
   const actualModel = model;
   const actualBaseUrl = baseUrl.replace(/\/+$/, '');
@@ -115,7 +115,7 @@ async function submitImageGenTask(
         const errorText = await response.text();
         console.error('[StoryboardService] Image API error:', response.status, errorText);
 
-        let errorMessage = `鍥剧墖鐢熸垚 API 閿欒: ${response.status}`;
+        let errorMessage = `API: ${response.status}`;
         try {
           const errorJson = JSON.parse(errorText);
           errorMessage = errorJson.error?.message || errorJson.message || errorJson.msg || errorMessage;
@@ -127,9 +127,9 @@ async function submitImageGenTask(
 
         const error = new Error(
           response.status === 401 || response.status === 403
-            ? 'API Key 无效或已过期，请检查配置'
+            ? 'Khóa API không hợp lệ hoặc đã hết hạn，Vui lòng kiểm tra cấu hình'
             : response.status >= 500
-              ? '图片生成服务暂时不可用，请稍后再试'
+              ? 'Hình ảnhTạoDịch vụ tạm thời không khả dụng，Vui lòng thử lại sau'
               : errorMessage
         ) as Error & { status?: number };
         error.status = response.status;
@@ -174,11 +174,11 @@ async function submitImageGenTask(
     clearTimeout(timeoutId);
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
-        throw new Error('鍥剧墖鐢熸垚 API 璇锋眰瓒呮椂锛岃绋嶅悗鍐嶈瘯');
+        throw new Error('\u9532\u5267\u5896\u9422\u71b8\u579aAPI Huyền Phong\u7c30\u7492\u546e\u6902\u751b\u50c3\u7ecb\u5145\u6097\u5350\u5d88\u762f');
       }
       throw error;
     }
-    throw new Error('调用图片生成 API 时发生未知错误');
+    throw new Error('Gọi Hình ảnhTạo Kh xảy ra trong APIông rõLỗi');
   }
 }
 
@@ -193,10 +193,10 @@ async function submitZhipuImageTask(
   baseUrl?: string
 ): Promise<{ taskId?: string; imageUrl?: string; estimatedTime?: number }> {
   if (!model) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆鍥剧墖鐢熸垚妯″瀷');
+    throw new Error('Huyền Phong Huyền MặcㄨTương\u8151\u95b0\u5c30\u55b0\u9532\u5267\u5896\u9422\u71b8\u569a\u59af″kiêu ngạo');
   }
   if (!baseUrl) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆鍥剧墖鐢熸垚鏈嶅姟鏄犲皠');
+    throw new Error('Huyền Phong Huyền MặcㄨTương\u8151\u95b0\u59f0\u9544\u76a0');
   }
   const endpoint = buildEndpoint(baseUrl, 'images/generations');
   const response = await fetch(endpoint, {
@@ -261,7 +261,7 @@ async function pollTaskCompletion(
 
     try {
       // Add cache-busting timestamp (matching director_ai)
-      // 浣跨敤浼犲叆鐨?baseUrl 鑰屼笉鏄‖缂栫爜
+      // Khóa baseUrl là khóa baseUrl.‖\u70ab\u6208
       const url = new URL(buildEndpoint(baseUrl, `tasks/${taskId}`));
       url.searchParams.set('_ts', Date.now().toString());
 
@@ -427,7 +427,7 @@ export async function generateStoryboardImage(
 
   // Validate API key
   if (!apiKey) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆 API Key');
+    throw new Error('Huyền Phong Huyền MặcㄨTươngKhóa API');
   }
 
   onProgress?.(10);
@@ -437,11 +437,11 @@ export async function generateStoryboardImage(
 
   const baseUrl = config.baseUrl?.replace(/\/+$/, '');
   if (!baseUrl) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆鍥剧墖鐢熸垚鏈嶅姟鏄犲皠');
+    throw new Error('Huyền Phong Huyền MặcㄨTương\u8151\u95b0\u59f0\u9544\u76a0');
   }
   const model = config.model;
   if (!model) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆鍥剧墖鐢熸垚妯″瀷');
+    throw new Error('Huyền Phong Huyền MặcㄨTương\u8151\u95b0\u5c30\u55b0\u9532\u5267\u5896\u9422\u71b8\u569a\u59af″kiêu ngạo');
   }
 
   // Use submitGridImageRequest for smart routing (auto-detects chat/completions vs images/generations)
@@ -481,7 +481,7 @@ export async function generateStoryboardImage(
 
   // If taskId is returned, poll for completion
   if (result.taskId) {
-    // 浣跨敤涓庢彁浜や换鍔＄浉鍚岀殑 baseUrl 杩涜杞
+    // Huankuaojuan\u5ea2\u5f41\u6d5cやtrao đổi＄\u6249\u9496\u5000\u6b91 baseUrl \u6769\u6d9cTề
     const imageUrl = await pollTaskCompletion(
       result.taskId,
       apiKey,
@@ -520,10 +520,10 @@ async function submitVideoGenTask(
   videoResolution?: '480p' | '720p' | '1080p'
 ): Promise<{ taskId?: string; videoUrl?: string; estimatedTime?: number }> {
   if (!model) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆瑙嗛鐢熸垚妯″瀷');
+    throw new Error('Huyền Phong Huyền MặcㄨTươngFu Heng Gao Jiang Nao Po\u9422\u71b8\u569a\u59af″kiêu ngạo');
   }
   if (!baseUrl) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆瑙嗛鐢熸垚鏈嶅姟鏄犲皠');
+    throw new Error('Huyền Phong Huyền MặcㄨTươngFu Heng Gao Jiang Nao Pochuỗi \u9422\u71b8\u579a\u5d85\u59df\u9104\u72b2\u76a0');
   }
   const actualModel = model;
   const actualBaseUrl = baseUrl.replace(/\/+$/, '');
@@ -591,7 +591,7 @@ async function submitVideoGenTask(
       }
 
       if (response.status === 401 || response.status === 403) {
-        throw new Error('API Key 无效或已过期，请检查配置');
+        throw new Error('Khóa API không hợp lệ hoặc đã hết hạn，Vui lòng kiểm tra cấu hình');
       }
 
       const error = new Error(errorMessage) as Error & { status?: number };
@@ -681,7 +681,7 @@ export async function generateSceneVideos(
 
   // Validate API key
   if (!apiKey && !mockMode) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆 API Key');
+    throw new Error('Huyền Phong Huyền MặcㄨTươngKhóa API');
   }
 
   // Process scenes sequentially with rate limiting
@@ -713,7 +713,7 @@ export async function generateSceneVideos(
       if (provider !== 'zhipu') {
         const resolvedBaseUrl = baseUrl?.replace(/\/+$/, '');
         if (!resolvedBaseUrl) {
-          throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆瑙嗛鐢熸垚鏈嶅姟鏄犲皠');
+          throw new Error('Huyền Phong Huyền MặcㄨTươngFu Heng Gao Jiang Nao Pochuỗi \u9422\u71b8\u579a\u5d85\u59df\u9104\u72b2\u76a0');
         }
         const result = await submitVideoGenTask(
           scene.imageDataUrl,
@@ -741,7 +741,7 @@ export async function generateSceneVideos(
           const videoUrl = await pollVideoTaskCompletion(
             result.taskId,
             apiKey,
-            resolvedBaseUrl, // 浣跨敤涓庢彁浜や换鍔＄浉鍚岀殑 baseUrl
+            resolvedBaseUrl, // Huankuaojuan\u5ea2\u5f41\u6d5cやtrao đổi＄\u6d49\u9496\u5000\u6b91 baseUrl
             (progress) => {
               onSceneProgress?.(scene.id, 30 + Math.floor(progress * 0.7));
             }

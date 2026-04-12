@@ -2,27 +2,27 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * 错开启动的并发控制执行器
+ * Sự khởi đầu đáng kinh ngạc của những người thực thi kiểm soát đồng thời
  *
- * 行为：
- * - 每个新任务在前一个任务启动后至少等待 staggerMs 才启动
- * - 同时最多运行 maxConcurrent 个任务
- * - 当活跃任务数达到上限时，等待有任务完成后才启动下一个（仍保持 staggerMs 间隔）
+ * hành vi：
+ * - Mỗi tác vụ mới phải đợi ít nhất một giây sau khi tác vụ trước đó bắt đầu trước khi bắt đầu
+ * - Chạy tối đa các tác vụ maxConcurrent cùng lúc
+ * - Khi số lượng tác vụ đang hoạt động đạt đến giới hạn trên，Đợi một nhiệm vụ hoàn thành trước khi bắt đầu nhiệm vụ tiếp theo（vẫn duy trì khoảng cách StaggerMs）
  *
- * 例如 maxConcurrent=3, staggerMs=5000, 每个任务耗时20秒：
- *   t=0s:  启动任务1
- *   t=5s:  启动任务2
- *   t=10s: 启动任务3（达到并发上限）
- *   t=15s: 任务4的 stagger 到期，但并发已满，排队等待
- *   t=20s: 任务1完成 → 任务4立即启动
- *   t=25s: 任务2完成 → 任务5立即启动
+ * Ví dụ: maxConcurrent=3, staggerMs=5000, mỗi nhiệm vụ mất 20 giây：
+ *   t=0s: Bắt đầu nhiệm vụ 1
+ *   t=5s: Bắt đầu nhiệm vụ 2
+ *   t=10s: Bắt đầu nhiệm vụ 3（Đã đạt đến giới hạn đồng thời）
+ *   t=15s: Stagger của nhiệm vụ 4 hết hạn，Nhưng đồng thời đã đầy，Xếp hàng chờ
+ *   t=20s: Nhiệm vụ 1 đã hoàn thành → Nhiệm vụ 4 bắt đầu ngay lập tức
+ *   t=25s: Nhiệm vụ 2 đã hoàn thành → Nhiệm vụ 5 bắt đầu ngay lập tức
  *
- * 例如 maxConcurrent=1, staggerMs=5000, 每个任务耗时2秒：
- *   t=0s:  启动任务1
- *   t=2s:  任务1完成
- *   t=5s:  stagger 到期 → 启动任务2（严格保持5秒间隔）
- *   t=7s:  任务2完成
- *   t=10s: 启动任务3
+ * Ví dụ: maxConcurrent=1, staggerMs=5000, mỗi nhiệm vụ mất 2 giây：
+ *   t=0s: Bắt đầu nhiệm vụ 1
+ *   t=2s: Nhiệm vụ 1 đã hoàn thành
+ *   t=5s: loạng choạng hết hạn → Bắt đầu nhiệm vụ 2（Duy trì nghiêm ngặt khoảng thời gian 5 giây）
+ *   t=7s: Nhiệm vụ 2 đã hoàn thành
+ *   t=10s: Bắt đầu nhiệm vụ 3
  */
 export async function runStaggered<T>(
   tasks: (() => Promise<T>)[],
@@ -33,7 +33,7 @@ export async function runStaggered<T>(
 
   const results: PromiseSettledResult<T>[] = new Array(tasks.length);
 
-  // 信号量：控制最大并发数
+  // ngữ nghĩa：Kiểm soát số lượng đồng thời tối đa
   let activeCount = 0;
   const waiters: (() => void)[] = [];
 
@@ -42,30 +42,30 @@ export async function runStaggered<T>(
       activeCount++;
       return;
     }
-    // 并发已满，排队等待
+    // Đồng thời đã đầy，Xếp hàng chờ
     await new Promise<void>((resolve) => waiters.push(resolve));
   };
 
   const release = (): void => {
     activeCount--;
     if (waiters.length > 0) {
-      // 唤醒队列中的下一个等待者
+      // Đánh thức người phục vụ tiếp theo trong hàng đợi
       activeCount++;
       const next = waiters.shift()!;
       next();
     }
   };
 
-  // 逐个启动任务，每个间隔 staggerMs
-  // 第N个任务在 N * staggerMs 后才被允许启动（stagger 保底间隔）
-  // 同时受信号量限制（并发保底）
+  // Bắt đầu từng nhiệm vụ một，loạng choạngM mỗi khoảng
+  // Nhiệm vụ thứ N là tại N * StaggerMs được phép bắt đầu.（khoảng thời gian đảm bảo xen kẽ）
+  // Cũng bị giới hạn bởi semaphore（Đảm bảo đồng thời）
   const taskPromises = tasks.map(async (task, idx) => {
-    // 错开启动：第N个任务至少在 N * staggerMs 后才启动
+    // khởi đầu loạng choạng：Nhiệm vụ thứ N ít nhất là N * Bắt đầu sau loạng choạngMs
     if (idx > 0) {
       await new Promise<void>((r) => setTimeout(r, idx * staggerMs));
     }
 
-    // 获取并发槽位（如果已满则等待有任务完成）
+    // Nhận các vị trí đồng thời（Nếu nó đầy, hãy đợi nhiệm vụ được hoàn thành.）
     await acquire();
 
     try {

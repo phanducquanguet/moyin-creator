@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 场景库选择器组件 (Scene Library Selector)
- * 支持三层选择：父场景 → 视角变体 → 四视图子场景
+ * \u573a\u666f\u5e93\u9009\u62e9\u5668\u7ec4\u4ef6 (Scene Library Selector)
+ * \u652f\u6301ba\u5c42\u9009\u62e9：\u7236\u573a\u666f → \u89c6\u89d2thay đổi\u4f53 → bốn\u89c6\u56fe\u5b50\u573a\u666f
  */
 
 import React, { useState, useMemo } from "react";
@@ -26,7 +26,7 @@ interface SceneLibrarySelectorProps {
   sceneId: number;
   selectedSceneLibraryId?: string;
   selectedViewpointId?: string;
-  selectedSubViewId?: string;  // 四视图子场景 ID
+  selectedSubViewId?: string;  // bốn\u89c6\u56fe\u5b50\u573a\u666f ID
   isEndFrame?: boolean;
   onChange: (
     sceneLibraryId: string | undefined, 
@@ -37,7 +37,7 @@ interface SceneLibrarySelectorProps {
   disabled?: boolean;
 }
 
-/** 解析 local-image:// 缩略图 */
+/** phân tích cú pháp local-image:// hình thu nhỏ */
 function ResolvedImg({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const resolved = useResolvedImageUrl(src);
   return <img src={resolved || ''} alt={alt} className={className} />;
@@ -65,25 +65,25 @@ export function SceneLibrarySelector({
     return libraryScenes.filter((s) => s.projectId === activeProjectId);
   }, [libraryScenes, resourceSharing.shareScenes, activeProjectId]);
   
-  // 获取所有父场景（非视角变体）
+  // \u83b7\u53d6\u6240Có\u7236\u573a\u666f（\u975e\u89c6\u89d2thay đổi\u4f53）
   const parentScenes = useMemo(() => 
     visibleScenes.filter(s => !s.isViewpointVariant && !s.parentSceneId),
     [visibleScenes]
   );
   
-  // 根据选中的场景获取视角变体（第一层子场景）
+  // \u6839\u636eđã chọncủa\u573a\u666f\u83b7\u53d6\u89c6\u89d2thay đổi\u4f53（Không.một\u5c42\u5b50\u573a\u666f）
   const viewpointScenes = useMemo(() => {
     if (!selectedSceneLibraryId) return [];
     return visibleScenes.filter(s => s.parentSceneId === selectedSceneLibraryId);
   }, [visibleScenes, selectedSceneLibraryId]);
   
-  // 根据选中的视角获取四视图子场景（第二层子场景）
+  // \u6839\u636eđã chọncủa\u89c6\u89d2\u83b7\u53d6bốn\u89c6\u56fe\u5b50\u573a\u666f（Không.Hai\u5c42\u5b50\u573a\u666f）
   const subViewScenes = useMemo(() => {
     if (!selectedViewpointId) return [];
     return visibleScenes.filter(s => s.parentSceneId === selectedViewpointId);
   }, [visibleScenes, selectedViewpointId]);
   
-  // 获取当前选中的场景信息
+  // \u83b7\u53d6hiện tạiđã chọncủa\u573a\u666fthông tin
   const selectedScene = useMemo(() => {
     if (!selectedSceneLibraryId) return null;
     return visibleScenes.find(s => s.id === selectedSceneLibraryId) || null;
@@ -99,23 +99,23 @@ export function SceneLibrarySelector({
     return visibleScenes.find(s => s.id === selectedSubViewId) || null;
   }, [visibleScenes, selectedSubViewId]);
   
-  // 选择场景
+  // \u9009\u62e9\u573a\u666f
   const handleSelectScene = (sceneLibId: string) => {
     const scene = visibleScenes.find(s => s.id === sceneLibId);
     if (!scene) {
       onChange(undefined, undefined, undefined, undefined);
       return;
     }
-    // 选中场景，清空视角和四视图
+    // đã chọn\u573a\u666f，\u6e05\u7a7a\u89c6\u89d2vàbốn\u89c6\u56fe
     const refImage = scene.referenceImage || scene.referenceImageBase64;
     onChange(sceneLibId, undefined, refImage, undefined);
   };
   
-  // 选择视角
+  // \u9009\u62e9\u89c6\u89d2
   const handleSelectViewpoint = (viewpointId: string) => {
     const viewpoint = visibleScenes.find(s => s.id === viewpointId);
     if (!viewpoint) {
-      // 清空视角，使用父场景的参考图
+      // \u6e05\u7a7a\u89c6\u89d2，sử dụng\u7236\u573a\u666fHình ảnh tham khảo
       const parentRefImage = selectedScene?.referenceImage || selectedScene?.referenceImageBase64;
       onChange(selectedSceneLibraryId, undefined, parentRefImage, undefined);
       return;
@@ -124,11 +124,11 @@ export function SceneLibrarySelector({
     onChange(selectedSceneLibraryId, viewpointId, refImage, undefined);
   };
   
-  // 选择四视图子场景
+  // \u9009\u62e9bốn\u89c6\u56fe\u5b50\u573a\u666f
   const handleSelectSubView = (subViewId: string) => {
     const subView = visibleScenes.find(s => s.id === subViewId);
     if (!subView) {
-      // 清空四视图，使用视角的参考图
+      // \u6e05\u7a7abốn\u89c6\u56fe，sử dụng\u89c6\u89d2Hình ảnh tham khảo
       const viewpointRefImage = selectedViewpoint?.referenceImage || selectedViewpoint?.referenceImageBase64;
       onChange(selectedSceneLibraryId, selectedViewpointId, viewpointRefImage, undefined);
       return;
@@ -137,15 +137,15 @@ export function SceneLibrarySelector({
     onChange(selectedSceneLibraryId, selectedViewpointId, refImage, subViewId);
   };
   
-  // 清空选择
+  // \u6e05\u7a7a\u9009\u62e9
   const handleClear = () => {
     onChange(undefined, undefined, undefined, undefined);
     setIsOpen(false);
   };
   
-  // 显示文本
+  // \u663e\u793a\u6587\u672c
   const displayText = useMemo(() => {
-    if (!selectedScene) return isEndFrame ? '尾帧场景' : '场景参考';
+    if (!selectedScene) return isEndFrame ? '\u5c3e\u5e27\u573a\u666f' : '\u573a\u666fTài liệu tham khảo';
     if (selectedSubView) {
       return `${selectedScene.name}-${selectedViewpoint?.viewpointName || selectedViewpoint?.name}-${selectedSubView.viewpointName || selectedSubView.name}`;
     }
@@ -153,10 +153,10 @@ export function SceneLibrarySelector({
     return selectedScene.name;
   }, [selectedScene, selectedViewpoint, selectedSubView, isEndFrame]);
   
-  // 是否有选中
+  // ĐúngKHÔNGCóđã chọn
   const hasSelection = !!selectedSceneLibraryId;
   
-  // 预览参考图（提取到组件级别以便使用 hook）
+  // \u9884\u89c8Hình ảnh tham khảo（Trích xuấtĐến\u7ec4\u4ef6\u7ea7\u522b\u4ee5\u4fbfsử dụng hook）
   const previewRefImage = selectedSubView?.referenceImage || selectedSubView?.referenceImageBase64
     || selectedViewpoint?.referenceImage || selectedViewpoint?.referenceImageBase64
     || selectedScene?.referenceImage || (selectedScene as any)?.contactSheetImage || selectedScene?.referenceImageBase64
@@ -182,29 +182,29 @@ export function SceneLibrarySelector({
       <PopoverContent className="w-[720px] p-3" align="start">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-medium">
-            {isEndFrame ? '选择尾帧场景参考' : '选择场景参考'}
+            {isEndFrame ? '\u9009\u62e9\u5c3e\u5e27\u573a\u666fTài liệu tham khảo' : '\u9009\u62e9\u573a\u666fTài liệu tham khảo'}
           </p>
           {hasSelection && (
             <button
               onClick={handleClear}
               className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground hover:bg-muted/80"
             >
-              清空选择
+              \u6e05\u7a7a\u9009\u62e9
             </button>
           )}
         </div>
         
         {parentScenes.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            场景库为空，请先创建场景
+            \u573a\u666f\u5e93cho\u7a7a，\u8bf7đầu tiên\u521b\u5efa\u573a\u666f
           </p>
         ) : (
           <div className="flex gap-3">
-            {/* 左侧：场景/视角/四视图选择列 */}
+            {/* \u5de6\u4fa7：\u573a\u666f/\u89c6\u89d2/bốn\u89c6\u56fe\u9009\u62e9Cột */}
             <div className="flex gap-3 flex-1">
-              {/* 场景选择 - 第一列 */}
+              {/* \u573a\u666f\u9009\u62e9 - Không.mộtCột */}
               <div className="w-[160px] shrink-0">
-                <Label className="text-xs text-muted-foreground mb-2 block">场景</Label>
+                <Label className="text-xs text-muted-foreground mb-2 block">\u573a\u666f</Label>
                 <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1">
                   {parentScenes.map((s) => {
                     const isSelected = selectedSceneLibraryId === s.id;
@@ -229,7 +229,7 @@ export function SceneLibrarySelector({
                         <div className="flex-1 min-w-0">
                           <span className="text-xs truncate block">{s.name}</span>
                           {hasViewpoints && (
-                            <span className="text-[10px] text-muted-foreground">有视角</span>
+                            <span className="text-[10px] text-muted-foreground">Có\u89c6\u89d2</span>
                           )}
                         </div>
                         {isSelected && <Check className="h-3 w-3 text-primary shrink-0" />}
@@ -239,10 +239,10 @@ export function SceneLibrarySelector({
                 </div>
               </div>
               
-              {/* 视角选择 - 第二列（如果有） */}
+              {/* \u89c6\u89d2\u9009\u62e9 - Không.HaiCột（nếu có） */}
               {selectedSceneLibraryId && viewpointScenes.length > 0 && (
                 <div className="w-[140px] shrink-0 border-l pl-3">
-                  <Label className="text-xs text-muted-foreground mb-2 block">视角</Label>
+                  <Label className="text-xs text-muted-foreground mb-2 block">\u89c6\u89d2</Label>
                   <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1">
                     <button
                       onClick={() => handleSelectViewpoint('')}
@@ -254,7 +254,7 @@ export function SceneLibrarySelector({
                       <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
                         <MapPin className="h-3 w-3" />
                       </div>
-                      <span className="text-xs">不指定</span>
+                      <span className="text-xs">\u4e0d\u6307\u5b9a</span>
                       {!selectedViewpointId && <Check className="h-3 w-3 text-primary" />}
                     </button>
                     {viewpointScenes.map((v) => {
@@ -280,7 +280,7 @@ export function SceneLibrarySelector({
                           <div className="flex-1 min-w-0">
                             <span className="text-xs truncate block">{v.viewpointName || v.name}</span>
                             {hasSubViews && (
-                              <span className="text-[10px] text-muted-foreground">有四视图</span>
+                              <span className="text-[10px] text-muted-foreground">Cóbốn\u89c6\u56fe</span>
                             )}
                           </div>
                           {isSelected && <Check className="h-3 w-3 text-primary shrink-0" />}
@@ -291,10 +291,10 @@ export function SceneLibrarySelector({
                 </div>
               )}
               
-              {/* 四视图子场景选择 - 第三列（如果有） */}
+              {/* bốn\u89c6\u56fe\u5b50\u573a\u666f\u9009\u62e9 - Không.baCột（nếu có） */}
               {selectedViewpointId && subViewScenes.length > 0 && (
                 <div className="w-[120px] shrink-0 border-l pl-3">
-                  <Label className="text-xs text-muted-foreground mb-2 block">四视图</Label>
+                  <Label className="text-xs text-muted-foreground mb-2 block">bốn\u89c6\u56fe</Label>
                   <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1">
                     <button
                       onClick={() => handleSelectSubView('')}
@@ -306,7 +306,7 @@ export function SceneLibrarySelector({
                       <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
                         <Layers className="h-3 w-3" />
                       </div>
-                      <span className="text-xs">不指定</span>
+                      <span className="text-xs">\u4e0d\u6307\u5b9a</span>
                       {!selectedSubViewId && <Check className="h-3 w-3 text-primary" />}
                     </button>
                     {subViewScenes.map((sv) => {
@@ -338,19 +338,19 @@ export function SceneLibrarySelector({
               )}
             </div>
             
-            {/* 右侧：参考图预览 */}
+            {/* bên phải：Hình ảnh tham khảo\u9884\u89c8 */}
             <div className="w-[240px] shrink-0 border-l pl-3">
-              <Label className="text-xs text-muted-foreground mb-2 block">参考图预览</Label>
+              <Label className="text-xs text-muted-foreground mb-2 block">Hình ảnh tham khảo\u9884\u89c8</Label>
               {previewRefImage ? (
                 <div className="w-full rounded-lg bg-muted flex items-center justify-center min-h-[120px] max-h-[240px] overflow-hidden">
-                  <ResolvedImg src={previewRefImage} alt="参考图" className="max-w-full max-h-[240px] rounded-lg object-contain" />
+                  <ResolvedImg src={previewRefImage} alt="Hình ảnh tham khảo" className="max-w-full max-h-[240px] rounded-lg object-contain" />
                 </div>
               ) : (
                 <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center">
-                  <span className="text-sm text-muted-foreground">请选择场景</span>
+                  <span className="text-sm text-muted-foreground">\u8bf7\u9009\u62e9\u573a\u666f</span>
                 </div>
               )}
-              {/* 选中路径显示 */}
+              {/* đã chọn\u8def\u5f84\u663e\u793a */}
               {hasSelection && (
                 <div className="mt-2 text-xs text-muted-foreground">
                   <span className="text-foreground">{selectedScene?.name}</span>

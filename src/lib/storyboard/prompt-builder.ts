@@ -39,7 +39,7 @@ export function buildStoryboardPrompt(config: StoryboardPromptConfig): string {
   // Build prompt parts (same structure as Merged Generation)
   const promptParts: string[] = [];
   
-  // 1. Core instruction block (核心指令区)
+  // 1. Khối lệnh lõi (vùng lệnh lõi)
   promptParts.push('<instruction>');
   promptParts.push(`Generate a clean ${rows}x${cols} storyboard grid with exactly ${totalCells} equal-sized panels.`);
   promptParts.push(`Overall Image Aspect Ratio: ${aspectRatio}.`);
@@ -107,7 +107,7 @@ export function buildRegenerationPrompt(config: StoryboardPromptConfig): string 
 
 /**
  * Extract style tokens from style preset ID
- * 统一使用 visual-styles 风格库，兼容旧 ID
+ * Sử dụng thống nhất các phong cách trực quan Phong cáthư viện ch，Tương thích với ID cũ
  */
 export function getStyleTokensFromPreset(styleId: string): string[] {
   return getStyleTokensFromVisualStyles(styleId);

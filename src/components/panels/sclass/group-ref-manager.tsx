@@ -4,15 +4,15 @@
 "use client";
 
 /**
- * GroupRefManager — S级组级 @引用管理器
+ * GroupRefManager — lớp Scấp độ nhóm @\u5f15sử dụng\u7ba1\u7406\u5668
  *
- * 功能：
- * - 自动收集：角色参考图、场景参考图、首帧图片 → 只读展示
- * - 手动上传：视频引用（运镜/动作复刻）、音频引用（节奏/BGM）
- * - 配额条：≤9 图片 + ≤3 视频 + ≤3 音频，总 ≤12
- * - 删除已上传的视频/音频引用
+ * chức năng：
+ * - \u81ea\u52a8\u6536đặt：Nhân vậsự phản bội\u56fe、Cảnh tham khảo\u56fe、khung hình đầu tiênHình ảnh → \u53ea\u8bfbhiển thị
+ * - tay\u52a8Tải lên：Trích dẫn video（\u8fd0\u955c/Hành độbản sao）、Âm thanh quote（\u8282\u594f/BGM）
+ * - \u914d\u989d\u6761：≤9 Hình ảnh + ≤3 Video + ≤3 Âm thanh，\u603b ≤12
+ * - XoáĐã Tải lêncủaVideo/Âm thanh quote
  *
- * Seedance 2.0 限制:
+ * Hạn chế của Seedance 2.0:
  * - images: ≤9, videos: ≤3 (≤15s each), audios: ≤3 (MP3, ≤15s), total: ≤12
  */
 
@@ -56,13 +56,13 @@ export interface GroupRefManagerProps {
   scenes: SplitScene[];
   characters: Character[];
   sceneLibrary: Scene[];
-  /** 是否只读 */
+  /** \u662f\u5426\u53ea\u8bfb */
   readOnly?: boolean;
 }
 
 // ==================== Sub-components ====================
 
-/** 缩略图：支持 base64/http/local-image:// */
+/** \u7f29\u7565\u56fe：Hỗ trợ base64/http/local-image:// */
 function RefThumbnail({
   src,
   alt,
@@ -103,7 +103,7 @@ function RefThumbnail({
   );
 }
 
-/** 配额进度条 */
+/** \u914d\u989dTiến độ\u6761 */
 function QuotaBar({
   label,
   icon,
@@ -149,7 +149,7 @@ export function GroupRefManager({
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState<"video" | "audio" | null>(null);
 
-  // ========== 自动收集的图片引用 ==========
+  // ========== \u81ea\u52a8\u6536đặtHình ảnh tham khảo ==========
   const autoImages = useMemo(() => {
     const allCharIds = Array.from(
       new Set(scenes.flatMap((s) => s.characterIds || []))
@@ -172,7 +172,7 @@ export function GroupRefManager({
   const audioRefs = group.audioRefs || [];
   const totalFiles = imageCount + videoRefs.length + audioRefs.length;
 
-  // ========== 文件上传处理 ==========
+  // ========== TệpTải lên\u5904\u7406 ==========
   const handleFileUpload = useCallback(
     async (files: FileList | null, type: "video" | "audio") => {
       if (!files || files.length === 0) return;
@@ -184,38 +184,38 @@ export function GroupRefManager({
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        // 配额检查（单类型）
+        // \u914d\u989d\u68c0\u67e5（\u5355Loại）
         if (limits.current + i >= limits.max) {
-          toast.error(`${type === "video" ? "视频" : "音频"}引用已达上限 ${limits.max} 个`);
+          toast.error(`${type === "video" ? "Video" : "Âm thanh"}\u5f15sử dụngĐã rồi\u8fbe\u4e0a\u9650 ${limits.max} một`);
           break;
         }
 
-        // 配额检查（总文件数）
+        // \u914d\u989d\u68c0\u67e5（Tổng Tệp\u6570）
         if (totalFiles + i >= SEEDANCE_LIMITS.maxTotalFiles) {
-          toast.error(`总文件数已达上限 ${SEEDANCE_LIMITS.maxTotalFiles}`);
+          toast.error(`Tổng Tệp\u6570Đã rồi\u8fbe\u4e0a\u9650 ${SEEDANCE_LIMITS.maxTotalFiles}`);
           break;
         }
 
-        // 文件类型检查
+        // TệpLoại\u68c0\u67e5
         if (!limits.accept.some((t) => file.type.startsWith(t.split("/")[0]))) {
-          toast.error(`不支持的文件类型: ${file.name}`);
+          toast.error(`\u4e0dHỗ trợTệpLoại: ${file.name}`);
           continue;
         }
 
-        // 读取为 data URL
+        // \u8bfb\u53d6cho data URL
         const dataUrl = await readFileAsDataUrl(file);
 
-        // 检查时长（视频/音频都需 ≤15s）
+        // \u68c0\u67e5Thời lượng（Video/Âm thanh\u90fd\u9700 ≤15s）
         const duration = await getMediaDuration(dataUrl, type);
         if (duration > SEEDANCE_LIMITS.maxDuration) {
-          toast.error(`${file.name} 时长 ${Math.round(duration)}s 超出 ${SEEDANCE_LIMITS.maxDuration}s 限制`);
+          toast.error(`${file.name} Thời lượng ${Math.round(duration)}s \u8d85\u51fa ${SEEDANCE_LIMITS.maxDuration}s \u9650\u5236`);
           continue;
         }
 
         const asset: AssetRef = {
           id: `${type}_upload_${Date.now()}_${i}`,
           type,
-          tag: type === "video" ? `@视频${videoRefs.length + i + 1}` : `@音频${audioRefs.length + i + 1}`,
+          tag: type === "video" ? `@Video${videoRefs.length + i + 1}` : `@Âm thanh${audioRefs.length + i + 1}`,
           localUrl: dataUrl,
           httpUrl: null,
           fileName: file.name,
@@ -225,22 +225,22 @@ export function GroupRefManager({
         };
 
         addAssetRef(group.id, asset);
-        toast.success(`已添加 ${type === "video" ? "视频" : "音频"}引用: ${file.name}`);
+        toast.success(`Đã Thêm ${type === "video" ? "Video" : "Âm thanh"}\u5f15sử dụng: ${file.name}`);
       }
     },
     [group.id, videoRefs.length, audioRefs.length, addAssetRef]
   );
 
-  // 删除引用
+  // Xoá\u5f15sử dụng
   const handleRemoveRef = useCallback(
     (assetId: string, fileName: string) => {
       removeAssetRef(group.id, assetId);
-      toast.info(`已移除: ${fileName}`);
+      toast.info(`Đã rồiXóa: ${fileName}`);
     },
     [group.id, removeAssetRef]
   );
 
-  // 拖放处理
+  // \u62d6\u653e\u5904\u7406
   const handleDrop = useCallback(
     (e: React.DragEvent, type: "video" | "audio") => {
       e.preventDefault();
@@ -260,25 +260,25 @@ export function GroupRefManager({
 
   return (
     <div className="px-3 py-2 border-t bg-muted/5 space-y-2">
-      {/* ========== 配额总览 ========== */}
+      {/* ========== \u914d\u989d\u603b\u89c8 ========== */}
       <div className="flex items-center gap-4 flex-wrap">
-        <span className="text-xs font-medium text-muted-foreground">@引用素材</span>
+        <span className="text-xs font-medium text-muted-foreground">@\u5f15Sử dụng Chất liệu</span>
         <QuotaBar
-          label="图片"
+          label="Hình ảnh"
           icon={<ImageIcon className="h-3 w-3 text-blue-500" />}
           current={imageCount}
           max={SEEDANCE_LIMITS.maxImages}
           color="bg-blue-500"
         />
         <QuotaBar
-          label="视频"
+          label="Video"
           icon={<Film className="h-3 w-3 text-purple-500" />}
           current={videoRefs.length}
           max={SEEDANCE_LIMITS.maxVideos}
           color="bg-purple-500"
         />
         <QuotaBar
-          label="音频"
+          label="Âm thanh"
           icon={<Music className="h-3 w-3 text-green-500" />}
           current={audioRefs.length}
           max={SEEDANCE_LIMITS.maxAudios}
@@ -290,11 +290,11 @@ export function GroupRefManager({
             ? "bg-red-500/10 text-red-500 font-medium"
             : "bg-muted text-muted-foreground"
         )}>
-          总 {totalFiles}/{SEEDANCE_LIMITS.maxTotalFiles}
+          \u603b {totalFiles}/{SEEDANCE_LIMITS.maxTotalFiles}
         </div>
       </div>
 
-      {/* ========== 自动收集的图片引用（折叠展示） ========== */}
+      {/* ========== \u81ea\u52a8\u6536đặtHình ảnh tham khảo（\u6298\u53e0hiển thị） ========== */}
       <AutoImageSection
         charRefs={autoImages.charRefs}
         sceneRefs={autoImages.sceneRefs}
@@ -302,14 +302,14 @@ export function GroupRefManager({
         truncated={autoImages.truncated}
       />
 
-      {/* ========== 视频引用上传区 ========== */}
+      {/* ========== Trích dẫn videoTải lênQuận ========== */}
       <div className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Film className="h-3 w-3 text-purple-500" />
-          <span>视频引用 — 运镜/动作复刻</span>
+          <span>Trích dẫn video — \u8fd0\u955c/Hành độbản sao</span>
         </div>
 
-        {/* 已上传的视频 */}
+        {/* Đã Tải lêncủaVideo */}
         {videoRefs.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {videoRefs.map((ref) => (
@@ -322,7 +322,7 @@ export function GroupRefManager({
           </div>
         )}
 
-        {/* 上传区 */}
+        {/* Tải lênQuận */}
         {!readOnly && videoRefs.length < SEEDANCE_LIMITS.maxVideos && (
           <UploadZone
             type="video"
@@ -346,14 +346,14 @@ export function GroupRefManager({
         />
       </div>
 
-      {/* ========== 音频引用上传区 ========== */}
+      {/* ========== Âm thanh quoteTải lênQuận ========== */}
       <div className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Music className="h-3 w-3 text-green-500" />
-          <span>音频引用 — 节奏/BGM</span>
+          <span>Âm thanh quote — \u8282\u594f/BGM</span>
         </div>
 
-        {/* 已上传的音频 */}
+        {/* Đã Tải lêncủaÂm thanh */}
         {audioRefs.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {audioRefs.map((ref) => (
@@ -366,7 +366,7 @@ export function GroupRefManager({
           </div>
         )}
 
-        {/* 上传区 */}
+        {/* Tải lênQuận */}
         {!readOnly && audioRefs.length < SEEDANCE_LIMITS.maxAudios && (
           <UploadZone
             type="audio"
@@ -390,11 +390,11 @@ export function GroupRefManager({
         />
       </div>
 
-      {/* ========== 超限警告 ========== */}
+      {/* ========== \u8d85\u9650Cảnh báo ========== */}
       {totalFiles > SEEDANCE_LIMITS.maxTotalFiles && (
         <div className="flex items-start gap-1.5 text-xs text-red-500 bg-red-500/5 rounded p-1.5">
           <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
-          <span>总文件数 {totalFiles} 超出 Seedance 2.0 限制 ({SEEDANCE_LIMITS.maxTotalFiles})，请移除部分引用</span>
+          <span>Tổng Tệp\u6570 {totalFiles} \u8d85\u51fa Hạn chế của Seedance 2.0 ({SEEDANCE_LIMITS.maxTotalFiles})，\u8bf7Xóamột phần\u5f15sử dụng</span>
         </div>
       )}
     </div>
@@ -420,7 +420,7 @@ function AutoImageSection({
   if (totalCount === 0) {
     return (
       <div className="text-xs text-muted-foreground/60 py-1">
-        暂无自动收集的图片引用（请先生成首帧图片、关联角色或场景）
+        \u6682không có\u81ea\u52a8\u6536đặtHình ảnh tham khảo（\u8bf7đầu tiênTạokhung hình đầu tiênHình ảnh、\u5173\u8054Nhân vậthoặcCảnh）
       </div>
     );
   }
@@ -433,34 +433,34 @@ function AutoImageSection({
       >
         <ImageIcon className="h-3 w-3 text-blue-500" />
         <span>
-          自动收集 {totalCount} 张图片
-          {truncated && <span className="text-amber-500 ml-1">(超出限制已截断至 {SEEDANCE_LIMITS.maxImages})</span>}
+          \u81ea\u52a8\u6536đặt {totalCount} \u5f20Hình ảnh
+          {truncated && <span className="text-amber-500 ml-1">(\u8d85\u51fa\u9650\u5236Đã rồi\u622a\u65ad\u81f3 {SEEDANCE_LIMITS.maxImages})</span>}
         </span>
         <span className="text-[10px]">{expanded ? "▼" : "▶"}</span>
       </button>
 
       {expanded && (
         <div className="space-y-1.5 pl-1">
-          {/* 首帧图 */}
+          {/* khung hình đầu tiêđồ thị n */}
           {frameRefs.length > 0 && (
             <RefGroup
-              label="首帧"
+              label="khung hình đầu tiên"
               icon={<Clapperboard className="h-3 w-3 text-blue-400" />}
               refs={frameRefs}
             />
           )}
-          {/* 角色图 */}
+          {/* Nhân vật\u56fe */}
           {charRefs.length > 0 && (
             <RefGroup
-              label="角色"
+              label="Nhân vật"
               icon={<User className="h-3 w-3 text-amber-400" />}
               refs={charRefs}
             />
           )}
-          {/* 场景图 */}
+          {/* Cảnh\u56fe */}
           {sceneRefs.length > 0 && (
             <RefGroup
-              label="场景"
+              label="Cảnh"
               icon={<MapPin className="h-3 w-3 text-teal-400" />}
               refs={sceneRefs}
             />
@@ -471,7 +471,7 @@ function AutoImageSection({
   );
 }
 
-/** 引用分组展示 */
+/** \u5f15sử dụng\u5206\u7ec4hiển thị */
 function RefGroup({
   label,
   icon,
@@ -541,8 +541,8 @@ function UploadZone({
       <Plus className={cn("h-3 w-3", isVideo ? "text-purple-400" : "text-green-400")} />
       <span className="text-xs text-muted-foreground">
         {isVideo
-          ? "拖放或点击上传视频 (MP4/WebM, ≤15s)"
-          : "拖放或点击上传音频 (MP3/WAV, ≤15s)"}
+          ? "\u62d6\u653ehoặc\u70b9\u51fbTải lênVideo (MP4/WebM, ≤15s)"
+          : "\u62d6\u653ehoặc\u70b9\u51fbTải lênÂm thanh (MP3/WAV, ≤15s)"}
       </span>
     </div>
   );
@@ -550,7 +550,7 @@ function UploadZone({
 
 // ==================== RefChip ====================
 
-/** 已上传的引用标签 */
+/** Đã Tải lêncủa\u5f15sử dụngnhãn */
 function RefChip({
   ref_,
   onRemove,

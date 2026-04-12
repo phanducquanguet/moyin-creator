@@ -2,81 +2,81 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Model Capability Registry — AI 调度中心核心组件 1
+ * Model Capability Registry — AI \u8c03\u5ea6trong\u5fc3cốt lõi\u7ec4\u4ef6 1
  *
- * 职责：根据模型名称查询 contextWindow 和 maxOutput 限制。
- * 三层查找（优先级递减）：
- *   1. 持久化缓存（从 API 错误中自动学到的真实限制）
- *   2. 静态注册表（官方文档验证过的已知模型）
- *   3. _default 保守默认值
+ * \u804c\u8d23：\u6839\u636eMô hìnhTênTruy vấn contextWindow và maxOutput \u9650\u5236。
+ * Tìm kiếm ba cấp độ（ưu tiên\u9012\u51cf）：
+ *   1. \u6301\u4e45\u5316bộ nhớ đệm（từ API Lỗitrong\u81ea\u52a8\u5b66Đếncủa\u771f\u5b9e\u9650\u5236）
+ *   2. tĩnhĐăng ký\u8868（\u5b98\u65b9\u6587\u6863\u9a8c\u8bc1\u8fc7củaĐã rồi\u77e5Mô hình）
+ *   3. _default \u4fdd\u5b88Mặc địgiá trị nh
  *
- * 设计原则：
- *   - 按模型名查表，不按 URL — memefast 代理的模型和直连一样
- *   - prefix 匹配按长度降序 — 避免短前缀误匹配更具体的模型
- *   - 仅覆盖 text/chat 模型 — 图像/视频/音频不走 callChatAPI
- *   - 保守默认值 — 未知模型宁可多分批也不撞限制
+ * \u8bbe\u8ba1\u539f\u5219：
+ *   - \u6309Mô hình tên\u67e5\u8868，\u4e0d\u6309 URL — memefast \u4ee3\u7406củaMô hìnhvà\u76f4\u8fdemột\u6837
+ *   - prefix trận đấu\u6309chiều dài\u964d\u5e8f — \u907f\u514d\u77ed\u524d\u7f00\u8beftrận đấu\u66f4\u5177\u4f53củaMô hình
+ *   - \u4ec5\u8986\u76d6 text/chat Mô hình — \u56fe\u50cf/Video/Âm thanh\u4e0dđi callChatAPI
+ *   - \u4fdd\u5b88Mặc địgiá trị nh — Không rõMô hình\u5b81\u53ef\u591a\u5206lô\u4e5f\u4e0d\u649e\u9650\u5236
  */
 
 // ==================== Types ====================
 
 export interface ModelLimits {
-  /** 模型最大输入上下文窗口（tokens） */
+  /** Mô hìnhmaxĐầu vào\u4e0a\u4e0b\u6587cửa sổ\u53e3（tokens） */
   contextWindow: number;
-  /** 模型最大输出 token 数（max_tokens 参数上限） */
+  /** Mô hìnhmaxĐầbạn ra số token（max_tokens Tham số\u4e0a\u9650） */
   maxOutput: number;
 }
 
-/** 从 API 400 错误中发现的模型限制（持久化到 localStorage） */
+/** từ API 400 Lỗitrongkhám phácủaMô hình hạn chế（Kiên trì với localStorage） */
 export interface DiscoveredModelLimits {
   maxOutput?: number;
   contextWindow?: number;
-  /** 发现时间戳 */
+  /** khám phá thời gian\u6233 */
   discoveredAt: number;
 }
 
 // ==================== Static Registry ====================
 
 /**
- * 静态注册表 — 仅含官方文档验证过的数据
+ * tĩnhĐăng ký\u8868 — \u4ec5\u542b\u5b98\u65b9\u6587\u6863\u9a8c\u8bc1\u8fc7của\u6570\u636e
  *
- * 数据来源：
+ * \u6570\u636eNguồn：
  *   - DeepSeek: https://api-docs.deepseek.com/quick_start/pricing (V3.2 = 128K context)
- *   - GLM: https://bigmodel.cn/pricing + 多方验证 (4.7 = 200K ctx / 128K output)
+ *   - GLM: https://bigmodel.cn/pricing + \u591a\u65b9\u9a8c\u8bc1 (4.7 = 200K ctx / 128K output)
  *   - Gemini: https://ai.google.dev/gemini-api/docs/models + OCI docs (2.5 = 1M ctx / 65K output)
- *   - 其他: 保守值，标注"保守"
+ *   - \u5176\u4ed6: \u4fdd\u5b88\u503c，\u6807Lưu ý"\u4fdd\u5b88"
  *
- * ⚠️ memefast 上的同名模型使用相同限制。新增模型应查阅官方文档后添加，不可靠猜测。
+ * ⚠️ memefast \u4e0acủa\u540ctênMô hình sử dụng\u76f8\u540c\u9650\u5236。MớiMô hình\u5e94\u67e5\u9605\u5b98\u65b9\u6587\u6863\u540eThêm，\u4e0d\u53ef\u9760\u731c\u6d4b。
  */
 const STATIC_REGISTRY: Record<string, ModelLimits> = {
-  // ==================== DeepSeek 系列 ====================
+  // ==================== DeepSeek \u7cfbCột ====================
   // DeepSeek-V3.2: 128K context limit
-  // memefast 模型名: deepseek-v3, deepseek-v3.2, deepseek-r1
+  // memefast Mô hìtên nh: deepseek-v3, deepseek-v3.2, deepseek-r1
   'deepseek-v3':            { contextWindow: 128000,   maxOutput: 8192   },
   'deepseek-v3.2':          { contextWindow: 128000,   maxOutput: 8192   },
   'deepseek-chat':          { contextWindow: 128000,   maxOutput: 8192   },
   'deepseek-r1':            { contextWindow: 128000,   maxOutput: 16384  },
   'deepseek-reasoner':      { contextWindow: 128000,   maxOutput: 16384  },
 
-  // ==================== 智谱 GLM 系列 ====================
+  // ==================== \u667a\u8c31 GLM \u7cfbCột ====================
   'glm-4.7':                { contextWindow: 200000,   maxOutput: 128000 },
-  'glm-4.6v':               { contextWindow: 128000,   maxOutput: 8192   }, // 保守
-  'glm-4.5-flash':          { contextWindow: 128000,   maxOutput: 8192   }, // 保守
+  'glm-4.6v':               { contextWindow: 128000,   maxOutput: 8192   }, // \u4fdd\u5b88
+  'glm-4.5-flash':          { contextWindow: 128000,   maxOutput: 8192   }, // \u4fdd\u5b88
 
-  // ==================== Google Gemini 系列 ====================
+  // ==================== Google Gemini \u7cfbCột ====================
   'gemini-2.5-flash':       { contextWindow: 1048576,  maxOutput: 65536  },
   'gemini-2.5-pro':         { contextWindow: 1048576,  maxOutput: 65536  },
-  'gemini-3-flash-preview': { contextWindow: 1048576,  maxOutput: 65536  }, // 沿用 2.5 规格
+  'gemini-3-flash-preview': { contextWindow: 1048576,  maxOutput: 65536  }, // \u6cbfsử dụng 2.5 \u89c4\u683c
   'gemini-3-pro-preview':   { contextWindow: 1048576,  maxOutput: 65536  },
   'gemini-2.0-flash':       { contextWindow: 1048576,  maxOutput: 8192   },
 
-  // ==================== 其他模型（保守值） ====================
+  // ==================== \u5176\u4ed6Mô hình（\u4fdd\u5b88\u503c） ====================
   'kimi-k2':                { contextWindow: 128000,   maxOutput: 8192   },
   'qwen3-max':              { contextWindow: 128000,   maxOutput: 8192   },
   'qwen3-max-preview':      { contextWindow: 128000,   maxOutput: 8192   },
   'minimax-m2.1':           { contextWindow: 128000,   maxOutput: 8192   },
 
-  // ==================== 通用 prefix 规则 ====================
-  // 注意：prefix 匹配按长度降序执行，长 key 优先
+  // ==================== phổ quát prefix quy tắc ====================
+  // Lưu ý：prefix trận đấu\u6309chiều dài\u964d\u5e8f\u6267được rồi，\u957f key Ưu tiên
   'deepseek-':              { contextWindow: 128000,   maxOutput: 8192   },
   'gemini-':                { contextWindow: 1048576,  maxOutput: 65536  },
   'glm-':                   { contextWindow: 128000,   maxOutput: 8192   },
@@ -84,7 +84,7 @@ const STATIC_REGISTRY: Record<string, ModelLimits> = {
   'gpt-':                   { contextWindow: 128000,   maxOutput: 16384  },
   'doubao-':                { contextWindow: 32000,    maxOutput: 4096   },
 
-  // ==================== 默认值 ====================
+  // ==================== Mặc địgiá trị nh ====================
   '_default':               { contextWindow: 32000,    maxOutput: 4096   },
 };
 
@@ -101,8 +101,8 @@ let _getDiscoveredLimits: ((model: string) => DiscoveredModelLimits | undefined)
 let _setDiscoveredLimits: ((model: string, limits: Partial<DiscoveredModelLimits>) => void) | null = null;
 
 /**
- * 注入持久化缓存的读写函数（由 api-config-store 在初始化时调用）
- * 这种模式避免了 model-registry ↔ api-config-store 的循环依赖
+ * Lưu ý\u5165\u6301\u4e45\u5316bộ nhớ đệmcủa\u8bfb\u5199chức năng（\u7531 api-config-store \u5728\u521d\u59cb\u5316\u65f6\u8c03sử dụng）
+ * \u8fd9\u79cdchế độ\u907f\u514d\u4e86 model-registry ↔ api-config-store củaLặp lại\u4f9d\u8d56
  */
 export function injectDiscoveryCache(
   getter: (model: string) => DiscoveredModelLimits | undefined,
@@ -115,17 +115,17 @@ export function injectDiscoveryCache(
 // ==================== Core Lookup ====================
 
 /**
- * 查询模型的 contextWindow 和 maxOutput 限制
+ * Truy vấnMô hình contextWindow và maxOutput \u9650\u5236
  *
- * 三层查找：
- *   1. 持久化缓存（Error-driven Discovery 学到的真实限制）
- *   2. 静态注册表（精确匹配 → prefix 匹配，prefix 按长度降序）
+ * Tìm kiếm ba cấp độ：
+ *   1. \u6301\u4e45\u5316bộ nhớ đệm（Error-driven Discovery \u5b66Đếncủa\u771f\u5b9e\u9650\u5236）
+ *   2. tĩnhĐăng ký\u8868（\u7cbe\u786etrận đấu → prefix trận đấu，prefix \u6309chiều dài\u964d\u5e8f）
  *   3. _default
  */
 export function getModelLimits(modelName: string): ModelLimits {
   const m = modelName.toLowerCase();
 
-  // Layer 1: 持久化缓存（最准确，从 API 错误中学到的真实值）
+  // Layer 1: \u6301\u4e45\u5316bộ nhớ đệm（\u6700\u51c6\u786e，từ API Lỗitrong\u5b66Đếncủa\u771f\u5b9e\u503c）
   if (_getDiscoveredLimits) {
     const discovered = _getDiscoveredLimits(m);
     if (discovered) {
@@ -137,49 +137,49 @@ export function getModelLimits(modelName: string): ModelLimits {
     }
   }
 
-  // Layer 2 + 3: 静态注册表 → _default
+  // Layer 2 + 3: tĩnhĐăng ký\u8868 → _default
   return lookupStatic(m);
 }
 
 /**
- * 仅从静态注册表查找（不查缓存）
+ * \u4ec5từtĩnhĐăng ký\u8868\u67e5\u627e（\u4e0d\u67e5bộ nhớ đệm）
  */
 function lookupStatic(modelNameLower: string): ModelLimits {
-  // 精确匹配
+  // \u7cbe\u786etrận đấu
   if (STATIC_REGISTRY[modelNameLower]) {
     return STATIC_REGISTRY[modelNameLower];
   }
 
-  // prefix 匹配（长度降序保证最具体的先命中）
+  // prefix trận đấu（chiều dài\u964d\u5e8f\u4fdd\u8bc1\u6700\u5177\u4f53củađầu tiên\u547dtrong）
   for (const key of SORTED_KEYS) {
     if (modelNameLower.startsWith(key)) {
       return STATIC_REGISTRY[key];
     }
   }
 
-  // 兜底
+  // Hãy ghi nhớ mọi thứ
   return STATIC_REGISTRY['_default'];
 }
 
 // ==================== Error-driven Discovery ====================
 
 /**
- * 从 API 400 错误消息中解析模型限制
+ * từ API 400 LỗiTin nhắntrongphân tích cú phápMô hình hạn chế
  *
- * 覆盖主流 API 的错误格式：
+ * \u8986\u76d6Chúa ơi\u6d41 API củaLỗiĐịnh dạng：
  *   - DeepSeek: "Invalid max_tokens value, the valid range of max_tokens is [1, 8192]"
  *   - OpenAI:   "maximum context length is 128000 tokens ... you requested 150000 tokens"
- *   - 智谱:     "max_tokens must be less than or equal to 8192"
- *   - 通用:     "max_tokens ... 8192" 等各种变体
+ *   - \u667a\u8c31:     "max_tokens must be less than or equal to 8192"
+ *   - phổ quát:     "max_tokens ... 8192" Đợi đã\u5404\u79cdthay đổi\u4f53
  *
- * @returns 解析出的限制（可能只有 maxOutput 或 contextWindow 或两者都有），
- *          如果正则未匹配到任何数值则返回 null（优雅降级，不会死循环）
+ * @returns phân tích rcủa một\u9650\u5236（\u53ef\u80fdChỉ Có maxOutput hoặc contextWindow hoặc\u4e24\u8005\u90fdCó），
+ *          Chẳng hạn như\u679c\u6b63\u5219\u672atrận đấuĐến\u4efb\u4f55\u6570\u503c\u5219Quay lại null（\u4f18\u96c5Hạ cấp，\u4e0d\u4f1a\u6b7bLặp lại）
  */
 export function parseModelLimitsFromError(errorText: string): Partial<DiscoveredModelLimits> | null {
   const result: Partial<DiscoveredModelLimits> = {};
   let found = false;
 
-  // --- 解析 max_tokens / maxOutput ---
+  // --- phân tích cú pháp max_tokens / maxOutput ---
   // Pattern 1: "valid range of max_tokens is [1, 8192]"
   const rangeMatch = errorText.match(/valid\s+range.*?\[\s*\d+\s*,\s*(\d+)\s*\]/i);
   if (rangeMatch) {
@@ -189,14 +189,14 @@ export function parseModelLimitsFromError(errorText: string): Partial<Discovered
 
   // Pattern 2: "max_tokens must be less than or equal to 8192" / "max_tokens ... <= 8192"
   if (!found) {
-    const lteMatch = errorText.match(/max_tokens.*?(?:less than or equal to|<=|不超过|上限为?)\s*(\d{3,6})/i);
+    const lteMatch = errorText.match(/max_tokens.*?(?:less than or equal to|<=|\u4e0d\u8d85\u8fc7|\u4e0a\u9650cho?)\s*(\d{3,6})/i);
     if (lteMatch) {
       result.maxOutput = parseInt(lteMatch[1], 10);
       found = true;
     }
   }
 
-  // Pattern 3: Generic fallback — "max_tokens" 附近的数字
+  // Pattern 3: Generic fallback — "max_tokens" \u9644\u8fd1củacon số
   if (!found) {
     const genericMatch = errorText.match(/max_tokens.*?\b(\d{3,6})\b/i);
     if (genericMatch) {
@@ -205,7 +205,7 @@ export function parseModelLimitsFromError(errorText: string): Partial<Discovered
     }
   }
 
-  // --- 解析 context window ---
+  // --- phân tích cú pháp context window ---
   // Pattern: "context length is 128000" / "maximum context length is 128000 tokens"
   const ctxMatch = errorText.match(/context.*?length.*?(\d{4,7})/i);
   if (ctxMatch) {
@@ -213,7 +213,7 @@ export function parseModelLimitsFromError(errorText: string): Partial<Discovered
     found = true;
   }
 
-  // Pattern: "maximum ... 128000 tokens" (OpenAI 风格)
+  // Pattern: "maximum ... 128000 tokens" (OpenAI Phong cách)
   if (!result.contextWindow) {
     const maxTokensCtx = errorText.match(/maximum.*?(\d{4,7})\s*tokens/i);
     if (maxTokensCtx) {
@@ -229,8 +229,8 @@ export function parseModelLimitsFromError(errorText: string): Partial<Discovered
 }
 
 /**
- * 将发现的限制写入持久化缓存
- * @returns true 如果成功写入，false 如果缓存未注入
+ * \u5c06khám phácủa\u9650\u5236\u5199\u5165\u6301\u4e45\u5316bộ nhớ đệm
+ * @returns true nếu Thành công\u5199\u5165，false Chẳng hạn như\u679cbộ nhớ đệm\u672aLưu ý\u5165
  */
 export function cacheDiscoveredLimits(
   modelName: string,
@@ -239,7 +239,7 @@ export function cacheDiscoveredLimits(
   if (!_setDiscoveredLimits) return false;
   _setDiscoveredLimits(modelName.toLowerCase(), limits);
   console.log(
-    `[ModelRegistry] 🧠 已学习 ${modelName} 的限制:`,
+    `[ModelRegistry] 🧠 Đã rồi\u5b66\u4e60 ${modelName} của\u9650\u5236:`,
     limits.maxOutput != null ? `maxOutput=${limits.maxOutput}` : '',
     limits.contextWindow != null ? `contextWindow=${limits.contextWindow}` : '',
   );
@@ -249,46 +249,46 @@ export function cacheDiscoveredLimits(
 // ==================== Utility ====================
 
 /**
- * Token 估算（保守算法）
+ * Token \u4f30\u7b97（\u4fdd\u5b88\u7b97\u6cd5）
  *
- * 使用 字符数/1.5 作为保守上限：
- *   - 中文: 1 token ≈ 0.6~1.0 汉字，/1.5 相当于放大估算（偏安全）
- *   - 英文/标点/JSON: 1 token ≈ 3~4 字符，/1.5 也偏安全
- *   - 宁可高估 token 数（多分批），也不低估（撞限制）
- *   - 不引入 tiktoken 等重型库，避免前端 WASM 兼容性和体积问题
+ * sử dụng từ\u7b26\u6570/1.5 \u4f5ccho\u4fdd\u5b88\u4e0a\u9650：
+ *   - Tiếng Trung: 1 token ≈ 0.6~1.0 \u6c49từ，/1.5 \u76f8\u5f53\u4e8e\u653e\u5927\u4f30\u7b97（\u504f\u5b89\u5168）
+ *   - Tiếng Anh/\u6807\u70b9/JSON: 1 token ≈ 3~4 từ\u7b26，/1.5 \u4e5f\u504f\u5b89\u5168
+ *   - \u5b81\u53ef\u9ad8\u4f30 token \u6570（\u591a\u5206lô），\u4e5f\u4e0d\u4f4e\u4f30（\u649e\u9650\u5236）
+ *   - \u4e0dgiới thiệu tiktoken Đợi đã\u91cd\u578b\u5e93，\u907f\u514dgiao diện người dùng WASM \u517c\u5bb9\u6027và\u4f53\u79ef\u95ee\u9898
  */
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 1.5);
 }
 
 /**
- * 智能截断文本，不在句子或段落中间切断
- * 避免截断导致 JSON 结构损坏或 AI 理解混乱
+ * \u667a\u80fd\u622a\u65ad\u6587\u672c，\u4e0d\u5728\u53e5\u5b50hoặc\u6bb5\u843dtrong\u95f4\u5207\u65ad
+ * \u907f\u514d\u622a\u65ad\u5bfc\u81f4 JSON \u7ed3\u6784\u635f\u574fhoặc AI \u7406\u89e3\u6df7\u4e71
  *
- * @param text 原始文本
- * @param maxLength 最大字符数
- * @param hint 截断时追加的提示后缀（帮助 AI 理解信息不完整，减少幻觉）
+ * @param text nguyên bảvăn bản
+ * @param maxLength \u6700\u5927từ\u7b26\u6570
+ * @param hint \u622a\u65ad\u65f6\u8ffd\u52a0củaGợi ý\u540e\u7f00（Trợ giúp AI \u7406\u89e3thông tin\u4e0d\u5b8c\u6574，\u51cf\u5c11\u5e7b\u89c9）
  */
 export function safeTruncate(
   text: string,
   maxLength: number,
-  hint: string = '...[后续内容已截断]',
+  hint: string = '...[\u540e\u7eedbên trong\u5bb9Đã rồi\u622a\u65ad]',
 ): string {
   if (text.length <= maxLength) return text;
 
-  // 为 hint 预留空间
+  // cho hint \u9884Để trống\u95f4
   const budget = maxLength - hint.length;
   if (budget <= 0) return text.slice(0, maxLength);
 
   const sliced = text.slice(0, budget);
 
-  // 优先在换行处截断（保留完整段落）
+  // Ưu tiên\u5728dòng mới\u5904\u622a\u65ad（\u4fdd\u7559\u5b8c\u6574\u6bb5\u843d）
   const lastNewline = sliced.lastIndexOf('\n');
   if (lastNewline > budget * 0.8) {
     return sliced.slice(0, lastNewline) + hint;
   }
 
-  // 其次在中文/英文句末截断（保留完整句子）
+  // \u5176lần\u5728Tiếng Trung/Tiếng Anh\u53e5\u672b\u622a\u65ad（\u4fdd\u7559\u5b8c\u6574\u53e5\u5b50）
   const lastSentenceEnd = Math.max(
     sliced.lastIndexOf('。'),
     sliced.lastIndexOf('！'),

@@ -38,12 +38,12 @@ const getRootBaseUrl = (baseUrl: string): string => {
 };
 
 /**
- * 图片端点路径映射（端点类型 → 提交/轮询 URL 路径）
- * 仅用于需要自定义路径的端点类型，其余走默认 /v1/images/generations
+ * Hình ảnh\u7aef\u70b9Đường dẫnmap（\u7aef\u70b9Loại → \u63d0\u4ea4/\u8f6e\u8be2 URL Đường dẫn）
+ * \u4ec5sử dụng\u4e8e\u9700\u8981Tuỳ chỉnhĐường dẫncủa\u7aef\u70b9Loại，Phần còn lạiđiMặc định /v1/images/generations
  */
 const IMAGE_ENDPOINT_PATHS: Record<string, { submit: string; poll: (id: string) => string }> = {
   'aigc-image': { submit: '/tencent-vod/v1/aigc-image', poll: (id) => `/tencent-vod/v1/aigc-image/${id}` },
-  'vidu生图':   { submit: '/ent/v2/reference2image',    poll: (id) => `/ent/v2/task?task_id=${id}` },
+  'vidu\u751f\u56fe':   { submit: '/ent/v2/reference2image',    poll: (id) => `/ent/v2/task?task_id=${id}` },
 };
 const DEFAULT_IMAGE_ENDPOINT = { submit: '/v1/images/generations', poll: (id: string) => `/v1/images/generations/${id}` };
 
@@ -54,7 +54,7 @@ function getImageEndpointPaths(endpointTypes: string[]): { submit: string; poll:
   return DEFAULT_IMAGE_ENDPOINT;
 }
 
-// Aspect ratio to pixel dimension mapping (doubao-seedream 等模型需要像素尺寸)
+// Aspect ratio to pixel dimension mapping (doubao-seedream Đợi đãMô hình\u9700\u8981\u50cf\u7d20Kích thước)
 const ASPECT_RATIO_DIMS: Record<string, { width: number; height: number }> = {
   '1:1': { width: 1024, height: 1024 },
   '16:9': { width: 1280, height: 720 },
@@ -68,7 +68,7 @@ const ASPECT_RATIO_DIMS: Record<string, { width: number; height: number }> = {
 
 /**
  * Resolution + aspect ratio → target pixel dimensions for chat completions models
- * 非 Gemini 图片模型走 prompt 文本提示；Gemini 图片模型走官方 image_size 参数。
+ * \u975e Gemini Hình ảnhMô hìnhđi prompt \u6587\u672cGợi ý；Gemini Hình ảnhMô hìnhđi\u5b98\u65b9 image_size Tham số。
  */
 const RESOLUTION_MULTIPLIERS: Record<string, number> = {
   '1K': 1,
@@ -87,12 +87,12 @@ function getTargetDimensions(aspectRatio: string, resolution?: string): { width:
 }
 
 /**
- * 判断模型是否为 Gemini 图片生成模型（Nano Banana 系列）
- * - Nano Banana Pro = gemini-3-pro-image-preview   → 支持 1K/2K/4K
- * - Nano Banana 2  = gemini-3.1-flash-image-preview → 支持 512/1K/2K/4K
- * - Nano Banana    = gemini-2.5-flash-image          → 固定 1K（不支持 image_size 参数）
+ * \u5224\u65adMô hình là\u5426cho Gemini Hình ảnhTạoMô hình（Nano Banana \u7cfbCột）
+ * - Nano Banana Pro = gemini-3-pro-image-preview   → Hỗ trợ 1K/2K/4K
+ * - Nano Banana 2  = gemini-3.1-flash-image-preview → Hỗ trợ 512/1K/2K/4K
+ * - Nano Banana    = gemini-2.5-flash-image          → \u56fa\u5b9a 1K（\u4e0dHỗ trợ image_size Tham số）
  *
- * 用于决定是否在请求体中附加官方 image_size / aspect_ratio 参数
+ * sử dụng\u4e8e\u51b3\u5b9a\u662f\u5426\u5728Yêu cầu\u4f53trong\u9644\u52a0\u5b98\u65b9 image_size / aspect_ratio Tham số
  */
 function isGeminiImageModel(model: string): boolean {
   const m = model.toLowerCase();
@@ -102,34 +102,34 @@ function isGeminiImageModel(model: string): boolean {
 }
 
 /**
- * 判断 Gemini 图片模型是否支持 image_size 参数（1K/2K/4K）
- * gemini-2.5-flash-image 只输出固定 1024px，不支持 image_size
+ * \u5224\u65ad Gemini Hình ảnhMô hình là\u5426Hỗ trợ image_size Tham số（1K/2K/4K）
+ * gemini-2.5-flash-image \u53eaĐầu ra\u56fa\u5b9a 1024px，\u4e0dHỗ trợ image_size
  */
 function geminiSupportsImageSize(model: string): boolean {
   const m = model.toLowerCase();
-  // gemini-3-pro-image / gemini-3.1-flash-image 支持 1K/2K/4K
+  // gemini-3-pro-image / gemini-3.1-flash-image Hỗ trợ 1K/2K/4K
   if (m.includes('gemini-3') && m.includes('image')) return true;
-  // gemini-2.5-flash-image 不支持 image_size，固定 1K
+  // gemini-2.5-flash-image \u4e0dHỗ trợ image_size，\u56fa\u5b9a 1K
   return false;
 }
 
 /**
- * 规范化分辨率值为 Gemini 官方要求的格式
- * 官方要求大写 K（例如 1K、2K、4K），小写会被拒绝
+ * \u89c4\u8303\u5316Độ phân giải\u503ccho Gemini \u5b98\u65b9yêu cầucủaĐịnh dạng
+ * \u5b98\u65b9yêu cầu\u5927\u5199 K（Ví dụ 1K、2K、4K），\u5c0f\u5199\u4f1a\u88abTừ chối
  */
 function normalizeResolutionForGemini(resolution?: string): string {
   if (!resolution) return '2K';
   const upper = resolution.toUpperCase();
-  // 接受 '512' 直接通过（仅 3.1 Flash Image 支持）
+  // \u63a5\u53d7 '512' \u76f4\u63a5Chấp nhận（\u4ec5 3.1 Flash Image Hỗ trợ）
   if (upper === '512') return '512';
-  // 确保是 '1K' / '2K' / '4K' 格式
+  // \u786e\u4fdd\u662f '1K' / '2K' / '4K' Định dạng
   if (['1K', '2K', '4K'].includes(upper)) return upper;
-  return '2K'; // 不识别的值回退到 2K
+  return '2K'; // \u4e0d\u8bc6\u522bcủa\u503c\u56de\u9000Đến 2K
 }
 
 /**
- * 判断模型是否需要像素尺寸格式 (如 "1024x1024") 而非比例格式 (如 "1:1")
- * doubao-seedream, cogview 等国产模型需要像素尺寸
+ * \u5224\u65adMô hình là\u5426\u9700\u8981\u50cf\u7d20Kích thướcĐịnh dạng (Chẳng hạn như "1024x1024") \u800c\u975eTỷ lệĐịnh dạng (Chẳng hạn như "1:1")
+ * doubao-seedream, cogview Đợi đã\u56fd\u4ea7Mô hình\u9700\u8981\u50cf\u7d20Kích thước
  */
 function needsPixelSize(model: string): boolean {
   const m = model.toLowerCase();
@@ -172,7 +172,7 @@ async function generateImage(
   const aspectRatio = params.aspectRatio || '1:1';
   const resolution = params.resolution || '2K';
 
-  // 根据元数据决定图片生成 API 格式
+  // \u6839\u636e\u5143\u6570\u636e\u51b3\u5b9aHình ảnhTạo API Định dạng
   const endpointTypes = useAPIConfigStore.getState().modelEndpointTypes[model];
   const apiFormat = resolveImageApiFormat(endpointTypes, model);
 
@@ -185,7 +185,7 @@ async function generateImage(
     promptPreview: params.prompt.substring(0, 100) + '...',
   });
 
-  // Gemini 等模型通过 chat completions 生图
+  // Gemini Đợi đãMô hìnhChấp nhận chat completions \u751f\u56fe
   if (apiFormat === 'openai_chat') {
     return submitViaChatCompletions(
       params.prompt,
@@ -199,13 +199,13 @@ async function generateImage(
     );
   }
 
-  // Kling image 原生端点: /kling/v1/images/generations 或 /kling/v1/images/omni-image
+  // Kling image \u539f\u751f\u7aef\u70b9: /kling/v1/images/generations hoặc /kling/v1/images/omni-image
   if (apiFormat === 'kling_image') {
     return submitViaKlingImages(params, model, apiKey, baseUrl, aspectRatio, featureConfig.keyManager);
   }
 
-  // 标准格式: /v1/images/generations (GPT Image, DALL-E, Flux, doubao-seedream 等)
-  // aigc-image / vidu生图 等走自定义路径
+  // Tiêu chuẩnĐịnh dạng: /v1/images/generations (GPT Image, DALL-E, Flux, doubao-seedream Đợi đã)
+  // aigc-image / vidu\u751f\u56fe Đợi đãđiTuỳ chỉnhĐường dẫn
   const result = await submitImageTask(
     params.prompt,
     aspectRatio,
@@ -231,14 +231,14 @@ async function generateImage(
 }
 
 /**
- * 压缩 base64 参考图到合理体积
- * 中转站（new_api/one_api）在做 OpenAI → Gemini 格式转换时，
- * 超大 base64 会导致 JSON 解析失败或 body size 超限，报 "contents is required"。
- * 将参考图缩小到 maxEdge px 并转为 JPEG 可大幅降低体积（2~4MB → ~60KB）。
+ * \u538b\u7f29 base64 Hình ảnh tham khảoĐến\u5408\u7406\u4f53\u79ef
+ * trong\u8f6c\u7ad9（new_api/one_api）\u5728\u505a OpenAI → Gemini Định dạng\u8f6c\u6362\u65f6，
+ * \u8d85\u5927 base64 \u4f1a\u5bfc\u81f4 Phân tích cú pháp JSON Thất bạihoặc body size \u8d85\u9650，\u62a5 "contents is required"。
+ * Will Hình ảnh tham khảo\u7f29\u5c0fĐến maxEdge px \u5e76\u8f6ccho JPEG \u53ef\u5927\u5e45\u964d\u4f4e\u4f53\u79ef（2~4MB → ~60KB）。
  */
 function compressReferenceImage(dataUri: string, maxEdge = 768, quality = 0.8): Promise<string> {
   return new Promise((resolve) => {
-    // 非 data URI（HTTP URL 等）直接返回，由服务端处理
+    // \u975e data URI（HTTP URL Đợi đã）Quay trực tiếp lại，\u7531\u670d\u52a1\u7aef\u5904\u7406
     if (!dataUri.startsWith('data:image/')) {
       resolve(dataUri);
       return;
@@ -246,7 +246,7 @@ function compressReferenceImage(dataUri: string, maxEdge = 768, quality = 0.8): 
     const img = new Image();
     img.onload = () => {
       let { width, height } = img;
-      // 如果已经足够小，直接返回（转 JPEG 即可省体积）
+      // Chẳng hạn như\u679cĐã rồi\u7ecf\u8db3\u591f\u5c0f，Quay trực tiếp lại（\u8f6c JPEG \u5373\u53ef\u7701\u4f53\u79ef）
       const scale = Math.min(1, maxEdge / Math.max(width, height));
       width = Math.round(width * scale);
       height = Math.round(height * scale);
@@ -257,7 +257,7 @@ function compressReferenceImage(dataUri: string, maxEdge = 768, quality = 0.8): 
       ctx.drawImage(img, 0, 0, width, height);
       resolve(canvas.toDataURL('image/jpeg', quality));
     };
-    img.onerror = () => resolve(dataUri); // 解码失败就原样返回
+    img.onerror = () => resolve(dataUri); // \u89e3\u7801Thất bại\u5c31\u539f\u6837Quay lại
     img.src = dataUri;
   });
 }
@@ -266,10 +266,10 @@ function compressReferenceImage(dataUri: string, maxEdge = 768, quality = 0.8): 
  * Generate image via /v1/chat/completions (multimodal)
  * Used for Gemini image models that don't support /v1/images/generations
  *
- * 分辨率处理策略：
- * - Gemini 图片模型（Nano Banana Pro / Nano Banana 2）：
- *   通过请求体 image_size + aspect_ratio 参数严格指定分辨率（中转站转发给 Gemini 原生 API）
- * - 其他模型：通过 prompt 文本嵌入像素尺寸说明（软提示）
+ * Độ phân giảiQuy trình Chiến lược：
+ * - Gemini Hình ảnhMô hình（Nano Banana Pro / Nano Banana 2）：
+ *   Chấp nhậnYêu cầu\u4f53 image_size + aspect_ratio Tham số\u4e25\u683c\u6307\u5b9aĐộ phân giải（trong\u8f6c\u7ad9\u8f6c\u53d1\u7ed9 Gemini \u539f\u751f API）
+ * - \u5176\u4ed6Mô hình：Chấp nhận prompt \u6587\u672c\u5d4c\u5165\u50cf\u7d20Kích thướcGiải thích（\u8f6fGợi ý）
  */
 async function submitViaChatCompletions(
   prompt: string,
@@ -284,18 +284,18 @@ async function submitViaChatCompletions(
 ): Promise<ImageGenerationResult> {
   const endpoint = buildEndpoint(baseUrl, 'chat/completions');
 
-  // === 分辨率处理：区分 Gemini 图片模型与其他模型 ===
+  // === Độ phân giải\u5904\u7406：Quận\u5206 Gemini Hình ảnhMô hìnhvới\u5176\u4ed6Mô hình ===
   const isGemini = isGeminiImageModel(model);
   const geminiHasImageSize = isGemini && geminiSupportsImageSize(model);
 
-  // 非 Gemini 模型：通过 prompt 文本嵌入像素尺寸说明（软提示）
-  // Gemini 模型如果支持 image_size，也保留 prompt 提示作为兜底
+  // \u975e Gemini Mô hình：Chấp nhận prompt \u6587\u672c\u5d4c\u5165\u50cf\u7d20Kích thướcGiải thích（\u8f6fGợi ý）
+  // Gemini Mô hìnhChẳng hạn như\u679cHỗ trợ image_size，\u4e5f\u4fdd\u7559 prompt Gợi ý\u4f5cchoHãy ghi nhớ mọi thứ
   const targetDims = getTargetDimensions(aspectRatio, resolution);
   const sizeInstruction = targetDims
     ? ` Output the image at ${targetDims.width}x${targetDims.height} pixels resolution.`
     : '';
 
-  // 压缩参考图以避免超大 base64 导致中转站 "contents is required" 错误
+  // \u538b\u7f29Hình ảnh tham khảo\u4ee5\u907f\u514d\u8d85\u5927 base64 \u5bfc\u81f4trong\u8f6c\u7ad9 "contents is required" Lỗi
   let compressedRefs: string[] | undefined;
   if (referenceImages && referenceImages.length > 0) {
     compressedRefs = await Promise.all(referenceImages.map(img => compressReferenceImage(img)));
@@ -315,7 +315,7 @@ async function submitViaChatCompletions(
     }
   }
 
-  // === 构建请求体 ===
+  // === \u6784\u5efaYêu cầu\u4f53 ===
   const requestBody: Record<string, unknown> = {
     model,
     messages: [{ role: 'user', content: userContent }],
@@ -324,21 +324,21 @@ async function submitViaChatCompletions(
     stream: false,
   };
 
-  // Gemini 图片模型：附加官方 image_size / aspect_ratio 参数
-  // 中转站（MemeFast / new_api / one_api 等）会将这些参数转发给 Gemini 原生 API 的
+  // Gemini Hình ảnhMô hình：\u9644\u52a0\u5b98\u65b9 image_size / aspect_ratio Tham số
+  // trong\u8f6c\u7ad9（MemeFast / new_api / one_api Đợi đã）\u4f1a\u5c06\u8fd9\u4e9bTham số\u8f6c\u53d1\u7ed9 Gemini \u539f\u751f API của
   // generation_config.image_config
   if (isGemini) {
     const geminiResolution = geminiHasImageSize
       ? normalizeResolutionForGemini(resolution)
-      : undefined; // gemini-2.5-flash-image 不支持 image_size
+      : undefined; // gemini-2.5-flash-image \u4e0dHỗ trợ image_size
 
-    // 方式 1: 顶层参数（大部分中转站兼容）
+    // \u65b9\u5f0f 1: \u9876\u5c42Tham số（\u5927một phầntrong\u8f6c\u7ad9\u517c\u5bb9）
     if (geminiResolution) {
       requestBody.image_size = geminiResolution;
     }
     requestBody.aspect_ratio = aspectRatio;
 
-    // 方式 2: 嵌套 generation_config（官方 SDK 格式，部分中转站支持）
+    // \u65b9\u5f0f 2: \u5d4c\u5957 generation_config（\u5b98\u65b9 SDK Định dạng，một phầntrong\u8f6c\u7ad9Hỗ trợ）
     requestBody.generation_config = {
       response_modalities: ['TEXT', 'IMAGE'],
       image_config: {
@@ -353,21 +353,21 @@ async function submitViaChatCompletions(
   console.log('[ImageGenerator] Submitting via chat completions:', { model, endpoint, isGemini, geminiImageSize: geminiHasImageSize ? normalizeResolutionForGemini(resolution) : 'N/A' });
 
   const response = await retryOperation(async () => {
-    // 每次重试独立创建 AbortController，避免共享 controller 在重试时已超时
+    // \u6bcflầnThử lạiđộc lậpTạo AbortController，\u907f\u514dtổng cộng\u4eab controller \u5728Thử lại\u65f6Đã rồi\u8d85\u65f6
     const controller = new AbortController();
     const timeoutId = setTimeout(
-      () => controller.abort(new DOMException('图片生成请求超时（60秒），请检查网络后重试', 'TimeoutError')),
+      () => controller.abort(new DOMException('Hình ảnhTạoYêu cầu\u8d85\u65f6（60giây），Vui lòng kiểm tra mạng\u540eThử lại', 'TimeoutError')),
       60000
     );
 
-    // 外部 signal 取消时同步取消内部 controller，并传播 reason
-    const onExternalAbort = () => controller.abort(signal?.reason || new Error('用户已取消'));
+    // Bên ngoài\u90e8 signal Huỷ\u65f6\u540c\u6b65Huỷbên trong\u90e8 controller，\u5e76\u4f20\u64ad reason
+    const onExternalAbort = () => controller.abort(signal?.reason || new Error('Người dùngĐã huỷ'));
     if (signal) {
-      if (signal.aborted) throw new Error('用户已取消');
+      if (signal.aborted) throw new Error('Người dùngĐã huỷ');
       signal.addEventListener('abort', onExternalAbort, { once: true });
     }
 
-    // 每次重试动态取当前 key（利用 keyManager rotate 后的新 key）
+    // \u6bcflầnThử lại\u52a8\u6001\u53d6hiện tại key（\u5229sử dụng keyManager rotate \u540ecủa\u65b0 key）
     const currentApiKey = keyManager?.getCurrentKey?.() || apiKey;
 
     try {
@@ -385,21 +385,21 @@ async function submitViaChatCompletions(
         const errorText = await resp.text();
         console.error('[ImageGenerator] Chat completions error:', resp.status, errorText);
 
-        // 通知 keyManager 处理错误（触发 rotate）
+        // Thông báo keyManager \u5904\u7406Lỗi（Kích hoạt rotate）
         if (keyManager?.handleError) {
           keyManager.handleError(resp.status, errorText);
         }
 
-        let msg = `图片生成 API 错误: ${resp.status}`;
+        let msg = `Hình ảnhTạo API Lỗi: ${resp.status}`;
         try { const j = JSON.parse(errorText); msg = j.error?.message || msg; } catch {}
 
-        // 401 专项提示：引导用户检查 API Key
+        // 401 \u4e13\u9879Gợi ý：\u5f15\u5bfcNgười dùng\u68c0\u67e5 API Key
         if (resp.status === 401) {
-          msg = `API Key 无效或已过期，请前往「设置」检查图片生成服务的 API Key 配置（原始信息：${msg}）`;
+          msg = `Khóa API không hợp lệ hoặc đã hết hạn，\u8bf7\u524d\u5f80「Cài đặt」\u68c0\u67e5Hình ảnhTạoDịch vụcủa API Key Cấu hình（nguyên bảnthông tin：${msg}）`;
         }
-        // 502 专项提示：上游服务临时不可用
+        // 502 \u4e13\u9879Gợi ý：dịch vụ thượng nguồn\u4e34\u65f6\u4e0dCó sẵn
         if (resp.status === 502) {
-          msg = `API 上游服务暂时不可用（502），将自动重试（原始信息：${msg}）`;
+          msg = `API \u4e0a\u6e38Dịch vụ tạm thời không khả dụng（502），\u5c06tự độngThử lại（nguyên bảnthông tin：${msg}）`;
         }
 
         const err = new Error(msg) as Error & { status?: number };
@@ -409,12 +409,12 @@ async function submitViaChatCompletions(
 
       return resp;
     } catch (fetchErr: any) {
-      // 将 DOMException abort 转换为可读错误信息
+      // \u5c06 DOMException abort \u8f6c\u6362cho\u53ef\u8bfbLỗtôi thông tin
       if (fetchErr instanceof DOMException && fetchErr.name === 'AbortError') {
         const reason = controller.signal.reason;
         const readableMsg = reason instanceof Error
           ? reason.message
-          : (typeof reason === 'string' ? reason : '请求被中止，请重试');
+          : (typeof reason === 'string' ? reason : 'Yêu cầu\u88abtrong\u6b62，Xin vui lòng Thử lại');
         const abortErr = new Error(readableMsg) as Error & { status?: number };
         throw abortErr;
       }
@@ -468,7 +468,7 @@ async function submitViaChatCompletions(
     }
 
     if (!lastChunk) {
-      throw new Error(`无法解析图片 API 响应: ${responseText.substring(0, 120)}`);
+      throw new Error(`không có\u6cd5Phân tích Hình ảnh API phản ứng: ${responseText.substring(0, 120)}`);
     }
 
     // Reconstruct standard response format from accumulated deltas
@@ -487,7 +487,7 @@ async function submitViaChatCompletions(
 
   // Extract image from response - multiple possible formats
   const choice = data.choices?.[0];
-  if (!choice) throw new Error('响应中无有效内容');
+  if (!choice) throw new Error('phản ứngtrongkhông cóCó\u6548bên trong\u5bb9');
 
   const message = choice.message;
 
@@ -518,7 +518,7 @@ async function submitViaChatCompletions(
     if (b64Match) return { imageUrl: b64Match[1] };
   }
 
-  throw new Error('未能从响应中提取图片 URL');
+  throw new Error('\u672a\u80fdtừphản ứngtrongTrích xuấtHình ảnh URL');
 }
 
 /**
@@ -536,9 +536,9 @@ async function submitImageTask(
   endpointTypes?: string[],
 ): Promise<{ taskId?: string; imageUrl?: string; pollUrl?: string }> {
   if (!baseUrl) {
-    throw new Error('请先在设置中配置图片生成服务映射');
+    throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
   }
-  // 根据模型决定 size 格式
+  // \u6839\u636eMô hình\u51b3\u5b9a size Định dạng
   let sizeValue: string = aspectRatio;
   if (model && needsPixelSize(model)) {
     const dims = ASPECT_RATIO_DIMS[aspectRatio];
@@ -569,11 +569,11 @@ async function submitImageTask(
 
   try {
     const data = await retryOperation(async () => {
-      // 每次重试独立创建 AbortController，避免共享 controller 在重试时已超时
+      // \u6bcflầnThử lạiđộc lậpTạo AbortController，\u907f\u514dtổng cộng\u4eab controller \u5728Thử lại\u65f6Đã rồi\u8d85\u65f6
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      // 每次重试动态取当前 key（利用 keyManager rotate 后的新 key）
+      // \u6bcflầnThử lại\u52a8\u6001\u53d6hiện tại key（\u5229sử dụng keyManager rotate \u540ecủa\u65b0 key）
       const currentApiKey = keyManager?.getCurrentKey?.() || apiKey;
       const imagePaths = getImageEndpointPaths(endpointTypes || []);
       const rootBase = getRootBaseUrl(baseUrl);
@@ -593,12 +593,12 @@ async function submitImageTask(
           const errorText = await response.text();
           console.error('[ImageGenerator] API error:', response.status, errorText);
 
-          // 通知 keyManager 处理错误（触发 rotate）
+          // Thông báo keyManager \u5904\u7406Lỗi（Kích hoạt rotate）
           if (keyManager?.handleError) {
             keyManager.handleError(response.status, errorText);
           }
 
-          let errorMessage = `图片生成 API 错误: ${response.status}`;
+          let errorMessage = `Hình ảnhTạo API Lỗi: ${response.status}`;
           try {
             const errorJson = JSON.parse(errorText);
             errorMessage = errorJson.error?.message || errorJson.message || errorJson.msg || errorMessage;
@@ -607,14 +607,14 @@ async function submitImageTask(
           }
 
           if (response.status === 401 || response.status === 403) {
-            throw new Error('API Key 无效或已过期');
+            throw new Error('Khóa API không hợp lệ hoặc đã hết hạn');
           } else if (response.status === 529 || response.status === 503) {
-            // 上游负载饱和/服务不可用，需要触发重试
-            const err = new Error(errorMessage || `上游服务暂时不可用 (${response.status})`) as Error & { status?: number };
+            // tải ngược dòngbão hòa/\u670d\u52a1\u4e0dCó sẵn，\u9700\u8981Kích hoạtThử lại
+            const err = new Error(errorMessage || `\u4e0a\u6e38Dịch vụ tạm thời không khả dụng (${response.status})`) as Error & { status?: number };
             err.status = response.status;
             throw err;
           } else if (response.status >= 500) {
-            const err = new Error(errorMessage || '图片生成服务暂时不可用') as Error & { status?: number };
+            const err = new Error(errorMessage || 'Hình ảnhTạoDịch vụ tạm thời không khả dụng') as Error & { status?: number };
             err.status = response.status;
             throw err;
           }
@@ -633,7 +633,7 @@ async function submitImageTask(
           if (sseMatch) {
             return JSON.parse(sseMatch[1]);
           }
-          throw new Error(`无法解析图片 API 响应: ${text.substring(0, 100)}`);
+          throw new Error(`không có\u6cd5Phân tích Hình ảnh API phản ứng: ${text.substring(0, 100)}`);
         }
       } finally {
         clearTimeout(timeoutId);
@@ -648,25 +648,25 @@ async function submitImageTask(
     });
     console.log('[ImageGenerator] API response:', data);
 
-    // GPT Image 返回 choices 格式（MemeFast 文档确认）
+    // GPT Image Quay lại choices Định dạng（MemeFast \u6587\u6863Xác nhận）
     if (data.choices?.[0]?.message?.content) {
       const content = data.choices[0].message.content;
-      // 可能是 markdown 图片链接
+      // \u53ef\u80fd\u662f markdown Hình ảnh\u94fe\u63a5
       const mdMatch = content.match(/!\[.*?\]\((https?:\/\/[^)]+)\)/);
       if (mdMatch) return { imageUrl: mdMatch[1] };
-      // 可能是 base64
+      // \u53ef\u80fd\u662f base64
       const b64Match = content.match(/(data:image\/[^;]+;base64,[A-Za-z0-9+/=]+)/);
       if (b64Match) return { imageUrl: b64Match[1] };
-      // 可能直接是 URL
+      // \u53ef\u80fd\u76f4\u63a5\u662f URL
       const urlMatch = content.match(/(https?:\/\/[^\s"']+\.(?:png|jpg|jpeg|webp|gif)[^\s"']*)/i);
       if (urlMatch) return { imageUrl: urlMatch[1] };
     }
 
-    // 标准格式: { data: [{ url }] }
+    // Tiêu chuẩnĐịnh dạng: { data: [{ url }] }
     let taskId: string | undefined;
     const dataList = data.data;
     if (Array.isArray(dataList) && dataList.length > 0) {
-      // 直接返回 URL（doubao-seedream、DALL-E 等同步模型）
+      // Quay trực tiếp lại URL（doubao-seedream、DALL-E Đợi đã\u540c\u6b65Mô hình）
       if (dataList[0].url) return { imageUrl: dataList[0].url };
       taskId = dataList[0].task_id?.toString();
     }
@@ -678,17 +678,17 @@ async function submitImageTask(
       throw new Error('No task_id or image URL in response');
     }
 
-    // 返回 pollUrl 供调用方使用自定义轮询路径
+    // Quay lại pollUrl \u4f9b\u8c03sử dụng\u65b9sử dụngTuỳ chỉnh\u8f6e\u8be2Đường dẫn
     const imagePaths = getImageEndpointPaths(endpointTypes || []);
     const rootBase = getRootBaseUrl(baseUrl);
     const pollUrl = `${rootBase}${imagePaths.poll(taskId)}`;
     return { taskId, pollUrl };
   } catch (error) {
     if (error instanceof Error) {
-      if (error.name === 'AbortError') throw new Error('API 请求超时');
+      if (error.name === 'AbortError') throw new Error('API Yêu cầu\u8d85\u65f6');
       throw error;
     }
-    throw new Error('调用图片生成 API 时发生未知错误');
+    throw new Error('Gọi Hình ảnhTạo Kh xảy ra trong APIông rõLỗi');
   }
 }
 
@@ -768,13 +768,13 @@ async function pollTaskStatus(
     }
   }
 
-  throw new Error('图片生成超时');
+  throw new Error('Hình ảnhTạo\u8d85\u65f6');
 }
 
 /**
  * Submit a grid/quad image generation request with smart API routing.
  * Handles both chat completions (Gemini) and images/generations (standard) endpoints.
- * Used by merged generation (九宫格) and quad grid (四宫格) in director and sclass panels.
+ * Used by merged generation (chíncung điện\u683c) and quad grid (bốncung điện\u683c) in director and sclass panels.
  */
 export async function submitGridImageRequest(params: {
   model: string;
@@ -784,21 +784,21 @@ export async function submitGridImageRequest(params: {
   aspectRatio: string;
   resolution?: string;
   referenceImages?: string[];
-  /** 可选：传入 keyManager 后，重试时自动用轮换后的新 key */
+  /** Tùy chọn：\u4f20\u5165 keyManager \u540e，Thử lại\u65f6\u81ea\u52a8sử dụng\u8f6e\u6362\u540ecủa\u65b0 key */
   keyManager?: { getCurrentKey: () => string | null; handleError: (status: number, errorText?: string) => boolean };
-  /** 外部中止信号，用于停止生成时真正取消网络请求 */
+  /** Bên ngoài\u90e8trong\u6b62\u4fe1\u53f7，sử dụng\u4e8eDừngTạo\u65f6\u771f\u6b63Huỷ\u7f51\u7edcYêu cầu */
   signal?: AbortSignal;
 }): Promise<{ imageUrl?: string; taskId?: string; pollUrl?: string }> {
   const { model, prompt, apiKey, baseUrl, aspectRatio, resolution, referenceImages, keyManager, signal } = params;
   const normalizedBase = baseUrl.replace(/\/+$/, '');
 
-  // 检测 API 格式（与 generateImage 一致）
+  // Phát hiện API Định dạng（với generateImage một\u81f4）
   const endpointTypes = useAPIConfigStore.getState().modelEndpointTypes[model];
   const apiFormat = resolveImageApiFormat(endpointTypes, model);
   console.log('[GridImageAPI] format:', apiFormat, 'model:', model);
 
   if (apiFormat === 'openai_chat') {
-    // Gemini 等模型通过 chat completions 生图
+    // Gemini Đợi đãMô hìnhChấp nhận chat completions \u751f\u56fe
     const result = await submitViaChatCompletions(prompt, model, apiKey, normalizedBase, aspectRatio, referenceImages, resolution, keyManager, signal);
     return { imageUrl: result.imageUrl };
   }
@@ -808,7 +808,7 @@ export async function submitGridImageRequest(params: {
     return { imageUrl: result.imageUrl, taskId: result.taskId };
   }
 
-  // 标准 images/generations 端点（aigc-image / vidu生图 走自定义路径）
+  // Tiêu chuẩn images/generations \u7aef\u70b9（aigc-image / vidu\u751f\u56fe điTuỳ chỉnhĐường dẫn）
   const imagePaths = getImageEndpointPaths(endpointTypes || []);
   const rootBase = getRootBaseUrl(normalizedBase);
   const endpoint = `${rootBase}${imagePaths.submit}`;
@@ -828,9 +828,9 @@ export async function submitGridImageRequest(params: {
   console.log('[GridImageAPI] Submitting to', endpoint);
 
   const data = await retryOperation(async () => {
-    // 每次重试动态取当前 key（利用 keyManager rotate 后的新 key）
+    // \u6bcflầnThử lại\u52a8\u6001\u53d6hiện tại key（\u5229sử dụng keyManager rotate \u540ecủa\u65b0 key）
     const currentApiKey = keyManager?.getCurrentKey?.() || apiKey;
-    if (signal?.aborted) throw new Error('用户已取消');
+    if (signal?.aborted) throw new Error('Người dùngĐã huỷ');
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -843,11 +843,11 @@ export async function submitGridImageRequest(params: {
 
     if (!response.ok) {
       const errorText = await response.text();
-      // 通知 keyManager 处理错误（触发 rotate）
+      // Thông báo keyManager \u5904\u7406Lỗi（Kích hoạt rotate）
       if (keyManager?.handleError) {
         keyManager.handleError(response.status, errorText);
       }
-      let errorMessage = `API 失败: ${response.status}`;
+      let errorMessage = `API Thất bại: ${response.status}`;
       try {
         const errJson = JSON.parse(errorText);
         errorMessage = errJson.error?.message || errJson.message || errorMessage;
@@ -866,7 +866,7 @@ export async function submitGridImageRequest(params: {
   });
   console.log('[GridImageAPI] Response received');
 
-  // GPT Image 可能通过 images/generations 返回 choices 格式
+  // GPT Image \u53ef\u80fdChấp nhận images/generations Quay lại choices Định dạng
   if (data.choices?.[0]?.message?.content) {
     const content = data.choices[0].message.content;
     const mdMatch = content.match(/!\[.*?\]\((https?:\/\/[^)]+)\)/);
@@ -877,7 +877,7 @@ export async function submitGridImageRequest(params: {
     if (urlMatch) return { imageUrl: urlMatch[1] };
   }
 
-  // 标准格式: { data: [{ url, task_id }] }
+  // Tiêu chuẩnĐịnh dạng: { data: [{ url, task_id }] }
   const normalizeUrl = (url: any): string | undefined => {
     if (!url) return undefined;
     if (Array.isArray(url)) return url[0] || undefined;
@@ -900,7 +900,7 @@ export async function submitGridImageRequest(params: {
     || data.task_id?.toString()
     || data.id?.toString();
 
-  // 如果只有 taskId 没有 imageUrl，自动轮询获取结果（与 generateImage 行为一致）
+  // Chẳng hạn như\u679cChỉ Có taskId \u6ca1Có imageUrl，\u81ea\u52a8\u8f6e\u8be2\u83b7\u53d6kết quả（với generateImage hành vimột\u81f4）
   if (!imageUrl && taskId) {
     console.log('[GridImageAPI] Got taskId without imageUrl, polling...', taskId);
     const pollUrl = `${rootBase}${imagePaths.poll(taskId)}`;
@@ -908,7 +908,7 @@ export async function submitGridImageRequest(params: {
     return { imageUrl: polledUrl, taskId };
   }
 
-  // taskId 存在时附带 pollUrl 供外部轮询
+  // taskId \u5b58\u5728\u65f6\u9644\u5e26 pollUrl \u4f9bBên ngoài\u90e8\u8f6e\u8be2
   if (taskId) {
     const pollUrl = `${rootBase}${imagePaths.poll(taskId)}`;
     return { imageUrl, taskId, pollUrl };
@@ -918,9 +918,9 @@ export async function submitGridImageRequest(params: {
 }
 
 /**
- * Kling image 原生端点生成
- * 提交到 /kling/v1/images/generations 或 /kling/v1/images/omni-image
- * 轮询到 /kling/v1/images/{path}/{task_id}
+ * Kling image \u539f\u751f\u7aef\u70b9Tạo
+ * \u63d0\u4ea4Đến /kling/v1/images/generations hoặc /kling/v1/images/omni-image
+ * \u8f6e\u8be2Đến /kling/v1/images/{path}/{task_id}
  */
 async function submitViaKlingImages(
   params: { prompt: string; aspectRatio?: string; negativePrompt?: string },
@@ -954,7 +954,7 @@ async function submitViaKlingImages(
       if (keyManager?.handleError) {
         keyManager.handleError(response.status, errText);
       }
-      const err = new Error(`Kling image API 错误: ${response.status} ${errText}`) as Error & { status?: number };
+      const err = new Error(`Kling image API Lỗi: ${response.status} ${errText}`) as Error & { status?: number };
       err.status = response.status;
       throw err;
     }
@@ -973,7 +973,7 @@ async function submitViaKlingImages(
   if (directUrl) return { imageUrl: directUrl };
 
   const taskId = data.data?.task_id;
-  if (!taskId) throw new Error('Kling image 返回空任务 ID');
+  if (!taskId) throw new Error('Kling image Quay lại\u7a7aNhiệm vụ ID');
 
   const pollUrl = `${rootBase}/${nativePath}/${taskId}`;
   const pollInterval = 2000;
@@ -990,14 +990,14 @@ async function submitViaKlingImages(
     const status = String(pollData.data?.task_status || '').toLowerCase();
     if (status === 'succeed' || status === 'success' || status === 'completed') {
       const imageUrl = pollData.data?.task_result?.images?.[0]?.url;
-      if (!imageUrl) throw new Error('Kling image 成功但无图片 URL');
+      if (!imageUrl) throw new Error('Kling image Thành công\u4f46không cóHình ảnh URL');
       return { imageUrl, taskId: String(taskId) };
     }
     if (status === 'failed' || status === 'error') {
-      throw new Error(pollData.data?.task_status_msg || 'Kling image 生成失败');
+      throw new Error(pollData.data?.task_status_msg || 'Kling image TạoThất bại');
     }
   }
-  throw new Error('Kling image 生成超时');
+  throw new Error('Kling image Tạo\u8d85\u65f6');
 }
 
 /**

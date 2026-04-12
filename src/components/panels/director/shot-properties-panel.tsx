@@ -123,7 +123,7 @@ export function ShotPropertiesPanel({
       : endKf?.imageUrl;
 
     if (!imageUrl) {
-      toast.error(`请先生成${type === "start" ? "起始帧" : "结束帧"}`);
+      toast.error(`\u8bf7đầu tiên\u751f\u6210${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}`);
       return;
     }
 
@@ -148,7 +148,7 @@ export function ShotPropertiesPanel({
     const appId = runninghubProvider?.model?.[0];
 
     if (!apiKey || !baseUrl || !appId) {
-      toast.error("请先在设置中配置 RunningHub（API Key / Base URL / 模型AppId）");
+      toast.error("\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình RunningHub（API Key / Base URL / \u6a21\u578bAppId）");
       setAngleSwitchOpen(false);
       return;
     }
@@ -158,7 +158,7 @@ export function ShotPropertiesPanel({
       : endKf?.imageUrl;
 
     if (!originalImage) {
-      toast.error("找不到原图");
+      toast.error("Không thể tìm thấy hình ảnh gốc");
       return;
     }
 
@@ -189,9 +189,9 @@ export function ShotPropertiesPanel({
       setAngleSwitchOpen(false);
       setAngleSwitchResultOpen(true);
 
-      toast.success("视角切换生成完成");
+      toast.success("\u89c6\u89d2\u5207\u6362\u751f\u6210Hoàn thành");
     } catch (error) {
-      toast.error(`视角切换失败: ${(error as Error).message}`);
+      toast.error(`\u89c6\u89d2\u5207\u6362\u5931\u8d25: ${(error as Error).message}`);
     } finally {
       setIsAngleSwitching(false);
     }
@@ -225,12 +225,12 @@ export function ShotPropertiesPanel({
     setPreviewItem({
       type: "image",
       url: angleSwitchResult.newImage,
-      name: `镜头 ${shotIndex + 1} - ${angleSwitchTarget === "start" ? "起始帧" : "结束帧"} (视角切换)`,
+      name: `\u955c\u5934 ${shotIndex + 1} - ${angleSwitchTarget === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"} (\u89c6\u89d2\u5207\u6362)`,
     });
 
     setAngleSwitchResultOpen(false);
     setAngleSwitchResult(null);
-    toast.success("视角已应用");
+    toast.success("\u89c6\u89d2Đã rồi\u5e94sử dụng");
   };
 
   // Preview in center panel
@@ -259,7 +259,7 @@ export function ShotPropertiesPanel({
   // Handle image generation
   const handleGenerateImage = async (type: "start" | "end") => {
     if (!selectedShot || !onGenerateImage) {
-      toast.error("无法生成图片");
+      toast.error("không có\u6cd5\u751f\u6210\u56fe\u7247");
       return;
     }
 
@@ -292,12 +292,12 @@ export function ShotPropertiesPanel({
       setPreviewItem({
         type: "image",
         url: imageUrl,
-        name: `镜头 ${shotIndex + 1} - ${type === "start" ? "起始帧" : "结束帧"}`,
+        name: `\u955c\u5934 ${shotIndex + 1} - ${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}`,
       });
 
-      toast.success(`${type === "start" ? "起始帧" : "结束帧"}生成完成`);
+      toast.success(`${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}\u751f\u6210Hoàn thành`);
     } catch (error) {
-      toast.error(`生成失败: ${(error as Error).message}`);
+      toast.error(`\u751f\u6210\u5931\u8d25: ${(error as Error).message}`);
     } finally {
       setProcessingType(null);
     }
@@ -306,13 +306,13 @@ export function ShotPropertiesPanel({
   // Handle video generation
   const handleGenerateVideo = async () => {
     if (!selectedShot || !onGenerateVideo) {
-      toast.error("无法生成视频");
+      toast.error("không có\u6cd5\u751f\u6210\u89c6\u9891");
       return;
     }
 
     const startImage = startKf?.imageUrl || selectedShot.imageUrl;
     if (!startImage) {
-      toast.error("请先生成起始帧");
+      toast.error("\u8bf7đầu tiên\u751f\u6210\u8d77\u59cb\u5e27");
       return;
     }
 
@@ -331,12 +331,12 @@ export function ShotPropertiesPanel({
       setPreviewItem({
         type: "video",
         url: videoUrl,
-        name: `镜头 ${shotIndex + 1} - 视频`,
+        name: `\u955c\u5934 ${shotIndex + 1} - \u89c6\u9891`,
       });
 
-      toast.success("视频生成完成");
+      toast.success("\u89c6\u9891\u751f\u6210Hoàn thành");
     } catch (error) {
-      toast.error(`视频生成失败: ${(error as Error).message}`);
+      toast.error(`\u89c6\u9891\u751f\u6210\u5931\u8d25: ${(error as Error).message}`);
     } finally {
       setProcessingType(null);
     }
@@ -354,7 +354,7 @@ export function ShotPropertiesPanel({
         setPreviewItem({
           type: "video",
           url: videoUrl,
-          name: `镜头 ${shotIndex + 1}`,
+          name: `\u955c\u5934 ${shotIndex + 1}`,
         });
       }
     } else {
@@ -366,7 +366,7 @@ export function ShotPropertiesPanel({
         setPreviewItem({
           type: "image",
           url: imageUrl,
-          name: `镜头 ${shotIndex + 1} - ${type === "start" ? "起始帧" : "结束帧"}`,
+          name: `\u955c\u5934 ${shotIndex + 1} - ${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}`,
         });
       }
     }
@@ -376,12 +376,12 @@ export function ShotPropertiesPanel({
     return (
       <div className="h-full flex flex-col bg-panel">
         <div className="p-3 border-b border-border">
-          <h3 className="font-medium text-sm">属性</h3>
+          <h3 className="font-medium text-sm">tài sản</h3>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-4">
           <Camera className="w-10 h-10 mb-3 opacity-30" />
-          <p className="text-sm text-center">选择一个镜头</p>
-          <p className="text-xs text-center mt-1 opacity-60">查看和编辑镜头属性</p>
+          <p className="text-sm text-center">\u9009\u62e9mộtmột\u955c\u5934</p>
+          <p className="text-xs text-center mt-1 opacity-60">\u67e5\u770bvà\u7f16\u8f91\u955c\u5934tài sản</p>
         </div>
       </div>
     );
@@ -392,7 +392,7 @@ export function ShotPropertiesPanel({
       {/* Header */}
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-sm">属性</h3>
+          <h3 className="font-medium text-sm">tài sản</h3>
           <span className="text-xs text-muted-foreground font-mono">
             #{String(shotIndex + 1).padStart(2, "0")}
           </span>
@@ -406,7 +406,7 @@ export function ShotPropertiesPanel({
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <MapPin className="w-3 h-3" />
-                <span>场景</span>
+                <span>\u573a\u666f</span>
               </div>
               <div className="p-2 rounded-lg bg-muted/50 space-y-1">
                 <div className="flex items-center justify-between">
@@ -427,7 +427,7 @@ export function ShotPropertiesPanel({
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Film className="w-3 h-3" />
-              <span>镜头信息</span>
+              <span>\u955c\u5934thông tin</span>
             </div>
             <div className="p-2 rounded-lg bg-muted/50 space-y-2">
               {/* Shot size, camera movement, duration */}
@@ -451,7 +451,7 @@ export function ShotPropertiesPanel({
                 <div className="space-y-1">
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                     <Eye className="w-2.5 h-2.5" />
-                    <span>视觉描述</span>
+                    <span>\u89c6\u89c9\u63cf\u8ff0</span>
                   </div>
                   <p className="text-xs leading-relaxed bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border border-violet-200 dark:border-violet-800 rounded p-2 text-violet-800 dark:text-violet-200">
                     {selectedShot.visualDescription}
@@ -477,12 +477,12 @@ export function ShotPropertiesPanel({
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Volume2 className="w-3 h-3" />
-                <span>音频设计</span>
+                <span>\u97f3\u9891\u8bbe\u8ba1</span>
               </div>
               <div className="p-2 rounded-lg bg-muted/50 space-y-1.5">
                 {selectedShot.ambientSound && (
                   <div className="flex gap-1.5 text-xs">
-                    <span className="text-muted-foreground shrink-0">环境声:</span>
+                    <span className="text-muted-foreground shrink-0">Âm thanh xung quanh:</span>
                     <span className="text-green-700 dark:text-green-300">{selectedShot.ambientSound}</span>
                   </div>
                 )}
@@ -490,7 +490,7 @@ export function ShotPropertiesPanel({
                   <div className="flex gap-1.5 text-xs">
                     <span className="text-muted-foreground shrink-0 flex items-center gap-0.5">
                       <Zap className="w-2.5 h-2.5" />
-                      音效:
+                      Hiệu ứng âm thanh:
                     </span>
                     <span className="text-orange-700 dark:text-orange-300">{selectedShot.soundEffect}</span>
                   </div>
@@ -504,7 +504,7 @@ export function ShotPropertiesPanel({
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <User className="w-3 h-3" />
-                <span>角色造型</span>
+                <span>\u89d2\u8272\u9020\u578b</span>
               </div>
               <div className="space-y-1.5">
                 {characters.map((char) => (
@@ -531,7 +531,7 @@ export function ShotPropertiesPanel({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="default">默认</SelectItem>
+                          <SelectItem value="default">\u9ed8\u8ba4</SelectItem>
                           {char.variations.map((v) => (
                             <SelectItem key={v.id} value={v.id}>
                               {v.name}
@@ -540,7 +540,7 @@ export function ShotPropertiesPanel({
                         </SelectContent>
                       </Select>
                     ) : (
-                      <span className="text-[10px] text-muted-foreground">默认</span>
+                      <span className="text-[10px] text-muted-foreground">\u9ed8\u8ba4</span>
                     )}
                   </div>
                 ))}
@@ -552,7 +552,7 @@ export function ShotPropertiesPanel({
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <ImageIcon className="w-3 h-3" />
-              <span>关键帧</span>
+              <span>chìa khóa\u5e27</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -583,7 +583,7 @@ export function ShotPropertiesPanel({
                 </div>
                 <div className="p-1.5 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px]">起始帧</span>
+                    <span className="text-[10px]">\u8d77\u59cb\u5e27</span>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -595,7 +595,7 @@ export function ShotPropertiesPanel({
                       disabled={processingType === "start" || !onGenerateImage}
                     >
                       <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-                      {hasStartImage ? "重新" : "生成"}
+                      {hasStartImage ? "\u91cdmới" : "\u751f\u6210"}
                     </Button>
                   </div>
                   {hasStartImage && (
@@ -610,7 +610,7 @@ export function ShotPropertiesPanel({
                       disabled={isAngleSwitching}
                     >
                       <RotateCw className="w-2.5 h-2.5 mr-0.5" />
-                      视角
+                      \u89c6\u89d2
                     </Button>
                   )}
                 </div>
@@ -629,7 +629,7 @@ export function ShotPropertiesPanel({
                     <img src={endKf!.imageUrl} className="w-full h-full object-cover" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[9px] text-muted-foreground/50">可选</span>
+                      <span className="text-[9px] text-muted-foreground/50">Tùy chọn</span>
                     </div>
                   )}
                   {processingType === "end" && (
@@ -640,7 +640,7 @@ export function ShotPropertiesPanel({
                 </div>
                 <div className="p-1.5 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px]">结束帧</span>
+                    <span className="text-[10px]">\u7ed3\u675f\u5e27</span>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -652,7 +652,7 @@ export function ShotPropertiesPanel({
                       disabled={processingType === "end" || !onGenerateImage}
                     >
                       <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-                      {hasEndImage ? "重新" : "生成"}
+                      {hasEndImage ? "\u91cdmới" : "\u751f\u6210"}
                     </Button>
                   </div>
                   {hasEndImage && (
@@ -667,7 +667,7 @@ export function ShotPropertiesPanel({
                       disabled={isAngleSwitching}
                     >
                       <RotateCw className="w-2.5 h-2.5 mr-0.5" />
-                      视角
+                      \u89c6\u89d2
                     </Button>
                   )}
                 </div>
@@ -679,7 +679,7 @@ export function ShotPropertiesPanel({
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Video className="w-3 h-3" />
-              <span>视频</span>
+              <span>\u89c6\u9891</span>
             </div>
 
             <div
@@ -704,7 +704,7 @@ export function ShotPropertiesPanel({
                       </div>
                     </div>
                     <div className="absolute bottom-1 right-1 px-1 py-0.5 bg-green-500 rounded text-[9px] text-white font-mono">
-                      已生成
+                      Đã rồi\u751f\u6210
                     </div>
                   </>
                 ) : (
@@ -729,23 +729,23 @@ export function ShotPropertiesPanel({
                   {processingType === "video" ? (
                     <>
                       <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                      生成中...
+                      \u751f\u6210trong...
                     </>
                   ) : (
                     <>
                       <Video className="w-3 h-3 mr-1.5" />
-                      {hasVideo ? "重新生成视频" : "生成视频"}
+                      {hasVideo ? "\u91cdmới\u751f\u6210\u89c6\u9891" : "\u751f\u6210\u89c6\u9891"}
                     </>
                   )}
                 </Button>
                 {!hasStartImage && (
                   <p className="text-[9px] text-muted-foreground text-center mt-1">
-                    请先生成起始帧
+                    \u8bf7đầu tiên\u751f\u6210\u8d77\u59cb\u5e27
                   </p>
                 )}
                 {hasStartImage && !hasEndImage && (
                   <p className="text-[9px] text-muted-foreground text-center mt-1">
-                    将使用单图模式 (Image-to-Video)
+                    \u5c06sử dụng\u5355\u56fechế độ (Image-to-Video)
                   </p>
                 )}
               </div>

@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * CustomStylesGrid - 自定义风格网格
- * 展示用户创建的风格，支持新建/编辑/删除/复制
+ * CustomStylesGrid - \u81ea\u5b9a\u4e49gió\u683c\u7f51\u683c
+ * hiển thịsử dụng\u6237\u521b\u5efacủagió\u683c，\u652f\u6301mới\u5efa/\u7f16\u8f91/\u5220\u9664/sao chép
  */
 
 import { useCustomStyleStore } from "@/stores/custom-style-store";
@@ -33,7 +33,7 @@ export function CustomStylesGrid() {
     duplicateStyle,
   } = useCustomStyleStore();
 
-  // 正在编辑 → 显示编辑器
+  // \u6b63\u5728\u7f16\u8f91 → \u663e\u793a\u7f16\u8f91\u5668
   if (editingStyleId !== null) {
     return (
       <StyleEditor
@@ -45,32 +45,32 @@ export function CustomStylesGrid() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* 顶部栏 */}
+      {/* \u9876\u90e8\u680f */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-foreground">我的风格</h2>
-          <span className="text-xs text-muted-foreground">{styles.length} 个</span>
+          <h2 className="text-sm font-semibold text-foreground">\u6211củagió\u683c</h2>
+          <span className="text-xs text-muted-foreground">{styles.length} một</span>
         </div>
         <Button size="sm" onClick={() => setEditingStyle("new")}>
           <Plus className="w-3.5 h-3.5 mr-1.5" />
-          新建风格
+          mới\u5efagió\u683c
         </Button>
       </div>
 
-      {/* 内容区域 */}
+      {/* bên trong\u5bb9Quận\u57df */}
       <ScrollArea className="flex-1">
         <div className="p-4">
           {styles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <div className="text-sm mb-2">还没有自定义风格</div>
-              <div className="text-xs mb-4">点击「新建风格」创建你的第一个风格</div>
+              <div className="text-sm mb-2">\u8fd8\u6ca1Có\u81ea\u5b9a\u4e49gió\u683c</div>
+              <div className="text-xs mb-4">\u70b9\u51fb「mới\u5efagió\u683c」\u521b\u5efacủa bạnKhông.mộtmộtgió\u683c</div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setEditingStyle("new")}
               >
                 <Plus className="w-3.5 h-3.5 mr-1.5" />
-                新建风格
+                mới\u5efagió\u683c
               </Button>
             </div>
           ) : (
@@ -91,11 +91,11 @@ export function CustomStylesGrid() {
                   <ContextMenuContent>
                     <ContextMenuItem onClick={() => setEditingStyle(style.id)}>
                       <Pencil className="w-3.5 h-3.5 mr-2" />
-                      编辑
+                      \u7f16\u8f91
                     </ContextMenuItem>
                     <ContextMenuItem onClick={() => duplicateStyle(style.id)}>
                       <Copy className="w-3.5 h-3.5 mr-2" />
-                      复制
+                      sao chép
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -103,7 +103,7 @@ export function CustomStylesGrid() {
                       onClick={() => deleteStyle(style.id)}
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-2" />
-                      删除
+                      \u5220\u9664
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>

@@ -3,8 +3,8 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 
 /**
- * PropsLibrary - 道具库主视图
- * 左侧目录树 + 右侧道具网格，支持自定义目录管理
+ * PropsLibrary - đạo cụ\u5e93Chúa ơi\u89c6\u56fe
+ * \u5de6\u4fa7\u76ee\u5f55cây + bên phảiđạo cụ\u7f51\u683c，\u652f\u6301\u81ea\u5b9a\u4e49\u76ee\u5f55\u7ba1\u7406
  */
 
 import { useState, useRef } from 'react';
@@ -50,7 +50,7 @@ import {
 import { toast } from 'sonner';
 import { useResolvedImageUrl } from '@/hooks/use-resolved-image-url';
 
-// ── PropCard 子组件 ──────────────────────────────────────────────────────────
+// ── PropCard \u5b50\u7ec4\u4ef6 ──────────────────────────────────────────────────────────
 
 function PropCard({ item }: { item: PropItem }) {
   const { deleteProp, renameProp, moveProp, folders } = usePropsLibraryStore();
@@ -69,7 +69,7 @@ function PropCard({ item }: { item: PropItem }) {
   return (
     <>
       <div className="group relative flex flex-col rounded-lg border border-border bg-card overflow-hidden hover:border-primary/40 transition-colors">
-        {/* 图片区 */}
+        {/* \u56fe\u7247Quận */}
         <div className="aspect-square bg-muted relative overflow-hidden">
           {resolvedUrl ? (
             <img
@@ -85,7 +85,7 @@ function PropCard({ item }: { item: PropItem }) {
               <Package className="w-8 h-8 text-muted-foreground/40" />
             </div>
           )}
-          {/* 悬浮操作菜单 */}
+          {/* \u60ac\u6d6e\u64cd\u4f5c\u83dc\u5355 */}
           <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -100,21 +100,21 @@ function PropCard({ item }: { item: PropItem }) {
               <DropdownMenuContent align="end" className="w-36">
                 <DropdownMenuItem onClick={() => { setNameInput(item.name); setRenaming(true); }}>
                   <Pencil className="mr-2 h-3.5 w-3.5" />
-                  重命名
+                  \u91cd\u547dtên
                 </DropdownMenuItem>
-                {/* 移动到目录 */}
+                {/* \u79fb\u52a8Đến\u76ee\u5f55 */}
                 {folders.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem disabled className="text-xs text-muted-foreground py-1">
-                      移动到目录
+                      \u79fb\u52a8Đến\u76ee\u5f55
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => moveProp(item.id, null)}
                       className={cn(item.folderId === null && 'text-primary')}
                     >
                       <Layers className="mr-2 h-3.5 w-3.5" />
-                      根目录
+                      \u6839\u76ee\u5f55
                     </DropdownMenuItem>
                     {folders.map((f) => (
                       <DropdownMenuItem
@@ -134,14 +134,14 @@ function PropCard({ item }: { item: PropItem }) {
                   onClick={() => setShowDeleteAlert(true)}
                 >
                   <Trash2 className="mr-2 h-3.5 w-3.5" />
-                  删除
+                  \u5220\u9664
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
 
-        {/* 名称区 */}
+        {/* tên\u79f0Quận */}
         <div className="px-2 py-1.5">
           {renaming ? (
             <Input
@@ -167,25 +167,25 @@ function PropCard({ item }: { item: PropItem }) {
         </div>
       </div>
 
-      {/* 删除确认 */}
+      {/* \u5220\u9664\u786e\u8ba4 */}
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除道具</AlertDialogTitle>
+            <AlertDialogTitle>\u5220\u9664đạo cụ</AlertDialogTitle>
             <AlertDialogDescription>
-              确认删除「{item.name}」？此操作不可撤销。
+              \u786e\u8ba4\u5220\u9664「{item.name}」？\u6b64\u64cd\u4f5c\u4e0d\u53ef\u64a4\u9500。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>\u53d6\u6d88</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
                 deleteProp(item.id);
-                toast.success(`已删除「${item.name}」`);
+                toast.success(`Đã rồi\u5220\u9664「${item.name}」`);
               }}
             >
-              删除
+              \u5220\u9664
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -194,7 +194,7 @@ function PropCard({ item }: { item: PropItem }) {
   );
 }
 
-// ── FolderItem 子组件 ────────────────────────────────────────────────────────
+// ── FolderItem \u5b50\u7ec4\u4ef6 ────────────────────────────────────────────────────────
 
 function FolderItem({
   folder,
@@ -246,7 +246,7 @@ function FolderItem({
           <span className="flex-1 truncate">{folder.name}</span>
         )}
 
-        {/* 目录操作按钮（悬浮显示） */}
+        {/* \u76ee\u5f55\u64cd\u4f5c\u6309\u94ae（\u60ac\u6d6e\u663e\u793a） */}
         {!renaming && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -268,7 +268,7 @@ function FolderItem({
                 }}
               >
                 <Pencil className="mr-2 h-3.5 w-3.5" />
-                重命名
+                \u91cd\u547dtên
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -279,33 +279,33 @@ function FolderItem({
                 }}
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
-                删除目录
+                \u5220\u9664\u76ee\u5f55
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
       </div>
 
-      {/* 删除目录确认 */}
+      {/* \u5220\u9664\u76ee\u5f55\u786e\u8ba4 */}
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除目录</AlertDialogTitle>
+            <AlertDialogTitle>\u5220\u9664\u76ee\u5f55</AlertDialogTitle>
             <AlertDialogDescription>
-              确认删除目录「{folder.name}」？目录内的道具将移至根目录，不会被删除。
+              \u786e\u8ba4\u5220\u9664\u76ee\u5f55「{folder.name}」？\u76ee\u5f55bên trongcủađạo cụ\u5c06\u79fb\u81f3\u6839\u76ee\u5f55，sẽ không\u88ab\u5220\u9664。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>\u53d6\u6d88</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
                 deleteFolder(folder.id);
                 setSelectedFolderId('all');
-                toast.success(`目录「${folder.name}」已删除`);
+                toast.success(`\u76ee\u5f55「${folder.name}」Đã rồi\u5220\u9664`);
               }}
             >
-              删除
+              \u5220\u9664
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -314,7 +314,7 @@ function FolderItem({
   );
 }
 
-// ── 新建目录弹窗 ──────────────────────────────────────────────────────────────
+// ── mới\u5efa\u76ee\u5f55\u5f39cửa sổ ──────────────────────────────────────────────────────────────
 
 function NewFolderDialog({
   open,
@@ -333,19 +333,19 @@ function NewFolderDialog({
     setSelectedFolderId(folder.id);
     setName('');
     onOpenChange(false);
-    toast.success(`目录「${trimmed}」已创建`);
+    toast.success(`\u76ee\u5f55「${trimmed}」Đã rồi\u521b\u5efa`);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[320px]">
         <DialogHeader>
-          <DialogTitle>新建目录</DialogTitle>
+          <DialogTitle>mới\u5efa\u76ee\u5f55</DialogTitle>
         </DialogHeader>
         <div className="py-2">
           <Input
             autoFocus
-            placeholder="输入目录名称，如：汽车、武器..."
+            placeholder="\u8f93\u5165\u76ee\u5f55tên\u79f0，Chẳng hạn như：xe hơi、\u6b66\u5668..."
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
@@ -356,10 +356,10 @@ function NewFolderDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            \u53d6\u6d88
           </Button>
           <Button onClick={handleConfirm} disabled={!name.trim()}>
-            创建
+            \u521b\u5efa
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -367,7 +367,7 @@ function NewFolderDialog({
   );
 }
 
-// ── PropsLibrary 主组件 ───────────────────────────────────────────────────────
+// ── PropsLibrary Chúa ơi\u7ec4\u4ef6 ───────────────────────────────────────────────────────
 
 export function PropsLibrary() {
   const {
@@ -383,30 +383,30 @@ export function PropsLibrary() {
   const visibleItems = getPropsByFolder(selectedFolderId);
   const currentFolderName =
     selectedFolderId === 'all'
-      ? '全部道具'
-      : folders.find((f) => f.id === selectedFolderId)?.name ?? '全部道具';
+      ? 'Tất cảđạo cụ'
+      : folders.find((f) => f.id === selectedFolderId)?.name ?? 'Tất cảđạo cụ';
 
   return (
     <div className="h-full flex">
-      {/* ── 左侧目录树 ── */}
+      {/* ── \u5de6\u4fa7\u76ee\u5f55cây ── */}
       <div className="w-[160px] shrink-0 border-r border-border flex flex-col bg-panel">
-        {/* 目录树标题 */}
+        {/* \u76ee\u5f55câyTiêu đề */}
         <div className="px-3 py-2.5 border-b border-border flex items-center justify-between shrink-0">
-          <span className="text-xs font-semibold text-muted-foreground">目录</span>
+          <span className="text-xs font-semibold text-muted-foreground">\u76ee\u5f55</span>
           <Button
             size="icon"
             variant="ghost"
             className="h-5 w-5"
             onClick={() => setNewFolderOpen(true)}
-            title="新建目录"
+            title="mới\u5efa\u76ee\u5f55"
           >
             <FolderPlus className="h-3.5 w-3.5" />
           </Button>
         </div>
 
-        {/* 目录列表 */}
+        {/* \u76ee\u5f55danh sách */}
         <ScrollArea className="flex-1 py-1.5 px-1.5">
-          {/* 全部道具 */}
+          {/* Tất cảđạo cụ */}
           <button
             className={cn(
               'flex items-center gap-1.5 w-full px-3 py-1.5 rounded-md text-xs transition-colors',
@@ -417,11 +417,11 @@ export function PropsLibrary() {
             onClick={() => setSelectedFolderId('all')}
           >
             <Package className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">全部道具</span>
+            <span className="truncate">Tất cảđạo cụ</span>
             <span className="ml-auto text-[10px] opacity-60">{items.length}</span>
           </button>
 
-          {/* 用户自定义目录 */}
+          {/* sử dụng\u6237\u81ea\u5b9a\u4e49\u76ee\u5f55 */}
           {folders.map((folder) => {
             const count = items.filter((i) => i.folderId === folder.id).length;
             return (
@@ -438,15 +438,15 @@ export function PropsLibrary() {
             );
           })}
 
-          {/* 无目录提示 */}
+          {/* không có\u76ee\u5f55\u63d0\u793a */}
           {folders.length === 0 && (
             <p className="text-[10px] text-muted-foreground px-3 py-2 leading-relaxed">
-              点击右上角 + 新建目录
+              \u70b9\u51fb\u53f3\u4e0a\u89d2 + mới\u5efa\u76ee\u5f55
             </p>
           )}
         </ScrollArea>
 
-        {/* 底部新建按钮 */}
+        {/* \u5e95\u90e8mới\u5efa\u6309\u94ae */}
         <div className="p-2 border-t border-border shrink-0">
           <Button
             variant="outline"
@@ -455,30 +455,30 @@ export function PropsLibrary() {
             onClick={() => setNewFolderOpen(true)}
           >
             <FolderPlus className="mr-1.5 h-3.5 w-3.5" />
-            新建目录
+            mới\u5efa\u76ee\u5f55
           </Button>
         </div>
       </div>
 
-      {/* ── 右侧道具网格 ── */}
+      {/* ── bên phảiđạo cụ\u7f51\u683c ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* 面包屑/标题栏 */}
+        {/* \u9762\u5305\u5c51/Tiêu đề\u680f */}
         <div className="px-4 py-2.5 border-b border-border shrink-0 flex items-center gap-2">
           <Package className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">{currentFolderName}</span>
-          <span className="text-xs text-muted-foreground">({visibleItems.length} 个道具)</span>
+          <span className="text-xs text-muted-foreground">({visibleItems.length} mộtđạo cụ)</span>
         </div>
 
-        {/* 道具网格 */}
+        {/* đạo cụ\u7f51\u683c */}
         <ScrollArea className="flex-1">
           {visibleItems.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-4 text-muted-foreground py-24">
               <Package className="h-16 w-16 opacity-20" />
               <div className="text-center">
-                <p className="text-base font-medium">道具库为空</p>
+                <p className="text-base font-medium">đạo cụ\u5e93cho\u7a7a</p>
                 <p className="text-sm mt-1">
-                  在「自由」板块的图片工作室生成图片后，<br />
-                  点击「保存到道具库」即可添加道具
+                  \u5728「sự tự do」\u677f\u5757của\u56fe\u7247\u5de5\u4f5c\u5ba4\u751f\u6210\u56fe\u7247\u540e，<br />
+                  \u70b9\u51fb「\u4fdd\u5b58Đếnđạo cụ\u5e93」\u5373\u53ef\u6dfb\u52a0đạo cụ
                 </p>
               </div>
             </div>
@@ -492,7 +492,7 @@ export function PropsLibrary() {
         </ScrollArea>
       </div>
 
-      {/* 新建目录弹窗 */}
+      {/* mới\u5efa\u76ee\u5f55\u5f39cửa sổ */}
       <NewFolderDialog open={newFolderOpen} onOpenChange={setNewFolderOpen} />
     </div>
   );

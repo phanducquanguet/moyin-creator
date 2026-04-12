@@ -3,16 +3,16 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 
 /**
- * S级「组级 AI 校准」核心模块
+ * lớp S「cấp độ nhóm AI \u6821\u51c6」cốt lõi\u6a21\u5757
  *
- * 功能：
- * 1. 读取组内各 SplitScene 数据（只读，不修改 director-store）
- * 2. 调用 LLM 生成组级叙事弧线、镜头过渡、音频设计、优化 prompt
- * 3. 写入 sclass-store 的 ShotGroup 校准字段
+ * chức năng：
+ * 1. \u8bfb\u53d6\u7ec4bên trong\u5404 SplitScene \u6570\u636e（\u53ea\u8bfb，Khôngửa director-store）
+ * 2. \u8c03sử dụng LLM Tạovòng kể chuyện nhóm、Cảnh quayChuyển tiếp、Âthiết kế m thanh、\u4f18\u5316 prompt
+ * 3. \u5199\u5165 sclass-store của ShotGroup \u6821\u51c6từ\u6bb5
  *
- * 数据安全：
- * - 只读 director-store，零污染原始剧本数据
- * - 产物只写 sclass-store.ShotGroup 的校准字段
+ * \u6570\u636e\u5b89\u5168：
+ * - \u53ea\u8bfb director-store，không\u6c61\u67d3K gốcịch bảdữ liệu
+ * - \u4ea7\u7269\u53ea\u5199 sclass-store.ShotGroup của\u6821\u51c6từ\u6bb5
  */
 
 import type { SplitScene } from '@/stores/director-store';
@@ -22,24 +22,24 @@ import type { Scene } from '@/stores/scene-store';
 import { callFeatureAPI } from '@/lib/ai/feature-router';
 import { useSClassStore } from '@/stores/sclass-store';
 
-// ==================== 类型定义 ====================
+// ==================== LoạiĐịnh nghĩa ====================
 
-/** 校准产物（AI 输出的 4 项组级优化数据） */
+/** \u6821\u51c6\u4ea7\u7269（AI Đầu rcủa một 4 \u9879cấp độ nhóm\u4f18\u5316\u6570\u636e） */
 export interface CalibrationResult {
-  /** 组级叙事弧线描述 */
+  /** vòng kể chuyện nhómMô tả */
   narrativeArc: string;
-  /** 镜头间过渡指令（长度 = scenes.length - 1） */
+  /** Cảnh quay phòng Chuyển tiếlệnh p（chiều dài = scenes.length - 1） */
   transitions: string[];
-  /** 组级音频设计（整段 15s 规划） */
+  /** cấp độ nhómÂthiết kế m thanh（Toàn bộ kế hoạch của thập niên 15） */
   groupAudioDesign: string;
-  /** AI 优化后的组级 prompt */
+  /** AI \u4f18\u5316\u540ecủacấp độ nhóm prompt */
   calibratedPrompt: string;
 }
 
-// ==================== 内部工具 ====================
+// ==================== bên trong\u90e8\u5de5\u5177 ====================
 
 /**
- * 从 SplitScene 提取摘要信息（用于构建 AI 输入，不泄漏多余字段）
+ * từ SplitScene Trích xuấtTóm tắtthông tin（sử dụng\u4e8e\u6784\u5efa AI Đầu vào，\u4e0d\u6cc4\u6f0f\u591a\u4f59từ\u6bb5）
  */
 function summarizeScene(scene: SplitScene, characters: Character[]): string {
   const charNames = (scene.characterIds || [])
@@ -48,30 +48,30 @@ function summarizeScene(scene: SplitScene, characters: Character[]): string {
     .join('、');
 
   const parts: string[] = [];
-  parts.push(`场景：${scene.sceneName || '未命名'}`);
-  if (scene.sceneLocation) parts.push(`地点：${scene.sceneLocation}`);
-  parts.push(`时长：${scene.duration || 5}s`);
-  if (charNames) parts.push(`角色：${charNames}`);
-  if (scene.actionSummary) parts.push(`动作：${scene.actionSummary}`);
-  if (scene.cameraMovement) parts.push(`运镜：${scene.cameraMovement}`);
-  if (scene.dialogue) parts.push(`对白：${scene.dialogue}`);
-  if (scene.ambientSound) parts.push(`环境音：${scene.ambientSound}`);
-  if (scene.soundEffectText) parts.push(`音效：${scene.soundEffectText}`);
-  if (scene.emotionTags?.length) parts.push(`情绪：${scene.emotionTags.join('、')}`);
-  if (scene.narrativeFunction) parts.push(`叙事功能：${scene.narrativeFunction}`);
+  parts.push(`Cảnh：${scene.sceneName || 'Chưa đặt tên'}`);
+  if (scene.sceneLocation) parts.push(`vị trí：${scene.sceneLocation}`);
+  parts.push(`Thời lượng：${scene.duration || 5}s`);
+  if (charNames) parts.push(`Nhân vật：${charNames}`);
+  if (scene.actionSummary) parts.push(`Hành động：${scene.actionSummary}`);
+  if (scene.cameraMovement) parts.push(`\u8fd0\u955c：${scene.cameraMovement}`);
+  if (scene.dialogue) parts.push(`đối thoại：${scene.dialogue}`);
+  if (scene.ambientSound) parts.push(`âm thanh xung quanh：${scene.ambientSound}`);
+  if (scene.soundEffectText) parts.push(`Hiệu ứng âm thanh：${scene.soundEffectText}`);
+  if (scene.emotionTags?.length) parts.push(`cảm xúc：${scene.emotionTags.join('、')}`);
+  if (scene.narrativeFunction) parts.push(`chức năng tường thuật：${scene.narrativeFunction}`);
 
   return parts.join('\n  ');
 }
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 校准单个组
+ * \u6821\u51c6\u5355một\u7ec4
  *
- * @param group       目标组（只读 sceneIds）
- * @param scenes      组内 SplitScene[]（只读，来自 director-store）
- * @param characters  角色库（用于名称映射）
- * @param sceneLibrary 场景库（备用上下文）
+ * @param group       Đích\u7ec4（\u53ea\u8bfb sceneIds）
+ * @param scenes      \u7ec4bên trong SplitScene[]（\u53ea\u8bfb，\u6765\u81ea director-store）
+ * @param characters  Thư viện nhân vật（cho Tênmap）
+ * @param sceneLibrary Thư viện cảnh（dự phòng\u4e0a\u4e0b\u6587）
  * @returns CalibrationResult
  */
 export async function calibrateGroup(
@@ -81,54 +81,54 @@ export async function calibrateGroup(
   _sceneLibrary: Scene[],
 ): Promise<CalibrationResult> {
   if (scenes.length === 0) {
-    throw new Error('组内无镜头，无法校准');
+    throw new Error('\u7ec4bên trongKhông Cảnh quay，Không thể hiệu chỉnh');
   }
 
   const totalDuration = scenes.reduce((sum, s) => sum + (s.duration || 5), 0);
 
-  // ---- 构建输入 ----
+  // ---- \u6784\u5efaĐầu vào ----
   const sceneSummaries = scenes.map((s, i) =>
-    `【镜头${i + 1}】\n  ${summarizeScene(s, characters)}`
+    `【Cảnh quay${i + 1}】\n  ${summarizeScene(s, characters)}`
   ).join('\n\n');
 
-  const systemPrompt = `你是一位资深电影导演兼剪辑师，擅长多镜头叙事视频的节奏把控和叙事连贯性优化。
+  const systemPrompt = `\u4f60\u662fmột\u4f4d\u8d44\u6df1\u7535\u5f71giám đốc\u517c\u526a\u8f91phép chia，\u64c5\u957fNhiều Cảnh quay tường thuậtVideocủa\u8282\u594f\u628a\u63a7và\u53d9\u4e8b\u8fde\u8d2f\u6027\u4f18\u5316。
 
-【核心约束 — 严格执行】
-1. 严格基于以下镜头数据，不得添加剧本中不存在的角色、场景或对白。
-2. 只做叙事连贯优化和过渡设计，不改变各镜头的核心内容和情绪基调。
-3. 保留每个镜头的原有运镜和动作设计，只在镜头衔接处增加过渡指令。
-4. 音频设计必须基于各镜头已有的环境音/音效信息，不凭空创造新音源。
-5. calibratedPrompt 是对所有镜头的整合重写，必须包含每个镜头的核心信息，不遗漏。
+【cốt lõikhoảng\u675f — \u4e25\u683c\u6267được rồi】
+1. \u4e25\u683cDựa trên\u4ee5\u4e0bCảnh quay\u6570\u636e，\u4e0d\u5f97ThêmKịch bảntrong\u4e0d\u5b58\u5728Nhân vật、Cảnhhoặcđối thoại。
+2. \u53ea\u505a\u53d9\u4e8b\u8fde\u8d2f\u4f18\u5316vàChuyển tiếp\u8bbe\u8ba1，Đừng thay đổi\u5404Cảnh quaycủacốt lõibên trong\u5bb9vàcảm xúgiai điệu c。
+3. \u4fdd\u7559Mọi Cảnh quaycủa\u539fCó\u8fd0\u955cvàHành độthiết kế，\u53ea\u5728Cảnh quay\u8854\u63a5\u5904\u589e\u52a0Chuyển tiếlệnh p。
+4. Âthiết kế m thanh\u5fc5\u987bDựa trên\u5404Cảnh quayĐã rồiCócủaâm thanh xung quanh/Hiệu ứng âm thanhthông tin，\u4e0d\u51ed\u7a7a\u521b\u9020\u65b0\u97f3\u6e90。
+5. calibratedPrompt \u662f\u5bf9Tất cảCảnh quaycủa\u6574\u5408\u91cd\u5199，phải chứaMọi Cảnh quaycủacốt lõithông tin，\u4e0d\u9057\u6f0f。
 
-请以 JSON 格式返回，不要有任何解释文字。`;
+Vui lòng sử dụng JSON Định dạngQuay lại，\u4e0d\u8981Có\u4efb\u4f55\u89e3\u91ca\u6587từ。`;
 
-  const userPrompt = `【组信息】
-组名：${group.name}
-镜头数：${scenes.length}
-总时长：${totalDuration}s
+  const userPrompt = `【\u7ec4thông tin】
+Tên nhóm：${group.name}
+Cảnh quay\u6570：${scenes.length}
+Tổng Thời lượng：${totalDuration}s
 
 ${sceneSummaries}
 
-请输出以下 JSON：
+\u8bf7Đầu ra\u4ee5\u4e0b JSON：
 {
-  "narrativeArc": "用一句话描述这组镜头的叙事弧线（起承转合）",
+  "narrativeArc": "sử dụngmột\u53e5\u8bddMô tả\u8fd9\u7ec4Cảnh quaycủa\u53d9\u4e8b\u5f27\u7ebf（\u8d77\u627f\u8f6c\u5408）",
   "transitions": [
-    "镜头1→镜头2 的过渡指令（如：画面溶解、硬切、声桥过渡等）"
+    "Cảnh quay1→Cảnh quay2 Chuyển tiếlệnh p（Chẳng hạn như：bức tranh\u6eb6\u89e3、\u786c\u5207、\u58f0\u6865Chuyển tiếpĐợi đã）"
   ],
-  "groupAudioDesign": "整段 ${totalDuration}s 的音频设计规划（环境音层次、音效时机、情绪曲线）",
-  "calibratedPrompt": "整合优化后的完整组级提示词，中文，用于 Seedance 2.0 多镜头叙事视频生成"
+  "groupAudioDesign": "\u6574\u6bb5 ${totalDuration}s củaÂthiết kế m thanh\u89c4\u5212（âm thanh xung quanh\u5c42lần、Hiệu ứng âm thanh thời gian\u673a、cảm xúc\u66f2\u7ebf）",
+  "calibratedPrompt": "\u6574\u5408\u4f18\u5316\u540ecủa\u5b8c\u6574cấp độ nhómPrompt，Tiếng Trung，sử dụng\u4e8e Seedance 2.0 Nhiều Cảnh quaynarrativeVideoTạo"
 }
 
-transitions 数组长度必须为 ${scenes.length - 1}（每两个相邻镜头之间一条）。
-calibratedPrompt 必须覆盖全部 ${scenes.length} 个镜头，保持镜头编号和时间轴。`;
+transitions \u6570\u7ec4chiều dài\u5fc5\u987bcho ${scenes.length - 1}（\u6bcf\u4e24một\u76f8\u90bbCảnh quay\u4e4b\u95f4một\u6761）。
+calibratedPrompt \u5fc5\u987b\u8986\u76d6Tất cả ${scenes.length} Cảnh quay，giữCảnh quay\u7f16\u53f7vàThời gian\u8f74。`;
 
-  // ---- 调用 LLM ----
+  // ---- \u8c03sử dụng LLM ----
   const raw = await callFeatureAPI('script_analysis', systemPrompt, userPrompt, {
-    temperature: 0.3, // 低温度确保稳定输出
+    temperature: 0.3, // \u4f4e\u6e29\u5ea6\u786e\u4fdd\u7a33\u5b9aĐầu ra
     maxTokens: 4096,
   });
 
-  // ---- 解析 JSON ----
+  // ---- Phân tích cú pháp JSON ----
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   const jsonStart = cleaned.indexOf('{');
   const jsonEnd = cleaned.lastIndexOf('}');
@@ -140,10 +140,10 @@ calibratedPrompt 必须覆盖全部 ${scenes.length} 个镜头，保持镜头编
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new Error('AI 返回的 JSON 解析失败，请重试');
+    throw new Error('AI Quay lạtôi là Phân tích cú pháp JSON Thất bại，Xin vui lòng Thử lại');
   }
 
-  // ---- 校验 & 容错 ----
+  // ---- \u6821\u9a8c & \u5bb9\u9519 ----
   const result: CalibrationResult = {
     narrativeArc: typeof parsed.narrativeArc === 'string' ? parsed.narrativeArc : '',
     transitions: Array.isArray(parsed.transitions) ? parsed.transitions.map(String) : [],
@@ -151,28 +151,28 @@ calibratedPrompt 必须覆盖全部 ${scenes.length} 个镜头，保持镜头编
     calibratedPrompt: typeof parsed.calibratedPrompt === 'string' ? parsed.calibratedPrompt : '',
   };
 
-  // transitions 长度修正
+  // transitions chiều dài\u4fee\u6b63
   const expectedLen = Math.max(scenes.length - 1, 0);
   if (result.transitions.length > expectedLen) {
     result.transitions = result.transitions.slice(0, expectedLen);
   }
   while (result.transitions.length < expectedLen) {
-    result.transitions.push('自然过渡');
+    result.transitions.push('tự nhiênChuyển tiếp');
   }
 
   if (!result.calibratedPrompt) {
-    throw new Error('AI 未返回有效的 calibratedPrompt');
+    throw new Error('AI \u672aQuay lạiCó\u6548của calibratedPrompt');
   }
 
   return result;
 }
 
-// ==================== Store 写入 ====================
+// ==================== Store \u5199\u5165 ====================
 
 /**
- * 执行校准并写入 store
+ * \u6267được rồi\u6821\u51c6\u5e76\u5199\u5165 store
  *
- * 这是 UI 层应该调用的入口。处理状态更新和错误。
+ * Đây là UI \u5c42\u5e94\u8be5\u8c03sử dụngcủalối vào。Quy trình Trạng tháiCập nhậtvàLỗi。
  */
 export async function runCalibration(
   groupId: string,
@@ -186,11 +186,11 @@ export async function runCalibration(
     : null;
   const group = projectData?.shotGroups.find(g => g.id === groupId);
   if (!group) {
-    console.error('[SClassCalibrator] 找不到组:', groupId);
+    console.error('[SClassCalibrator] \u627e\u4e0dĐến\u7ec4:', groupId);
     return false;
   }
 
-  // 标记校准中
+  // \u6807\u8bb0\u6821\u51c6trong
   store.updateShotGroup(groupId, {
     calibrationStatus: 'calibrating',
     calibrationError: null,
@@ -199,7 +199,7 @@ export async function runCalibration(
   try {
     const result = await calibrateGroup(group, scenes, characters, sceneLibrary);
 
-    // 写入校准产物
+    // \u5199\u5165\u6821\u51c6\u4ea7\u7269
     store.updateShotGroup(groupId, {
       narrativeArc: result.narrativeArc,
       transitions: result.transitions,
@@ -209,11 +209,11 @@ export async function runCalibration(
       calibrationError: null,
     });
 
-    console.log(`[SClassCalibrator] ✅ 组「${group.name}」校准完成`);
+    console.log(`[SClassCalibrator] ✅ \u7ec4「${group.name}」\u6821\u51c6Hoàn thành`);
     return true;
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    console.error(`[SClassCalibrator] ❌ 组「${group.name}」校准失败:`, errMsg);
+    console.error(`[SClassCalibrator] ❌ \u7ec4「${group.name}」Hiệu chỉnh Thất bại:`, errMsg);
 
     store.updateShotGroup(groupId, {
       calibrationStatus: 'failed',
@@ -225,9 +225,9 @@ export async function runCalibration(
 }
 
 /**
- * 批量校准所有未校准的组
+ * lô\u91cf\u6821\u51c6Tất cả\u672a\u6821\u51c6của\u7ec4
  *
- * @returns 成功数 / 总数
+ * @returns Thành công\u6570 / \u603b\u6570
  */
 export async function runBatchCalibration(
   scenes: SplitScene[],
@@ -241,7 +241,7 @@ export async function runBatchCalibration(
 
   if (!projectData) return { success: 0, total: 0 };
 
-  // 筛选需要校准的组（未校准 或 校准失败）
+  // \u7b5b\u9009\u9700\u8981\u6821\u51c6của\u7ec4（\u672a\u6821\u51c6 hoặc Hiệu chỉnh Thất bại）
   const groups = projectData.shotGroups.filter(g =>
     !g.calibrationStatus || g.calibrationStatus === 'idle' || g.calibrationStatus === 'failed'
   );

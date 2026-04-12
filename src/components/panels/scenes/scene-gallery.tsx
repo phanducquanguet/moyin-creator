@@ -90,7 +90,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
   const { activeEpisodeIndex } = useMediaPanelStore();
   const scriptProject = useActiveScriptProject();
 
-  // 集作用域过滤
+  // đặt\u4f5csử dụng\u57dfLọc
   const hasEpisodeScope = activeEpisodeIndex != null;
   const activeEpisodeId = hasEpisodeScope
     ? scriptProject?.scriptData?.episodes.find(ep => ep.index === activeEpisodeIndex)?.id
@@ -120,7 +120,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     } else {
       items = scenes.filter((s) => s.projectId === activeProjectId);
     }
-    // 本集过滤：只显示本集关联的场景 + 无集绑定的全局场景
+    // \u672cđặtLọc：\u53ea\u663e\u793a\u672cđặtliên quan đến Cảnh + không cóđặtLiên kếtcủatình hình chungCảnh
     if (hasEpisodeScope && episodeViewScope === 'episode' && activeEpisodeId) {
       items = items.filter(s => !s.linkedEpisodeId || s.linkedEpisodeId === activeEpisodeId);
     }
@@ -133,7 +133,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     [visibleFolders, currentFolderId]
   );
 
-  // 当前文件夹的场景（分离根场景和子场景）
+  // hiện tạiThư mụcCảnh（\u5206\u79bb\u6839Cảnhvà\u5b50Cảnh）
   const { rootScenes, childScenesMap } = useMemo(() => {
     let items = visibleScenes.filter(s => s.folderId === currentFolderId);
     if (searchQuery.trim()) {
@@ -144,10 +144,10 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
       );
     }
     
-    // 根场景：没有 parentSceneId 的场景
+    // \u6839Cảnh：\u6ca1Có parentSceneId Cảnh
     const roots = items.filter(s => !s.parentSceneId);
     
-    // 构建父子关系映射（支持多层嵌套）
+    // \u6784\u5efa\u7236\u5b50mối quan hệ\u6620\u5c04（Hỗ trợ\u591a\u5c42\u5d4c\u5957）
     const childMap = new Map<string, Scene[]>();
     items.forEach(s => {
       if (s.parentSceneId) {
@@ -160,7 +160,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     return { rootScenes: roots, childScenesMap: childMap };
   }, [visibleScenes, currentFolderId, searchQuery]);
   
-  // 计算每个场景的子场景数量（递归计算所有后代）
+  // Tính mỗi Cảnh\u5b50Cảnh số lượng（\u9012\u5f52Tính toánTất cả\u540e\u4ee3）
   const getDescendantCount = (sceneId: string): number => {
     const children = childScenesMap.get(sceneId) || [];
     let count = children.length;
@@ -170,10 +170,10 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     return count;
   };
   
-  // 展开/收起状态
+  // Mở rộng/Thu gọnTrạng thái
   const [expandedScenes, setExpandedScenes] = useState<Set<string>>(new Set());
   
-  // 联合图任务完成后自动展开父场景（让用户看到切割后的子场景）
+  // \u8054\u5408\u56feNhiệm vụHoàn thành\u540e\u81ea\u52a8Mở rộngPhụ huynh Cảnh（\u8ba9Người dùng\u770bĐến\u5207\u5272\u540ecủa\u5b50Cảnh）
   useEffect(() => {
     if (!contactSheetTasks) return;
     for (const [sceneId, task] of Object.entries(contactSheetTasks)) {
@@ -200,12 +200,12 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     setExpandedScenes(newExpanded);
   };
   
-  // 递归构建场景树列表（平铺但带缩进层级）
+  // \u9012\u5f52\u6784\u5efaCảnhcâydanh sách（\u5e73\u94fa\u4f46\u5e26\u7f29\u8fdb\u5c42\u7ea7）
   const buildSceneTree = (parentScenes: Scene[], depth: number = 0): Array<{ scene: Scene; depth: number }> => {
     const result: Array<{ scene: Scene; depth: number }> = [];
     for (const scene of parentScenes) {
       result.push({ scene, depth });
-      // 如果展开，添加子场景
+      // Chẳng hạn như\u679cMở rộng，Thêm\u5b50Cảnh
       if (expandedScenes.has(scene.id)) {
         const children = childScenesMap.get(scene.id) || [];
         if (children.length > 0) {
@@ -216,7 +216,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     return result;
   };
   
-  // 最终显示的场景列表（带层级）
+  // \u6700\u7ec8Hiển thị Cảnh danh sách（\u5e26\u5c42\u7ea7）
   const currentScenes = useMemo(() => {
     return buildSceneTree(rootScenes);
   }, [rootScenes, childScenesMap, expandedScenes]);
@@ -247,14 +247,14 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) {
-      toast.error("请输入文件夹名称");
+      toast.error("Vui lòng nhậpThư mụcTên");
       return;
     }
     const projectId = resourceSharing.shareScenes ? undefined : activeProjectId || undefined;
     addFolder(newFolderName.trim(), currentFolderId, projectId);
     setNewFolderName("");
     setShowNewFolderDialog(false);
-    toast.success("文件夹已创建");
+    toast.success("Thư mụcĐã Tạo");
   };
 
   const handleRenameFolder = () => {
@@ -262,23 +262,23 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     renameFolder(renamingFolder.id, renameValue.trim());
     setRenamingFolder(null);
     setRenameValue("");
-    toast.success("文件夹已重命名");
+    toast.success("Thư mụcĐã rồi\u91cd\u547dtên");
   };
 
   const handleDeleteFolder = (id: string) => {
-    if (confirm("确定要删除此文件夹吗？文件夹内的场景将移动到上级目录。")) {
+    if (confirm("\u786e\u5b9a\u8981Xoá\u6b64Thư mục\u5417？Thư mụcbên trongCảnh\u5c06\u79fb\u52a8Đến\u4e0a\u7ea7Thư mục。")) {
       deleteFolder(id);
-      toast.success("文件夹已删除");
+      toast.success("Thư mụcĐã rồiXoá");
     }
   };
 
   const handleDeleteScene = (scene: Scene) => {
-    if (confirm(`确定要删除场景 "${scene.name}" 吗？`)) {
+    if (confirm(`\u786e\u5b9a\u8981XoáCảnh "${scene.name}" \u5417？`)) {
       deleteScene(scene.id);
       if (selectedSceneId === scene.id) {
         onSceneSelect(null);
       }
-      toast.success("场景已删除");
+      toast.success("CảnhĐã rồiXoá");
     }
   };
 
@@ -305,7 +305,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
             onClick={() => setCurrentFolder(null)}
           >
             <Home className="h-3.5 w-3.5" />
-            场景库
+            Thư viện cảnh
           </Button>
           {breadcrumbPath.map((folder) => (
             <div key={folder.id} className="flex items-center">
@@ -329,11 +329,11 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索场景..."
+              placeholder="Tìm kiếmCảnh..."
               className="h-8 pl-7 text-sm"
             />
           </div>
-          {/* 全剧/本集切换（仅在进入某集时显示）*/}
+          {/* \u5168\u5267/\u672cđặt\u5207\u6362（\u4ec5\u5728nhập\u67d0đặt\u65f6\u663e\u793a）*/}
           {hasEpisodeScope && (
             <div className="flex border rounded-md">
               <Button
@@ -342,7 +342,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                 className="h-8 px-2 rounded-r-none text-xs"
                 onClick={() => setEpisodeViewScope('episode')}
               >
-                本集
+                \u672cđặt
               </Button>
               <Button
                 variant={episodeViewScope === 'all' ? 'secondary' : 'ghost'}
@@ -350,7 +350,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                 className="h-8 px-2 rounded-l-none text-xs"
                 onClick={() => setEpisodeViewScope('all')}
               >
-                全剧
+                \u5168\u5267
               </Button>
             </div>
           )}
@@ -361,7 +361,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
             onClick={() => setShowNewFolderDialog(true)}
           >
             <FolderPlus className="h-3.5 w-3.5 mr-1" />
-            新建
+            Tạo mới
           </Button>
           <div className="flex border rounded-md">
             <Button
@@ -389,7 +389,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
         {/* Folders */}
         {subFolders.length > 0 && (
           <div className="mb-4">
-            <div className="text-xs text-muted-foreground mb-2">文件夹</div>
+            <div className="text-xs text-muted-foreground mb-2">Thư mục</div>
             <div className={cn(
               viewMode === "grid" 
                 ? "grid grid-cols-3 gap-2" 
@@ -434,7 +434,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
         {currentScenes.length > 0 ? (
           <div>
             <div className="text-xs text-muted-foreground mb-2">
-              场景 ({rootScenes.length})
+              Cảnh ({rootScenes.length})
             </div>
             <div className={cn(
               viewMode === "grid" 
@@ -454,7 +454,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                     onDelete={() => handleDeleteScene(scene)}
                     onMove={(folderId) => {
                       moveToFolder(scene.id, folderId);
-                      toast.success("场景已移动");
+                      toast.success("CảnhĐã rồi\u79fb\u52a8");
                     }}
                   >
                     <SceneCard
@@ -482,10 +482,10 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                 <MapPin className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground">
-                {searchQuery ? "没有找到匹配的场景" : "还没有场景"}
+                {searchQuery ? "\u6ca1Cótìm thấytrận đấuCảnh" : "\u8fd8Không Cảnh"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                使用左侧控制台创建场景
+                sử dụng\u5de6\u4fa7\u63a7\u5236\u53f0TạoCảnh
               </p>
             </div>
           )
@@ -505,20 +505,20 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>新建文件夹</DialogTitle>
+            <DialogTitle>Tạo mớiThư mục</DialogTitle>
           </DialogHeader>
           <Input
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            placeholder="文件夹名称"
+            placeholder="Thư mụcTên"
             onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
             autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewFolderDialog(false)}>
-              取消
+              Huỷ
             </Button>
-            <Button onClick={handleCreateFolder}>创建</Button>
+            <Button onClick={handleCreateFolder}>Tạo</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -527,20 +527,20 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
       <Dialog open={!!renamingFolder} onOpenChange={(open) => !open && setRenamingFolder(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>重命名文件夹</DialogTitle>
+            <DialogTitle>\u91cd\u547dtênThư mục</DialogTitle>
           </DialogHeader>
           <Input
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
-            placeholder="文件夹名称"
+            placeholder="Thư mụcTên"
             onKeyDown={(e) => e.key === "Enter" && handleRenameFolder()}
             autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenamingFolder(null)}>
-              取消
+              Huỷ
             </Button>
-            <Button onClick={handleRenameFolder}>保存</Button>
+            <Button onClick={handleRenameFolder}>Lưu</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -566,10 +566,10 @@ function SceneCard({
   isSelected: boolean;
   viewMode: ViewMode;
   onClick: () => void;
-  depth?: number;         // 嵌套层级
-  childCount?: number;    // 子场景数量
-  isExpanded?: boolean;   // 是否展开
-  hasChildren?: boolean;  // 是否有子场景
+  depth?: number;         // \u5d4c\u5957\u5c42\u7ea7
+  childCount?: number;    // \u5b50Cảnh số lượng
+  isExpanded?: boolean;   // \u662f\u5426Mở rộng
+  hasChildren?: boolean;  // \u662f\u5426Có\u5b50Cảnh
   onToggleExpand?: () => void;
   onImagePreview?: (url: string) => void;
   generatingTask?: { status: string; progress: number; message?: string };
@@ -581,7 +581,7 @@ function SceneCard({
   const displayImage = scene.referenceImage || (scene as any).contactSheetImage || undefined;
   const resolvedImage = useResolvedImageUrl(displayImage);
   
-  // 根据层级计算缩进
+  // \u6839\u636e\u5c42\u7ea7Tính toán\u7f29\u8fdb
   const indentStyle = { marginLeft: `${depth * 20}px` };
 
   if (viewMode === "grid") {
@@ -607,11 +607,11 @@ function SceneCard({
             "aspect-video rounded bg-muted flex items-center justify-center overflow-hidden mb-2 relative",
             hasChildren ? "cursor-pointer" : "cursor-zoom-in"
           )}
-          title={hasChildren ? (isExpanded ? "双击收起子场景" : "双击展开子场景") : "双击查看大图"}
+          title={hasChildren ? (isExpanded ? "\u53cc\u51fbThu gọn\u5b50Cảnh" : "\u53cc\u51fbMở rộng\u5b50Cảnh") : "\u53cc\u51fb\u67e5\u770b\u5927\u56fe"}
           onDoubleClick={(e) => {
             e.stopPropagation();
             if (hasChildren) {
-              // 有子场景时，双击展开/收起而非打开预览
+              // Có\u5b50Cảnh thời gian，\u53cc\u51fbMở rộng/Thu gọn\u800c\u975eMởXem trước
               onToggleExpand?.();
             } else {
               if (resolvedImage) onImagePreview?.(resolvedImage);
@@ -627,15 +627,15 @@ function SceneCard({
           ) : (
             <MapPin className="h-8 w-8 text-muted-foreground" />
           )}
-          {/* 联合图生成中遮罩 */}
+          {/* đồ thị chung Tạotrong\u906e\u7f69 */}
           {generatingTask && generatingTask.status !== 'done' && (
             <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1 z-10">
               {generatingTask.status === 'error' ? (
-                <span className="text-red-400 text-[10px]">❌ 失败</span>
+                <span className="text-red-400 text-[10px]">❌ Thất bại</span>
               ) : (
                 <>
                   <Loader2 className="h-6 w-6 text-white animate-spin" />
-                  <span className="text-white text-[10px]">{generatingTask.message || '生成中...'}</span>
+                  <span className="text-white text-[10px]">{generatingTask.message || 'Tạotrong...'}</span>
                   <div className="w-3/4 h-1 bg-white/30 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary rounded-full transition-all duration-300"
@@ -646,13 +646,13 @@ function SceneCard({
               )}
             </div>
           )}
-          {/* 子场景标识 */}
+          {/* \u5b50Cảnh\u6807\u8bc6 */}
           {depth > 0 && (
             <div className="absolute top-1 left-1 bg-blue-500 text-white text-[8px] px-1 py-0.5 rounded">
-              {scene.viewpointName || '视角'}
+              {scene.viewpointName || 'Góc nhìn'}
             </div>
           )}
-          {/* 显示子场景数量 + 展开/收起指示 */}
+          {/* \u663e\u793a\u5b50Cảnh số lượng + Mở rộng/Thu gọn\u6307\u793a */}
           {hasChildren && (
             <div
               className={cn(
@@ -663,21 +663,21 @@ function SceneCard({
                 e.stopPropagation();
                 onToggleExpand?.();
               }}
-              title={isExpanded ? "收起子场景" : "展开子场景"}
+              title={isExpanded ? "Thu gọn\u5b50Cảnh" : "Mở rộng\u5b50Cảnh"}
             >
               {isExpanded ? (
                 <ChevronDown className="h-2.5 w-2.5" />
               ) : (
                 <ChevronRight className="h-2.5 w-2.5" />
               )}
-              {childCount} 个
+              {childCount} một
             </div>
           )}
-          {/* 父场景预览按钮（有子场景时双击展开，预览通过此按钮） */}
+          {/* Phụ huynh CảnhXem trước\u6309\u94ae（Có\u5b50Cảnh thời gian\u53cc\u51fbMở rộng，Xem trướcChấp nhận\u6b64\u6309\u94ae） */}
           {hasChildren && resolvedImage && (
             <div
               className="absolute bottom-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded p-0.5 cursor-pointer transition-colors"
-              title="预览大图"
+              title="Xem trước\u5927\u56fe"
               onClick={(e) => {
                 e.stopPropagation();
                 onImagePreview?.(resolvedImage);
@@ -705,7 +705,7 @@ function SceneCard({
               </>
             ) : (
               <span className="text-[10px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
-                {scene.viewpointName || '视角'}
+                {scene.viewpointName || 'Góc nhìn'}
               </span>
             )}
           </div>
@@ -732,14 +732,14 @@ function SceneCard({
         }
       }}
     >
-      {/* 展开/收起指示器 */}
+      {/* Mở rộng/Thu gọn\u6307\u793a\u5668 */}
       {hasChildren ? (
         <ChevronRight className={cn(
           "h-4 w-4 transition-transform text-muted-foreground flex-shrink-0",
           isExpanded && "rotate-90"
         )} />
       ) : (
-        <div className="w-4" /> // 占位
+        <div className="w-4" /> // \u5360\u4f4d
       )}
       
       <div className="w-16 h-10 rounded bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 relative">
@@ -752,7 +752,7 @@ function SceneCard({
         ) : (
           <MapPin className="h-4 w-4 text-muted-foreground" />
         )}
-        {/* 列表视图生成中遮罩 */}
+        {/* danh sách\u89c6\u56feTạotrong\u906e\u7f69 */}
         {generatingTask && generatingTask.status !== 'done' && generatingTask.status !== 'error' && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <Loader2 className="h-4 w-4 text-white animate-spin" />
@@ -760,7 +760,7 @@ function SceneCard({
         )}
         {depth > 0 && (
           <div className="absolute top-0 left-0 bg-blue-500 text-white text-[6px] px-0.5 rounded-br">
-            视角
+            Góc nhìn
           </div>
         )}
       </div>
@@ -771,11 +771,11 @@ function SceneCard({
         {generatingTask && generatingTask.status !== 'done' ? (
           <p className="text-xs text-amber-500 truncate flex items-center gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
-            {generatingTask.message || '生成中...'}
+            {generatingTask.message || 'Tạotrong...'}
           </p>
         ) : (
           <p className="text-xs text-muted-foreground truncate">
-            {depth > 0 ? `🎯 ${scene.viewpointName || '视角'}` : `📍 ${scene.location}`}
+            {depth > 0 ? `🎯 ${scene.viewpointName || 'Góc nhìn'}` : `📍 ${scene.location}`}
           </p>
         )}
       </div>
@@ -784,11 +784,11 @@ function SceneCard({
           <>
             <span className="bg-muted px-1 py-0.5 rounded">{timeLabel}</span>
             {hasChildren && (
-              <span className="bg-green-100 text-green-700 px-1 py-0.5 rounded">{childCount} 个</span>
+              <span className="bg-green-100 text-green-700 px-1 py-0.5 rounded">{childCount} một</span>
             )}
           </>
         ) : (
-          <span className="bg-blue-100 text-blue-700 px-1 py-0.5 rounded">视角</span>
+          <span className="bg-blue-100 text-blue-700 px-1 py-0.5 rounded">Góc nhìn</span>
         )}
       </div>
     </div>
@@ -813,12 +813,12 @@ function FolderContextMenu({
       <ContextMenuContent>
         <ContextMenuItem onClick={onRename}>
           <Pencil className="h-4 w-4 mr-2" />
-          重命名
+          \u91cd\u547dtên
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem className="text-destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4 mr-2" />
-          删除文件夹
+          XoáThư mục
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -846,12 +846,12 @@ function SceneContextMenu({
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <FolderInput className="h-4 w-4 mr-2" />
-            移动到
+            \u79fb\u52a8Đến
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onClick={() => onMove(null)}>
               <Home className="h-4 w-4 mr-2" />
-              根目录
+              gốc thư mục
             </ContextMenuItem>
             {folders.map((f) => (
               <ContextMenuItem key={f.id} onClick={() => onMove(f.id)}>
@@ -864,7 +864,7 @@ function SceneContextMenu({
         <ContextMenuSeparator />
         <ContextMenuItem className="text-destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4 mr-2" />
-          删除场景
+          XoáCảnh
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

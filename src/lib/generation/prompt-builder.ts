@@ -2,18 +2,18 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Prompt Builder — 统一视频提示词组装模块
+ * Prompt Builder — \u7edfmộtVideoPrompt\u7ec4\u88c5\u6a21\u5757
  *
- * 核心原则：整合为语义层次，避免碎片化堆叠导致信号稀释
- * Layer 1: 镜头设计 (Camera) - 最高优先级
- * Layer 1.5: 灯光设计 (Lighting)
- * Layer 2: 内容焦点 (Subject) - 次高优先级
- * Layer 3: 氛围修饰 (Mood) - 辅助
- * Layer 4: 场景音频 (Setting & Audio)
- * Layer 5: 视觉风格 (Style)
- * Base: 用户提示词
+ * nguyên tắc cốt lõi：\u6574\u5408cho\u8bed\u4e49\u5c42lần，\u907f\u514d\u788e\u7247\u5316\u5806\u53e0\u5bfc\u81f4\u4fe1\u53f7\u7a00\u91ca
+ * Layer 1: Cảthiết kế bến cảng (Camera) - ưu tiên cao nhất
+ * Layer 1.5: đèn\u8bbe\u8ba1 (Lighting)
+ * Layer 2: bên trong\u5bb9tiêu điểm (Subject) - lần\u9ad8ưu tiên
+ * Layer 3: bầu không khí\u4fee\u9970 (Mood) - phụ trợ
+ * Layer 4: CảnhÂm thanh (Setting & Audio)
+ * Layer 5: Tầm nhìn Phong cách (Style)
+ * Base: Người dùngPrompt
  *
- * 摄影风格档案回退规则：逐镜字段为空时使用项目级摄影档案默认值
+ * Nhiếp ảnh Phong cách\u6863\u6848\u56de\u9000quy tắc：\u9010\u955ctừ\u6bb5cho\u7a7a\u65f6sử dụngDự án\u7ea7\u6444\u5f71\u6863\u6848Mặc địgiá trị nh
  */
 
 import type { SplitScene, EmotionTag } from '@/stores/director-store';
@@ -40,10 +40,10 @@ import type { CinematographyProfile } from '@/lib/constants/cinematography-profi
 import type { MediaType } from '@/lib/constants/visual-styles';
 import { translateToken, type CinematographyField } from '@/lib/generation/media-type-tokens';
 
-// ==================== 辅助函数 ====================
+// ==================== phụ trợchức năng ====================
 
 /**
- * 根据情绪标签构建氛围描述文本
+ * Theo Th.ẻ cảm xúc\u6784\u5efaKhí quyển Mô tả\u6587\u672c
  */
 export function buildEmotionDescription(emotionTags: EmotionTag[]): string {
   if (!emotionTags || emotionTags.length === 0) return '';
@@ -60,20 +60,20 @@ export function buildEmotionDescription(emotionTags: EmotionTag[]): string {
   });
 
   if (labels.length === 1) {
-    return `氛围${labels[0]}，`;
+    return `bầu không khí${labels[0]}，`;
   } else if (labels.length === 2) {
-    return `氛围从${labels[0]}转为${labels[1]}，`;
+    return `bầu không khítừ${labels[0]}\u8f6ccho${labels[1]}，`;
   } else {
-    const progression = labels.slice(0, -1).join('、') + '然后' + labels[labels.length - 1];
-    return `氛围依次${progression}，`;
+    const progression = labels.slice(0, -1).join('、') + '\u7136\u540e' + labels[labels.length - 1];
+    return `bầu không khí\u4f9dlần${progression}，`;
   }
 }
 
-// ==================== 预设查找辅助 ====================
+// ==================== \u9884\u8bbe\u67e5\u627ephụ trợ ====================
 
 /**
- * 查找预设 token 并应用媒介类型翻译。
- * 当 mediaType 为 undefined 时视为 cinematic（直通）。
+ * \u67e5\u627e\u9884\u8bbe token \u5e76Áp dụngLò vừaại\u7ffb\u8bd1。
+ * \u5f53 mediaType cho undefined \u65f6\u89c6cho cinematic（\u76f4\u901a）。
  */
 function findPresetToken<T extends { id: string; promptToken: string }>(
   presets: readonly T[],
@@ -85,29 +85,29 @@ function findPresetToken<T extends { id: string; promptToken: string }>(
   const preset = presets.find(p => p.id === id);
   if (!preset?.promptToken) return undefined;
   const translated = translateToken(mediaType ?? 'cinematic', field, id, preset.promptToken);
-  return translated || undefined; // 空字符串 → undefined（跳过）
+  return translated || undefined; // \u7a7achuỗi → undefined（bỏ qua）
 }
 
-// ==================== 视频 Prompt 构建配置 ====================
+// ==================== Video Prompt \u6784\u5efaCấu hình ====================
 
 export interface VideoPromptConfig {
-  /** 视觉风格 tokens */
+  /** Tầm nhìn Phong cách tokens */
   styleTokens?: string[];
-  /** 画面比例 (仅作为上下文参考) */
+  /** bức tranhTỷ lệ (\u4ec5\u4f5ccho\u4e0a\u4e0b\u6587Tài liệu tham khảo) */
   aspectRatio?: '16:9' | '9:16';
-  /** 媒介类型 — 控制摄影参数翻译策略 */
+  /** Lò vừaại — \u63a7\u5236\u6444\u5f71Tham số\u7ffb\u8bd1Chiến lược */
   mediaType?: MediaType;
 }
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 构建视频生成的完整 prompt
+ * \u6784\u5efaVideoTạocủa\u5b8c\u6574 prompt
  *
- * @param scene - 分镜数据 (SplitScene)
- * @param cinProfile - 摄影风格档案 (undefined 表示未设置)
- * @param config - 额外配置 (styleTokens 等)
- * @returns 组装好的完整 prompt 字符串
+ * @param scene - Phân cảnh dữ liệu (SplitScene)
+ * @param cinProfile - Nhiếp ảnh Phong cách\u6863\u6848 (undefined thể hiện\u672aCài đặt)
+ * @param config - \u989dBên ngoàiCấu hình (styleTokens Đợi đã)
+ * @returns \u7ec4\u88c5\u597dcủa\u5b8c\u6574 prompt chuỗi
  */
 export function buildVideoPrompt(
   scene: SplitScene,
@@ -117,18 +117,18 @@ export function buildVideoPrompt(
   const promptParts: string[] = [];
   const mt = config.mediaType;
 
-  // ---------- Layer 1: 镜头设计 (Camera Design) ----------
+  // ---------- Layer 1: Cảthiết kế bến cảng (Camera Design) ----------
   const cameraDesignParts: string[] = [];
 
-  // 1.0 器材类型 —— 逐镜优先，回退摄影档案
+  // 1.0 Thiết bịLoại —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveRig = scene.cameraRig || cinProfile?.defaultRig?.cameraRig;
   const rigToken = findPresetToken(CAMERA_RIG_PRESETS, effectiveRig, mt, 'cameraRig');
   if (rigToken) cameraDesignParts.push(rigToken);
 
-  // 1.1 判断高级机位描述
+  // 1.1 \u5224\u65adNâng caoGóc máyMô tả
   const hasCameraPosition = scene.cameraPosition?.trim();
 
-  // 1.2 起始景别（仅当没有高级机位描述时）
+  // 1.2 \u8d77\u59cbCỡ cảnh（\u4ec5\u5f53\u6ca1CóNâng caoGóc máyMô tả\u65f6）
   if (!hasCameraPosition && scene.shotSize) {
     const shotPreset = SHOT_SIZE_PRESETS.find(p => p.id === scene.shotSize);
     if (shotPreset) {
@@ -136,35 +136,35 @@ export function buildVideoPrompt(
     }
   }
 
-  // 1.3 机位与运动
+  // 1.3 Góc máyvớicác môn thể thao
   if (hasCameraPosition) {
     cameraDesignParts.push(scene.cameraPosition!.trim());
   } else if (scene.cameraMovement?.trim() && scene.cameraMovement !== 'none') {
-    // 先查预设 promptToken，找不到回退原值（兼容旧数据）
+    // đầu tiên\u67e5\u9884\u8bbe promptToken，\u627e\u4e0dĐến\u56de\u9000\u539f\u503c（Tương thích với dữ liệu cũ）
     const cmPreset = CAMERA_MOVEMENT_PRESETS.find(p => p.id === scene.cameraMovement);
     cameraDesignParts.push(cmPreset?.promptToken || scene.cameraMovement.trim());
   }
 
-  // 1.35 拍摄角度 —— 逐镜优先，回退摄影档案
+  // 1.35 góc chụp —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveAngle = scene.cameraAngle || cinProfile?.defaultAngle;
   if (effectiveAngle && effectiveAngle !== 'eye-level') {
     const angleToken = findPresetToken(CAMERA_ANGLE_PRESETS, effectiveAngle, mt, 'cameraAngle');
     if (angleToken) cameraDesignParts.push(angleToken);
   }
 
-  // 1.4 运动速度 —— 逐镜优先，回退摄影档案
+  // 1.4 Tốc độ di chuyển —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveSpeed = scene.movementSpeed || cinProfile?.defaultRig?.movementSpeed;
   if (effectiveSpeed && effectiveSpeed !== 'normal') {
     const token = findPresetToken(MOVEMENT_SPEED_PRESETS, effectiveSpeed, mt, 'movementSpeed');
     if (token) cameraDesignParts.push(token);
   }
 
-  // 1.5 节奏修饰
+  // 1.5 \u8282\u594f\u4fee\u9970
   if (scene.rhythm?.trim()) {
     cameraDesignParts.push(`${scene.rhythm.trim()} rhythm`);
   }
 
-  // 1.6 景深与焦点 —— 逐镜优先，回退摄影档案
+  // 1.6 độ sâu trường ảnhvớitiêu điểm —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveDof = scene.depthOfField || cinProfile?.defaultFocus?.depthOfField;
   const dofToken = findPresetToken(DEPTH_OF_FIELD_PRESETS, effectiveDof, mt, 'depthOfField');
   if (dofToken) cameraDesignParts.push(dofToken);
@@ -179,32 +179,32 @@ export function buildVideoPrompt(
     if (token) cameraDesignParts.push(token);
   }
 
-  // 1.7 镜头焦距 —— 逐镜优先，回退摄影档案
+  // 1.7 Cảtiêu cự nh quay —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveFL = scene.focalLength || cinProfile?.defaultFocalLength;
   if (effectiveFL) {
     const flToken = findPresetToken(FOCAL_LENGTH_PRESETS, effectiveFL, mt, 'focalLength');
     if (flToken) cameraDesignParts.push(flToken);
   }
 
-  // 1.8 摄影技法 —— 逐镜优先，回退摄影档案
+  // 1.8 kỹ thuật chụp ảnh —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveTech = scene.photographyTechnique || cinProfile?.defaultTechnique;
   if (effectiveTech) {
     const techToken = findPresetToken(PHOTOGRAPHY_TECHNIQUE_PRESETS, effectiveTech, mt, 'photographyTechnique');
     if (techToken) cameraDesignParts.push(techToken);
   }
 
-  // 1.9 特殊拍摄手法
+  // 1.9 Kỹ thuật chụp đặc biệt
   if ((scene as any).specialTechnique && (scene as any).specialTechnique !== 'none') {
     const stPreset = SPECIAL_TECHNIQUE_PRESETS.find(p => p.id === (scene as any).specialTechnique);
     if (stPreset?.promptToken) cameraDesignParts.push(stPreset.promptToken);
   }
 
-  // 组装 Layer 1
+  // \u7ec4\u88c5 Layer 1
   if (cameraDesignParts.length > 0) {
     promptParts.push(`Camera: ${cameraDesignParts.join(', ')}`);
   }
 
-  // ---------- Layer 1.5: 灯光设计 (Lighting) ----------
+  // ---------- Layer 1.5: đèn\u8bbe\u8ba1 (Lighting) ----------
   const lightingParts: string[] = [];
 
   const effectiveLs = scene.lightingStyle || cinProfile?.defaultLighting?.style;
@@ -227,7 +227,7 @@ export function buildVideoPrompt(
     promptParts.push(`Lighting: ${lightingParts.join(' ')}`);
   }
 
-  // ---------- Layer 2: 内容焦点 (Subject & Focus) ----------
+  // ---------- Layer 2: bên trong\u5bb9tiêu điểm (Subject & Focus) ----------
   const subjectParts: string[] = [];
 
   if (scene.characterBlocking?.trim()) {
@@ -244,7 +244,7 @@ export function buildVideoPrompt(
     promptParts.push(`Subject: ${subjectParts.join(', ')}`);
   }
 
-  // ---------- Layer 3: 氛围修饰 (Mood & Narrative) ----------
+  // ---------- Layer 3: bầu không khí\u4fee\u9970 (Mood & Narrative) ----------
   const emotionDesc = buildEmotionDescription(scene.emotionTags || []);
   if (emotionDesc) {
     promptParts.push(`Mood: ${emotionDesc}`);
@@ -257,7 +257,7 @@ export function buildVideoPrompt(
     promptParts.push(`Shot intent: ${scene.shotPurpose.trim()}`);
   }
 
-  // 3.4 氛围特效 —— 逐镜优先，回退摄影档案
+  // 3.4 Không khí Xin chàoệu ứng —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848
   const effectiveAtmo = (scene.atmosphericEffects && scene.atmosphericEffects.length > 0)
     ? scene.atmosphericEffects
     : cinProfile?.defaultAtmosphere?.effects;
@@ -291,60 +291,60 @@ export function buildVideoPrompt(
     }
   }
 
-  // ---------- Layer 4: 场景与音频 (Setting & Audio) ----------
+  // ---------- Layer 4: CảnhvớiÂm thanh (Setting & Audio) ----------
   if (scene.sceneName || scene.sceneLocation) {
     const sceneInfo = [scene.sceneName, scene.sceneLocation].filter(Boolean).join(' - ');
     promptParts.push(`Setting: ${sceneInfo}`);
   }
 
-  // 对白：有内容且开启时包含，否则明确禁止
+  // đối thoại：Cóbên trong\u5bb9\u4e14\u5f00\u542f\u65f6chứa，\u5426\u5219\u660e\u786e\u7981\u6b62
   if (scene.audioDialogueEnabled !== false && scene.dialogue?.trim()) {
     promptParts.push(`Dialogue: "${scene.dialogue.trim()}"`);
   } else {
-    promptParts.push('Dialogue: 禁止对白');
+    promptParts.push('Dialogue: \u7981\u6b62đối thoại');
   }
-  // 环境音：有内容且开启时包含，否则明确禁止
+  // âm thanh xung quanh：Cóbên trong\u5bb9\u4e14\u5f00\u542f\u65f6chứa，\u5426\u5219\u660e\u786e\u7981\u6b62
   if (scene.audioAmbientEnabled !== false && scene.ambientSound?.trim()) {
     promptParts.push(`Ambient: ${scene.ambientSound.trim()}`);
   } else {
-    promptParts.push('Ambient: 禁止环境音');
+    promptParts.push('Ambient: \u7981\u6b62âm thanh xung quanh');
   }
-  // 音效：有内容且开启时包含，否则明确禁止
+  // Hiệu ứng âm thanh：Cóbên trong\u5bb9\u4e14\u5f00\u542f\u65f6chứa，\u5426\u5219\u660e\u786e\u7981\u6b62
   if (scene.audioSfxEnabled !== false && scene.soundEffectText?.trim()) {
     promptParts.push(`SFX: ${scene.soundEffectText.trim()}`);
   } else {
-    promptParts.push('SFX: 禁止音效');
+    promptParts.push('SFX: \u7981\u6b62Hiệu ứng âm thanh');
   }
-  // 背景音乐：有内容且开启时包含，否则明确禁止
+  // NềnÂm nhạc：Cóbên trong\u5bb9\u4e14\u5f00\u542f\u65f6chứa，\u5426\u5219\u660e\u786e\u7981\u6b62
   if (scene.audioBgmEnabled === true && scene.backgroundMusic?.trim()) {
     promptParts.push(`Music: ${scene.backgroundMusic.trim()}`);
   } else {
-    promptParts.push('Music: 禁止背景音乐');
+    promptParts.push('Music: \u7981\u6b62NềnÂm nhạc');
   }
 
-  // ---------- Layer 5: 视觉风格 (Style) ----------
+  // ---------- Layer 5: Tầm nhìn Phong cách (Style) ----------
   if (config.styleTokens && config.styleTokens.length > 0) {
     promptParts.push(`Style: ${config.styleTokens.join(', ')}`);
   }
 
-  // ---------- Base Prompt: 用户视频提示词 ----------
+  // ---------- Base Prompt: Người dùngVideoPrompt ----------
   const basePrompt = scene.videoPromptZh || scene.videoPrompt || '';
   if (basePrompt.trim()) {
     promptParts.push(basePrompt.trim());
   }
 
-  // ---------- 速度控制 (Speed Ramping) —— 逐镜优先，回退摄影档案 ----------
+  // ---------- Kiểm soát tốc độ (Tăng tốc độ) —— \u9010\u955cƯu tiên，\u56de\u9000\u6444\u5f71\u6863\u6848 ----------
   const effectivePbSpeed = scene.playbackSpeed || cinProfile?.defaultSpeed?.playbackSpeed;
   if (effectivePbSpeed && effectivePbSpeed !== 'normal') {
     const token = findPresetToken(PLAYBACK_SPEED_PRESETS, effectivePbSpeed, mt, 'playbackSpeed');
     if (token) promptParts.push(token);
   }
 
-  // ---------- 连戏约束 (Continuity) ----------
+  // ---------- Chơi liên tụckhoảng\u675f (Continuity) ----------
   if (scene.continuityRef?.lightingContinuity?.trim()) {
     promptParts.push(scene.continuityRef.lightingContinuity.trim());
   }
 
-  // 最终组装
+  // \u6700\u7ec8\u7ec4\u88c5
   return promptParts.join('. ');
 }

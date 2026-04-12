@@ -29,7 +29,7 @@ interface ProjectStore {
 // Default project for desktop app
 const DEFAULT_PROJECT: Project = {
   id: "default-project",
-  name: "魔因漫创项目",
+  name: "Ma quỷ Manchuang Dự án",
   createdAt: Date.now(),
   updatedAt: Date.now(),
 };
@@ -62,14 +62,14 @@ export const useProjectStore = create<ProjectStore>()(
       createProject: (name) => {
         const newProject: Project = {
           id: generateUUID(),
-          name: name?.trim() || `新项目 ${new Date().toLocaleDateString('zh-CN')}`,
+          name: name?.trim() || `D mớiự án ${new Date().toLocaleDateString('zh-CN')}`,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         };
         set((state) => ({
           projects: [newProject, ...state.projects],
-          // 不在这里设置 activeProjectId —— 由 switchProject() 统一处理
-          // 避免 switchProject 因 ID 已相同而跳过 rehydration
+          // Không phải ở đâyCài đặt activeProjectId —— Được xử lý thống nhất bởi switchProject()
+          // Tránh switchProject bỏ qua việc bù nước vì ID giống nhau
         }));
         return newProject;
       },
@@ -140,8 +140,8 @@ export const useProjectStore = create<ProjectStore>()(
         state.activeProjectId = project?.id || null;
         state.activeProject = project;
 
-        // 异步扫描磁盘上 _p/ 目录，将遗漏的项目恢复到列表中
-        // 解决路径切换/导入/迁移后项目列表为空的问题
+        // Quét đĩa không đồng bộ cho _p/ Thư mục，D còn thiếuự ánrestore vào danh sách
+        // giải quyếtĐường dẫnChuyển đổi/Nhập/Sau khi di chuyểnDự áVấn đề với n danh sách trống
         discoverProjectsFromDisk().catch((err) =>
           console.warn('[ProjectStore] Disk discovery failed:', err)
         );
@@ -151,20 +151,20 @@ export const useProjectStore = create<ProjectStore>()(
 );
 
 /**
- * 扫描磁盘上 _p/ 目录下的实际项目文件夹，
- * 将未在 projects 列表中注册的项目自动恢复。
+ * Quét đĩa để tìm _p/ Thư mụD thực tế theo cự ánThư mục，
+ * sẽ không có trong danh sách dự ánĐăng kýDự ánTự động phục hồi。
  * 
- * 解决以下场景：
- * - 更改存储路径并迁移数据后，前端 store 未 reload，或 moyin-project-store.json
- *   中的 projects 列表不完整（旧版本、手动复制等）
- * - 导入数据后 moyin-project-store.json 缺失或不含新项目
- * - 换电脑后指向旧数据目录，projects 列表为空
+ * Giải câu C sauảnh：
+ * - Thay đổi lưu trữĐường dẫn và di chuyển dữ liệu，Cửa hàng giao diện người dùng không được tải lại，hoặc moyin-project-store.json
+ *   Danh sách dự án chưa đầy đủ（Phi giàên bản、Sao chép thủ công, v.v.）
+ * - NhậSau p data moyin-project-store.json bị thiếu hoặc không chứa D mớiự án
+ * - Trỏ tới dữ liệu cũ sau khi đổi máy tính Thư mục，danh sách dự án trống
  */
 async function discoverProjectsFromDisk(): Promise<void> {
   if (!window.fileStorage?.listDirs) return;
 
   try {
-    // 列出 _p/ 下所有子目录名（每个子目录名就是一个 projectId）
+    // Danh sách _p/ Hạ Tất cảThư mụtên c（Mỗi đứa trẻ Thư mụTên c là projectId）
     const diskProjectIds = await window.fileStorage.listDirs('_p');
     if (!diskProjectIds || diskProjectIds.length === 0) return;
 
@@ -179,38 +179,38 @@ async function discoverProjectsFromDisk(): Promise<void> {
       missingIds.map((id) => id.substring(0, 8))
     );
 
-    // 尝试从每个遗漏项目的 director / script store 文件中提取项目名
+    // Hãy thử thiếu D t��� mỗiự ágiám đốc của n / script store TệTrích xuất D từ pự án tên
     const recoveredProjects: Project[] = [];
     for (const pid of missingIds) {
-      let name = `恢复的项目 (${pid.substring(0, 8)})`;
+      let name = `Đã khôi phục Dự án (${pid.substring(0, 8)})`;
       const createdAt = Date.now();
 
-      // 尝试从 script store 获取名称
+      // Cố gắng lấy T từ cửa hàng tập lệnhên
       try {
         const scriptRaw = await window.fileStorage.getItem(`_p/${pid}/script-store`);
         if (scriptRaw) {
           const parsed = JSON.parse(scriptRaw);
           const state = parsed?.state ?? parsed;
-          // script-store 的 projects 字段中可能有项目信息
+          // Có thể có D trong trường dự án của script-storeự áthông tin
           if (state?.projects?.[pid]?.title) {
             name = state.projects[pid].title;
           }
         }
       } catch { /* ignore */ }
 
-      // 尝试从 director store 获取创建时间等信息
+      // Cố gắng lấy T từ cửa hàng giám đốcạoThờtôi gian và những thông tin khác
       try {
         const directorRaw = await window.fileStorage.getItem(`_p/${pid}/director-store`);
         if (directorRaw) {
           const parsed = JSON.parse(directorRaw);
           const state = parsed?.state ?? parsed;
           if (state?.projects?.[pid]?.screenplay) {
-            // 有剧本内容，说明确实是有效项目
+            // Có Kịch bảnNội dung，Giải thích thực sự là một D hợp lệự án
             const screenplay = state.projects[pid].screenplay;
-            if (!name.includes('恢复的项目')) {
-              // 已经有名称了，不覆盖
+            if (!name.includes('Đã khôi phục Dự án')) {
+              // Đã có T.ên，Không được bảo hiểm
             } else if (screenplay) {
-              // 用剧本前几个字做临时名称
+              // Sử dụng Kịch bảTạo T tạm thời cho vài từ đầu tiên của nên
               const preview = screenplay.substring(0, 20).replace(/\n/g, ' ').trim();
               if (preview) name = preview + '...';
             }

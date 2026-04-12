@@ -1,83 +1,83 @@
 // Copyright (c) 2025 hotflow2024
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
-// 完成状态
+// Hoàn thànhTrạng thái
 export type CompletionStatus = 'pending' | 'in_progress' | 'completed';
 
-// 提示词语言选项
+// Tùy chọn ngôn ngữ nhắc nhở
 export type PromptLanguage = 'zh' | 'en' | 'zh+en';
 
-// AI角色校准严格度
+// AINhân vậsự nghiêm ngặt của hiệu chuẩn
 export type CalibrationStrictness = 'strict' | 'normal' | 'loose';
 
-/** 被过滤的角色记录（用于恢复） */
+/** Là LọcNhân vậtBản ghi（để phục hồi） */
 export interface FilteredCharacterRecord {
   name: string;
   reason: string;
 }
 
 /**
- * 角色阶段信息
- * 用于标识角色在特定集数范围内的形象版本
+ * Nhân vậthông tin sân khấu t
+ * Used to identify Nhân vậHình ảnh Phi của t trong một số tập cụ thểên bản
  */
 export interface CharacterStageInfo {
-  stageName: string;              // 阶段名称："青年版"、"中年版"、"创业初期"
-  episodeRange: [number, number]; // 适用集数范围：[起始集, 结束集]
-  ageDescription?: string;        // 该阶段年龄描述："25岁"、"50岁"
+  stageName: string;              // Giai đoạn Tên："phiên bản trẻ"、"phiên bản trung niên"、"Giai đoạn đầu kinh doanh"
+  episodeRange: [number, number]; // Phạm vi cài đặt áp dụng：[Tập khởi đầu, Kết thúbộ c]
+  ageDescription?: string;        // Tuổi M ở giai đoạn nàyô tả："25 tuổi"、"50 tuổi"
 }
 
 /**
- * 角色一致性元素
- * 用于保持同一角色不同阶段的可识别性
+ * Nhân vật Yếu tố nhất quán
+ * Dùng để giữ nguyên Nhân vậCó thể xác định ở các giai đoạn khác nhau
  */
 export interface CharacterConsistencyElements {
-  facialFeatures?: string;  // 面部特征（不变）：眼睛形状、五官比例
-  bodyType?: string;        // 体型特征：身高、体格
-  uniqueMarks?: string;     // 独特标记：胎记、疤痕、标志性特征
+  facialFeatures?: string;  // đặc điểm khuôn mặt（không thay đổi）：hình dạng mắt、Đặc điểm khuôn mặt hình chữ Tỷ lệ
+  bodyType?: string;        // Đặc điểm vật lý：chiều cao、vóc dáng
+  uniqueMarks?: string;     // dấu ấn độc đáo：vết bớt、vết sẹo、Tính năng mang tính biểu tượng
 }
 
 /**
- * 角色身份锚点 - 6层特征锁定系统
- * 用于确保AI生图中同一角色在不同场景保持一致
+ * Nhân vậtIdentity Anchor - Khóa tính năng 6 lớp Hệ thống
+ * Được sử dụng để đảm bảo rằng hình ảnh do AI tạo ra có cùng Nhân vật ở C khác nhauảnh giữ sự nhất quán
  */
 export interface CharacterIdentityAnchors {
-  // ① 骨相层 - 面部骨骼结构
-  faceShape?: string;       // 脸型：oval/square/heart/round/diamond/oblong
-  jawline?: string;         // 下颌线：sharp angular/soft rounded/prominent
-  cheekbones?: string;      // 颧骨：high prominent/subtle/wide set
+  // ① Lớp pha xương - Cấu trúc xương mặt
+  faceShape?: string;       // hình dạng khuôn mặt：oval/square/heart/round/diamond/oblong
+  jawline?: string;         // đường viền hàm：sharp angular/soft rounded/prominent
+  cheekbones?: string;      // xương gò má：high prominent/subtle/wide set
   
-  // ② 五官层 - 眼鼻唇精确描述
-  eyeShape?: string;        // 眼型：almond/round/hooded/monolid/upturned
-  eyeDetails?: string;      // 眼部细节：double eyelids, slight epicanthic fold
-  noseShape?: string;       // 鼻型：straight bridge, rounded tip, medium width
-  lipShape?: string;        // 唇型：full lips, defined cupid's bow
+  // ② Lớp đặc điểm khuôn mặt - mắt, mũi và môi chính xác Mô tả
+  eyeShape?: string;        // hình dạng mắt：almond/round/hooded/monolid/upturned
+  eyeDetails?: string;      // Chi tiết mắt：double eyelids, slight epicanthic fold
+  noseShape?: string;       // Hình dáng mũi：straight bridge, rounded tip, medium width
+  lipShape?: string;        // hình môi：full lips, defined cupid's bow
   
-  // ③ 辨识标记层 - 最强锚点
-  uniqueMarks: string[];    // 必填！胎记/疤痕/痣的精确位置："small mole 2cm below left eye"
+  // ③ Xác định lớp đánh dấu – điểm neo mạnh nhất
+  uniqueMarks: string[];    // Bắt buộc！vết bớt/vết sẹo/V chính xác cho nốt ruồiị trí："small mole 2cm below left eye"
   
-  // ④ 色彩锚点层 - Hex色值
+  // ④ Màu sắc lớp điểm neo - Giá trị màu Hex
   colorAnchors?: {
-    iris?: string;          // 虹膜色：#3D2314 (dark brown)
-    hair?: string;          // 发色：#1A1A1A (jet black)
-    skin?: string;          // 肤色：#E8C4A0 (warm beige)
-    lips?: string;          // 唇色：#C4727E (dusty rose)
+    iris?: string;          // màu mống mắt：#3D2314 (dark brown)
+    hair?: string;          // màu tóc：#1A1A1A (jet black)
+    skin?: string;          // màu da：#E8C4A0 (warm beige)
+    lips?: string;          // màu môi：#C4727E (dusty rose)
   };
   
-  // ⑤ 皮肤纹理层
+  // ⑤ lớp kết cấu da
   skinTexture?: string;     // visible pores on nose, light smile lines
   
-  // ⑥ 发型锚点层
-  hairStyle?: string;       // 发型：shoulder-length, layered, side-parted
-  hairlineDetails?: string; // 发际线：natural hairline, slight widow's peak
+  // ⑥ lớp neo kiểu tóc
+  hairStyle?: string;       // kiểu tóc：shoulder-length, layered, side-parted
+  hairlineDetails?: string; // đường chân tóc：natural hairline, slight widow's peak
 }
 
 /**
- * 角色负面提示词
- * 用于排除不符合角色设定的生成结果
+ * Nhân vậtTiêu cựcPrompt
+ * Dùng để loại trừ việc không tuân thủ Nhân vậT đặt bởi tạoKết quả
  */
 export interface CharacterNegativePrompt {
-  avoid: string[];          // 要避免的特征：["blonde hair", "blue eyes", "beard"]
-  styleExclusions?: string[]; // 风格排除：["anime style", "cartoon"]
+  avoid: string[];          // Những đặc điểm cần tránh：["blonde hair", "blue eyes", "beard"]
+  styleExclusions?: string[]; // Phong cáloại trừ：["anime style", "cartoon"]
 }
 
 export interface ScriptCharacter {
@@ -85,29 +85,29 @@ export interface ScriptCharacter {
   name: string;
   gender?: string;
   age?: string;
-  personality?: string; // 性格特点（详细描述）
-  role?: string; // 身份/背景（详细描述）
-  traits?: string; // 核心特质（详细描述）
-  skills?: string; // 技能/能力（如武功、魔法等）
-  keyActions?: string; // 关键行为/事迹
-  appearance?: string; // 外貌描述
-  relationships?: string; // 主要关系
-  tags?: string[]; // 角色标签，如: #武侠 #男主 #剑客
-  notes?: string; // 角色备注（剧情说明）
-  status?: CompletionStatus; // 角色形象生成状态
-  characterLibraryId?: string; // 关联的角色库ID
+  personality?: string; // Đặc điểm tính cách（Chi tiếtMô tả）
+  role?: string; // danh tính/Nền（Chi tiếtMô tả）
+  traits?: string; // đặc điểm cốt lõi（Chi tiếtMô tả）
+  skills?: string; // Kỹ năng/khả năng（Chẳng hạn như võ thuật、ma thuật vv.）
+  keyActions?: string; // hành vi chính/Chứng thư
+  appearance?: string; // Ngoại hình Mô tả
+  relationships?: string; // mối quan hệ chính
+  tags?: string[]; // Nhân vậthẻ t，Chẳng hạn như: #võ thuật #Nam Chúa #kiếm sĩ
+  notes?: string; // Nhân vậtNhận xét（Lô Giải thích）
+  status?: CompletionStatus; // Nhân vậthời gianTạoTrạng thái
+  characterLibraryId?: string; // Liên kết Thư viện nhân vậtID
   
-  // === 多阶段角色支持 ===
-  baseCharacterId?: string;        // 原始角色ID（阶段角色指向基础角色，如"张明青年版"指向"张明"）
-  stageInfo?: CharacterStageInfo;  // 阶段信息（仅阶段角色有此字段）
-  stageCharacterIds?: string[];    // 派生的阶段角色ID列表（仅基础角色有此字段）
-  consistencyElements?: CharacterConsistencyElements; // 一致性元素（基础角色定义，阶段角色继承）
-  visualPromptEn?: string;         // 英文视觉提示词（用于AI图像生成）
-  visualPromptZh?: string;         // 中文视觉提示词
+  // === Nh nhiều giai đoạnân vậtHỗ trợ ===
+  baseCharacterId?: string;        // Nh gốcân vậtID（Giai đoạn Nhân vật trỏ tới Cơ bảnNhân vật，Chẳng hạn như"Phiên bản trẻ Zhang Ming"chỉ vào"Trương Minh"）
+  stageInfo?: CharacterStageInfo;  // thông tin sân khấu（Giai đoạn Nh thôiân vật có trường này）
+  stageCharacterIds?: string[];    // Giai đoạn dẫn xuất Nhân vậdanh sách tID（chỉ Cơ bảnNhân vật có trường này）
+  consistencyElements?: CharacterConsistencyElements; // yếu tố nhất quán（Cơ bảnNhân vậtĐịnh nghĩa，Giai đoạn Nhân vậsự kế thừa）
+  visualPromptEn?: string;         // Lời nhắc trực quan bằng tiếng Anh（cho hình ảnh AI Tạo）
+  visualPromptZh?: string;         // Lời nhắc trực quan của Trung Quốc
   
-  // === 6层身份锚点（AI校准时填充）===
-  identityAnchors?: CharacterIdentityAnchors;  // 身份锚点（用于角色一致性）
-  negativePrompt?: CharacterNegativePrompt;    // 负面提示词（排除不符合的特征）
+  // === Neo nhận dạng lớp 6（Điền vào trong quá trình hiệu chỉnh AI）===
+  identityAnchors?: CharacterIdentityAnchors;  // neo nhận dạng（cho Nhân vậtTính nhất quán）
+  negativePrompt?: CharacterNegativePrompt;    // Lời nhắc tiêu cực（Loại trừ các tính năng chưa từng có）
 }
 
 export interface ScriptScene {
@@ -116,47 +116,47 @@ export interface ScriptScene {
   location: string;
   time: string;
   atmosphere: string;
-  visualPrompt?: string; // 中文场景视觉描述（用于场景概念图生成）
-  tags?: string[]; // 场景标签，如: #木柱 #窗棂 #古建筑
-  notes?: string; // 地点备注（剧情说明）
-  status?: CompletionStatus; // 场景生成状态
-  sceneLibraryId?: string; // 关联的场景库ID
+  visualPrompt?: string; // Tiếng Trung Cảnh tầm nhìn Mô tả（cho Cảnh bản đồ khái niệm Tạo）
+  tags?: string[]; // Cảthẻ nh，Chẳng hạn như: #cột gỗ #lưới cửa sổ #tòa nhà cổ
+  notes?: string; // Ghi chú vị trí（Lô Giải thích）
+  status?: CompletionStatus; // CảnhTạoTrạng thái
+  sceneLibraryId?: string; // Liên kết Thư viện cảnhID
   
-  // === 专业场景设计字段（AI校准时填充）===
-  visualPromptEn?: string;      // 英文视觉提示词（用于AI图像生成）
-  architectureStyle?: string;   // 建筑风格（现代简约/中式古典/工业风/欧式等）
-  lightingDesign?: string;      // 光影设计（自然光/灯光/昏暗/明亮等）
-  colorPalette?: string;        // 色彩基调（暖色调/冷色调/中性色等）
-  keyProps?: string[];          // 关键道具列表
-  spatialLayout?: string;       // 空间布局描述
-  eraDetails?: string;          // 时代特征（如2000年代的装修风格）
+  // === C chuyên nghiệpảlĩnh vực thiết kế（Điền vào trong quá trình hiệu chỉnh AI）===
+  visualPromptEn?: string;      // Lời nhắc trực quan bằng tiếng Anh（cho hình ảnh AI Tạo）
+  architectureStyle?: string;   // Kiến trúcPhong cách（Hiện đại và đơn giản/Trung Quốc cổ điển/phong cách công nghiệp/Phong cách châu Âu vv.）
+  lightingDesign?: string;      // Ánh sáthiết kế（ánh sáng tự nhiên/đèn/mờ/Tươi sáng và như vậy）
+  colorPalette?: string;        // Màu sắgiai điệu c（Ấm Tông màu/lạnh Tông màu/Màu sắc trung tính vv.）
+  keyProps?: string[];          // Danh sách các đạo cụ chính
+  spatialLayout?: string;       // Bố cục không gianMô tả
+  eraDetails?: string;          // Đặc điểm của thời đại（Chẳng hạn như phong cách trang trí những năm 2000 Phong cách）
   
-  // === 出场统计（AI校准时填充）===
-  episodeNumbers?: number[];    // 出现在哪些集
-  appearanceCount?: number;     // 出场次数
-  importance?: 'main' | 'secondary' | 'transition';  // 场景重要性
+  // === Ngoại hìnhống kê（Điền vào trong quá trình hiệu chỉnh AI）===
+  episodeNumbers?: number[];    // Nó xuất hiện ở tập nào?
+  appearanceCount?: number;     // Số lần xuất hiện
+  importance?: 'main' | 'secondary' | 'transition';  // Cảtầm quan trọng của nh
   
-  // === 多视角联合图（场景背景一致性）===
-  contactSheetImage?: string;   // 联合图原图（base64 或 URL）
-  contactSheetImageUrl?: string; // 联合图 HTTP URL
-  viewpoints?: SceneViewpointData[]; // 视角列表
+  // === Nhiều Góc nhìđồ thị chung（CảnhNềnTính nhất quán）===
+  contactSheetImage?: string;   // Hình ảnh chung gốc（base64 hoặc URL）
+  contactSheetImageUrl?: string; // URL HTTP biểu đồ liên kết
+  viewpoints?: SceneViewpointData[]; // Góc nhìnDanh sách
   viewpointImages?: Record<string, {
-    imageUrl: string;           // 切割后的图片（base64 或 URL）
-    imageBase64?: string;       // 持久化用 base64
-    gridIndex: number;          // 在联合图中的位置 (0-5)
+    imageUrl: string;           // H sau khi cắtình ảnh（base64 hoặc URL）
+    imageBase64?: string;       // Sử dụng base64 để duy trì
+    gridIndex: number;          // V trong sơ đồ chungị trí (0-5)
   }>;
 }
 
 /**
- * 场景视角数据（简化版，存储在 ScriptScene 中）
+ * CảnhGóc nhìdữ liệu（Phiên bản đơn giản，Được lưu trữ trong ScriptScene）
  */
 export interface SceneViewpointData {
-  id: string;           // 视角ID，如 'dining', 'sofa', 'window'
-  name: string;         // 中文名：餐桌区、沙发区、窗边
-  nameEn: string;       // 英文名
-  shotIds: string[];    // 关联的分镜ID列表
-  keyProps: string[];   // 该视角需要的道具
-  gridIndex: number;    // 在联合图中的位置 (0-5)
+  id: string;           // Góc nhìnID，Chẳng hạn như 'dining', 'sofa', 'window'
+  name: string;         // Tên tiếng Trung：khu vực bàn ăn、khu vực ghế sofa、cửa sổ
+  nameEn: string;       // tên tiếng anh
+  shotIds: string[];    // liên kết tiến sĩân cảdanh sách nhID
+  keyProps: string[];   // Góc nhìn Đạo cụ bắt buộc
+  gridIndex: number;    // V trong sơ đồ chungị trí (0-5)
 }
 
 export interface ScriptParagraph {
@@ -165,69 +165,69 @@ export interface ScriptParagraph {
   sceneRefId: string;
 }
 
-// 场景原始内容（保留完整对白和动作）
+// Cảnh nội dung gốc（Giữ đối thoại đầy đủ và Hành động）
 export interface SceneRawContent {
-  sceneHeader: string;        // 场景头：如 "1-1日 内 沪上 张家"
-  characters: string[];       // 出场人物
-  content: string;            // 完整场景内容（对白+动作+字幕等）
-  dialogues: DialogueLine[];  // 解析后的对白列表
-  actions: string[];          // 动作描写列表（△开头的）
-  subtitles: string[];        // 字幕【】
-  weather?: string;           // 天气（晴/雨/雪/雾/阴等，从场景内容检测）
-  timeOfDay?: string;         // 时间（日/夜/晨/暮等，从场景头提取）
+  sceneHeader: string;        // Cảnh đầu：Chẳng hạn như "Trong vòng 1-1 ngày, Thượng Hải Zhangjia"
+  characters: string[];       // nhân vật
+  content: string;            // Hoàn thành Cảnh nội dung（Đối thoại+Hành động+phụ đề, v.v.）
+  dialogues: DialogueLine[];  // Danh sách hội thoại được phân tích cú pháp
+  actions: string[];          // Hành độdanh sách mô tả ng（△sự khởi đầu）
+  subtitles: string[];        // phụ đề【】
+  weather?: string;           // thời tiết（rõ ràng/mưa/tuyết/sương mù/Âm v.v.，Từ Cảphát hiện nội dung nh）
+  timeOfDay?: string;         // Thời gian（ngày/đêm/buổi sáng/Chạng vạng và những người khác，Từ Cảtrích xuất tiêu đề nh）
 }
 
-// 对白行
+// dòng đối thoại
 export interface DialogueLine {
-  character: string;          // 角色名
-  parenthetical?: string;     // 括号内动作/情绪，如（喝酒）
-  line: string;               // 台词内容
+  character: string;          // Nhân vậtên t
+  parenthetical?: string;     // H trong ngoặcành động/cảm xúc，Chẳng hạn như（uống）
+  line: string;               // Nội dung dòng
 }
 
-// 集的原始剧本内容
+// bộ K gốcịch bảnNội dung
 export interface EpisodeRawScript {
-  episodeIndex: number;       // 第几集
-  title: string;              // 集标题
-  synopsis?: string;          // 集大纲/摘要（AI生成或手动编辑）
-  keyEvents?: string[];       // 本集关键事件
-  rawContent: string;         // 原始完整内容
-  scenes: SceneRawContent[];  // 解析后的场景列表
-  shotGenerationStatus: 'idle' | 'generating' | 'completed' | 'error';  // 分镜生成状态
-  lastGeneratedAt?: number;   // 上次生成时间
-  synopsisGeneratedAt?: number; // 大纲生成时间
-  season?: string;            // 季节（春/夏/秋/冬，从字幕提取）
+  episodeIndex: number;       // Tập nào
+  title: string;              // tiêu đề tập phim
+  synopsis?: string;          // Tóm tắt tập/Tóm tắt（AITạhướng dẫn sử dụng Chỉnh sửa）
+  keyEvents?: string[];       // Chìa khóa của tập này là Sự kiện
+  rawContent: string;         // Nội dung đầy đủ gốc
+  scenes: SceneRawContent[];  // Đã phân tích cú pháp Cảnh danh sách
+  shotGenerationStatus: 'idle' | 'generating' | 'completed' | 'error';  // Phân cảnhTạoTrạng thái
+  lastGeneratedAt?: number;   // Lần trước T.ạoThời gian
+  synopsisGeneratedAt?: number; // phác thảo TạoThời gian
+  season?: string;            // mùa（mùa xuân/mùa hè/mùa thu/mùa đông，Trích xuất từ phụ đề）
 }
 
-// 项目背景信息
+// Dự ánNềthông tin
 export interface ProjectBackground {
-  title: string;              // 剧名
-  genre?: string;             // 类型（商战/武侠/爱情等）
-  era?: string;               // 时代背景（民国/现代/古代等）
-  timelineSetting?: string;   // 精确时间线设定（如"2022年夏天"、"1990-2020年"）
-  storyStartYear?: number;    // 故事开始年份（用于推算角色年龄）
-  storyEndYear?: number;      // 故事结束年份
-  totalEpisodes?: number;     // 总集数
-  outline: string;            // 故事大纲
-  characterBios: string;      // 人物小传
-  worldSetting?: string;      // 世界观/风格设定
-  themes?: string[];          // 主题关键词
+  title: string;              // Tiêu đề phim truyền hình
+  genre?: string;             // Loại（chiến tranh kinh doanh/võ thuật/tình yêu v.v.）
+  era?: string;               // Thời đại Nền（Cộng hòa Trung Quốc/hiện đại/Thời cổ đại v.v.）
+  timelineSetting?: string;   // Chính xácờtôi cài đặt dòng（Chẳng hạn như"Mùa hè 2022"、"1990-2020"）
+  storyStartYear?: number;    // Câu chuyện Bắt đầuNăm（Được sử dụng để lấy Nhân vậtuổi tác）
+  storyEndYear?: number;      // Câu chuyện Kết thúnăm c
+  totalEpisodes?: number;     // tổng số tập
+  outline: string;            // Tóm tắt
+  characterBios: string;      // Tiểu sử
+  worldSetting?: string;      // thế giới quan/Phong cácài đặt ch
+  themes?: string[];          // Từ khóa chủ đề
 }
 
-// ==================== 剧级数据（SeriesMeta）— 跨集共享 ====================
+// ==================== dữ liệu cấp độ kịch（SeriesMeta）— Chia sẻ giữa các bộ ====================
 
-/** 命名实体：地理/物品/阵营等 */
+/** thực thể được đặt tên：Địa lý/Mặt hàng/trại vv. */
 export interface NamedEntity {
   name: string;
   desc: string;
 }
 
-/** 阵营/势力 */
+/** trại/quyền lực */
 export interface Faction {
   name: string;
   members: string[];
 }
 
-/** 角色关系 */
+/** Nhân vậmối quan hệ */
 export interface CharacterRelationship {
   from: string;
   to: string;
@@ -235,52 +235,52 @@ export interface CharacterRelationship {
 }
 
 /**
- * 剧级元数据 — 项目主页展示，所有集共享
- * 首次导入时由 AI + 正则自动填充，校准后回写丰富
+ * Siêu dữ liệu cấp kịch — Dự ánTrang chủhiển thị，Tất cảthiết lập chia sẻ
+ * Lần đầu NhậTự động điền bằng AI + biểu thức chính quy khi p，Viết lại phong phú sau khi hiệu chuẩn
  */
 export interface SeriesMeta {
-  // === 故事核心 ===
+  // === Cốt lõi câu chuyện ===
   title: string;
-  logline?: string;                   // 一句话概括
-  outline?: string;                   // 100-500字完整故事线
-  centralConflict?: string;           // 主线矛盾
-  themes?: string[];                  // [复仇, 权谋, 友情]
+  logline?: string;                   // Tóm tắt một câu
+  outline?: string;                   // Một câu chuyện hoàn chỉnh từ 100-500 từ
+  centralConflict?: string;           // Xung đột dòng chính
+  themes?: string[];                  // [trả thù, âm mưu, tình bạn]
 
-  // === 世界观 ===
-  era?: string;                       // 古代/现代/未来
-  genre?: string;                     // 武侠/商战/爱情
-  timelineSetting?: string;           // 精确时间线
-  geography?: NamedEntity[];          // 地理设定
-  socialSystem?: string;              // 社会体系
-  powerSystem?: string;               // 力量体系
-  keyItems?: NamedEntity[];           // 关键物品
-  worldNotes?: string;                // 世界观补充（自由文本）
+  // === thế giới quan ===
+  era?: string;                       // thời cổ đại/hiện đại/tương lai
+  genre?: string;                     // võ thuật/chiến tranh kinh doanh/tình yêu
+  timelineSetting?: string;           // Chính xácờtôi gian dòng
+  geography?: NamedEntity[];          // Cài đặt địa lý
+  socialSystem?: string;              // hệ thống xã hội
+  powerSystem?: string;               // hệ thống điện
+  keyItems?: NamedEntity[];           // mục chính
+  worldNotes?: string;                // bổ sung thế giới quan（văn bản miễn phí）
 
-  // === 角色体系 ===
-  characters: ScriptCharacter[];      // 从 scriptData.characters 提升
-  factions?: Faction[];               // 阵营/势力
-  relationships?: CharacterRelationship[];  // 角色关系
+  // === Nhân vậhệ thống t ===
+  characters: ScriptCharacter[];      // được quảng bá từ scriptData.characters
+  factions?: Faction[];               // trại/quyền lực
+  relationships?: CharacterRelationship[];  // Nhân vậmối quan hệ
 
-  // === 视觉系统 ===
+  // === Tầm nhìnHệ thống ===
   styleId?: string;
-  recurringLocations?: ScriptScene[]; // 常驻场景库（≥2集出现的）
-  colorPalette?: string;              // 全剧主色调
+  recurringLocations?: ScriptScene[]; // Cư dân Thư viện cảnh（≥Xuất hiện ở tập 2）
+  colorPalette?: string;              // Nhân vật chính của toàn bộ vở kịchông màu
 
-  // === 制作设定 ===
+  // === Cài đặt sản xuất ===
   language?: string;
   promptLanguage?: PromptLanguage;
   calibrationStrictness?: CalibrationStrictness;
-  metadataMarkdown?: string;          // AI 知识库 MD
+  metadataMarkdown?: string;          // Cơ sở kiến thức AI MD
   metadataGeneratedAt?: number;
 }
 
-// 集（Episode）
+// đặt（Episode）
 export interface Episode {
   id: string;
   index: number;
   title: string;
   description?: string;
-  sceneIds: string[]; // 该集包含的场景ID
+  sceneIds: string[]; // Bộ này chứa CảnhID
 }
 
 export interface ScriptData {
@@ -291,141 +291,141 @@ export interface ScriptData {
   targetDuration?: string;
   characters: ScriptCharacter[];
   scenes: ScriptScene[];
-  episodes: Episode[]; // 集列表
+  episodes: Episode[]; // Danh sách tập
   storyParagraphs: ScriptParagraph[];
 }
 
-// ==================== 视频拍摄控制类型（灯光/焦点/器材/特效/速度） ====================
+// ==================== Điều khiển quay videoLoại（đèn/tiêu điểm/Thiết bị/Hiệu ứng/tốc độ） ====================
 
-// 灯光师 (Gaffer)
+// Gaffer
 export type LightingStyle = 
-  | 'high-key'      // 高调：明亮、低对比，适合喜剧/日常
-  | 'low-key'       // 低调：暗沉、高对比，适合悬疑/noir
-  | 'silhouette'    // 剪影：逆光全黑轮廓
-  | 'chiaroscuro'   // 明暗法：伦勃朗式强烈明暗
-  | 'natural'       // 自然光：真实日光感
-  | 'neon'          // 霓虹：赛博朋克/夜店
-  | 'candlelight'   // 烛光：暖黄微弱光
-  | 'moonlight';    // 月光：冷蓝柔和
+  | 'high-key'      // hồ sơ cao：tươi sáng、độ tương phản thấp，Phù hợp với phim hài/hàng ngày
+  | 'low-key'       // cấu hình thấp：đần độn、độ tương phản cao，Thích hợp cho sự hồi hộp/noir
+  | 'silhouette'    // hình bóng：Hình bóng toàn màu đen có đèn nền
+  | 'chiaroscuro'   // chiaroscuro：Ánh sáng và bóng tối mãnh liệt của Rembrandt
+  | 'natural'       // ánh sáng tự nhiên：Cảm giác ban ngày thực sự
+  | 'neon'          // đèn neon：cyberpunk/hộp đêm
+  | 'candlelight'   // dưới ánh nến：ánh sáng vàng ấm áp
+  | 'moonlight';    // ánh trăng：màu xanh dịu mát
 
 export type LightingDirection = 
-  | 'front'         // 正面光：平坦、无阴影
-  | 'side'          // 侧光：强调轮廓和纹理
-  | 'back'          // 逆光：轮廓光/剪影
-  | 'top'           // 顶光：审讯感/戏剧性
-  | 'bottom'        // 底光：恐怖/不自然
-  | 'rim'           // 轮廓光：边缘发光，与背景分离
-  | 'three-point';  // 三点布光：标准影视照明
+  | 'front'         // ánh sáng phía trước：bằng phẳng、Không Bóng
+  | 'side'          // ánh sáng bên：Nhấn mạnh vào đường nét và kết cấu
+  | 'back'          // Đèn nền：ánh sáng vành/hình bóng
+  | 'top'           // ánh sáng hàng đầu：cảm giác thẩm vấn/kịch tính
+  | 'bottom'        // Ánh sáng phía dưới：kinh dị/không tự nhiên
+  | 'rim'           // ánh sáng vành：phát sáng cạnh，với Nềsự tách biệt
+  | 'three-point';  // Chiếu sáng ba điểm：Chiếu sáng phim và truyền hình tiêu chuẩn
 
 export type ColorTemperature = 
-  | 'warm'          // 暖色 3200K：烛光/钨丝灯
-  | 'neutral'       // 中性 5500K：日光
-  | 'cool'          // 冷色 7000K：阴天/月光
-  | 'golden-hour'   // 黄金时段：日出日落
-  | 'blue-hour'     // 蓝调时分：日落后
-  | 'mixed';        // 混合色温：冷暖交织
+  | 'warm'          // Màu ấm 3200K：dưới ánh nến/đèn vonfram
+  | 'neutral'       // Trung tính 5500K：ánh sáng ban ngày
+  | 'cool'          // Màu sắc mát mẻ 7000K：ngày nhiều mây/ánh trăng
+  | 'golden-hour'   // giờ vàng：bình minh và hoàng hôn
+  | 'blue-hour'     // giờ nhạc blues：sau khi mặt trời lặn
+  | 'mixed';        // MixNhiệt độ màu：Ấm và lạnh
 
-// 跟焦员 (Focus Puller / 1st AC)
+// Kéo lấy nét / 1st AC)
 export type DepthOfField = 
-  | 'ultra-shallow' // f/1.4 极浅：只有眼睛清晰，强烈虚化
-  | 'shallow'       // f/2.8 浅：人物清晰，背景虚化
-  | 'medium'        // f/5.6 中等：前景到中景清晰
-  | 'deep'          // f/11 深：全画面清晰
-  | 'split-diopter';// 分屈光镜：前后都清晰但中间虚
+  | 'ultra-shallow' // f/1.4 Rất nông：Chỉ có đôi mắt là rõ ràng，mờ mạnh
+  | 'shallow'       // f/2,8 nông：Ký tự rõ ràng，Nềlờ mờ
+  | 'medium'        // f/5.6 Vừa phải：Triển vọng đến Trung cảnh rõ ràng
+  | 'deep'          // f/11 sâu：Toàn màn hình rõ ràng
+  | 'split-diopter';// diop：Cả mặt trước và mặt sau đều rõ nhưng ở giữa mờ
 
 export type FocusTransition = 
-  | 'rack-to-fg'    // 转焦到前景
-  | 'rack-to-bg'    // 转焦到背景
-  | 'rack-between'  // 人物间转焦
-  | 'pull-focus'    // 跟焦（跟随运动主体）
-  | 'none';         // 固定焦点
+  | 'rack-to-fg'    // tập trung vào tiền cảnh
+  | 'rack-to-bg'    // Tập trung vào Nền
+  | 'rack-between'  // Tập trung giữa các ký tự
+  | 'pull-focus'    // theo dõi trọng tâm（Theo dõi các chủ thể chuyển động）
+  | 'none';         // tiêu điểm cố định
 
-// 器材组 (Camera Rig)
+// Giàn khoan máy ảnh
 export type CameraRig = 
-  | 'tripod'        // 三脚架：绝对稳定
-  | 'handheld'      // 手持：呼吸感/纪实/紧张
-  | 'steadicam'     // 斯坦尼康：丝滑跟随
-  | 'dolly'         // 轨道车：匀速直线推拉
-  | 'crane'         // 摇臂：垂直升降/大幅弧线
-  | 'drone'         // 航拍：俯瞰/大范围运动
-  | 'shoulder'      // 肩扛：轻微晃动/新闻纪实
-  | 'slider';       // 滑轨：短距离平滑移动
+  | 'tripod'        // chân máy：Tuyệt đối ổn định
+  | 'handheld'      // cầm tay：Cảm giác thở/Phim tài liệu/lo lắng
+  | 'steadicam'     // Steadicam：Mượt theo
+  | 'dolly'         // Xe lửa：Đẩy và kéo đường thẳng thống nhất
+  | 'crane'         // cánh tay rocker：nâng theo chiều dọc/vòng cung lớn
+  | 'drone'         // chụp ảnh trên không：nhìn ra/phạm vi chuyển động rộng
+  | 'shoulder'      // vai：Lắc nhẹ/Tin tức và phim tài liệu
+  | 'slider';       // Ray trượt：Chuyển động mượt mà trên khoảng cách ngắn
 
 export type MovementSpeed = 'very-slow' | 'slow' | 'normal' | 'fast' | 'very-fast';
 
-// 特效师 (On-set SFX)
+// Hiệu ứphân chia ng (SFX cài sẵn)
 export type AtmosphericEffect = 
-  | 'rain'          | 'heavy-rain'     // 雨 / 暴雨
-  | 'snow'          | 'blizzard'       // 雪 / 暴风雪
-  | 'fog'           | 'mist'           // 浓雾 / 薄雾
-  | 'dust'          | 'sandstorm'      // 尘土 / 沙暴
-  | 'smoke'         | 'haze'           // 烟雾 / 薄霾
-  | 'fire'          | 'sparks'         // 火焰 / 火花
-  | 'lens-flare'    | 'light-rays'     // 镜头光晕 / 丁达尔效应
-  | 'falling-leaves'| 'cherry-blossom' // 落叶 / 樱花
-  | 'fireflies'     | 'particles';     // 萤火虫 / 粒子
+  | 'rain'          | 'heavy-rain'     // mưa / mưa lớn
+  | 'snow'          | 'blizzard'       // tuyết / bão tuyết
+  | 'fog'           | 'mist'           // Sương mù dày đặc / sương mù
+  | 'dust'          | 'sandstorm'      // bụi bặm / bão cát
+  | 'smoke'         | 'haze'           // khói / sương mù
+  | 'fire'          | 'sparks'         // ngọn lửa / tia lửa
+  | 'lens-flare'    | 'light-rays'     // Cảnh quay halo / Hiệu ứng Tyndall
+  | 'falling-leaves'| 'cherry-blossom' // lá rụng / hoa anh đào
+  | 'fireflies'     | 'particles';     // đom đóm / hạt
 
 export type EffectIntensity = 'subtle' | 'moderate' | 'heavy';
 
-// 速度控制 (Speed Ramping)
+// Kiểm soát tốc độ (Tăng tốc độ)
 export type PlaybackSpeed = 
-  | 'slow-motion-4x'  // 0.25x 超慢：子弹时间
-  | 'slow-motion-2x'  // 0.5x 慢动作：动作高潮
+  | 'slow-motion-4x'  // 0,25x siêu chậm：Viên đạn thứời gian
+  | 'slow-motion-2x'  // H chậm 0,5 lầnành động：Hành độcực khoái
   | 'normal'           // 1x
-  | 'fast-2x'          // 2x 快进：时间流逝
-  | 'timelapse';       // 延时摄影
+  | 'fast-2x'          // tua nhanh gấp 2 lần：Thờtôi đã vượt qua
+  | 'timelapse';       // chụp ảnh tua nhanh thời gian
 
-// 拍摄角度 (Camera Angle)
+// Góc máy ảnh
 export type CameraAngle =
-  | 'eye-level'      // 平视：自然视角
-  | 'high-angle'     // 俯拍：居高临下
-  | 'low-angle'      // 仰拍：英雄感
-  | 'birds-eye'      // 鸟瞰：俄视俄视
-  | 'worms-eye'      // 虫视：极端低角
-  | 'over-shoulder'  // 过肩：对话场景
-  | 'side-angle'     // 侧拍：侧面视角
-  | 'dutch-angle'    // 荷兰角：倾斜不安感
-  | 'third-person';  // 第三人称：游戏视角
+  | 'eye-level'      // tầm mắt：G tự nhiênóc nhìn
+  | 'high-angle'     // bắn từ trên cao：trịch thượng
+  | 'low-angle'      // Nhìn lên：Cảm giác anh hùng
+  | 'birds-eye'      // nhìn từ trên cao：Truyền hình Nga Truyền hình Nga
+  | 'worms-eye'      // tầm nhìn côn trùng：góc cực thấp
+  | 'over-shoulder'  // Trên vai：Cuộc trò chuyện Cảnh
+  | 'side-angle'     // Bắn bên：Bên Góc nhìn
+  | 'dutch-angle'    // Mũi Hà Lan：In nghiêcảm giác khó chịu
+  | 'third-person';  // người thứ ba：Trò chơi Góc nhìn
 
-// 镜头焦距 (Focal Length)
+// Cảnh quayfocal length (Tiêu cự)
 export type FocalLength =
-  | '8mm'    // 鱼眼：极端桶形畸变
-  | '14mm'   // 超广角：强烈透视感
-  | '24mm'   // 广角：环境上下文
-  | '35mm'   // 标准广角：街拍/纪实感
-  | '50mm'   // 标准：接近人眼视角
-  | '85mm'   // 人像：脸部比例舒适
-  | '105mm'  // 中焦：柔和背景压缩
-  | '135mm'  // 长焦：强背景压缩
-  | '200mm'  // 远摄：极端压缩
-  | '400mm'; // 超长焦：最强压缩
+  | '8mm'    // mắt cá：Biến dạng thùng cực lớn
+  | '14mm'   // góc siêu rộng：Ý thức mạnh mẽ về quan điểm
+  | '24mm'   // góc rộng：bối cảnh môi trường
+  | '35mm'   // Góc rộng tiêu chuẩn：chụp ảnh đường phố/ý nghĩa tài liệu
+  | '50mm'   // Tiêu chuẩn：Gần với mắt ngườiGóc nhìn
+  | '85mm'   // chân dung：Mặt Tỷ lệThoải mái
+  | '105mm'  // tiêu điểm trung bình：mềm Nềnén
+  | '135mm'  // Chụp ảnh xa：mạnh Nềnén
+  | '200mm'  // chụp ảnh xa：nén cực độ
+  | '400mm'; // siêu tele：Nén mạnh nhất
 
-// 摄影技法 (Photography Technique)
+// Kỹ thuật chụp ảnh
 export type PhotographyTechnique =
-  | 'long-exposure'        // 长曝光：运动模糊/光迹
-  | 'double-exposure'      // 多重曝光：叠加透明效果
-  | 'macro'                // 微距：极近细节
-  | 'tilt-shift'           // 移轴：微缩效果
-  | 'high-speed'           // 高速快门：冻结动作
-  | 'bokeh'                // 浅景深虚化：梦幻光斑
-  | 'reflection'           // 反射/镜面拍摄
-  | 'silhouette-technique';// 剪影拍摄
+  | 'long-exposure'        // tiếp xúc lâu：chuyển động mờ/dấu vết ánh sáng
+  | 'double-exposure'      // phơi sáng nhiều lần：Hiệu ứng trong suốt của lớp phủ
+  | 'macro'                // Vĩ mô：Chi tiết cực chất
+  | 'tilt-shift'           // Dịch chuyển độ nghiêng：hiệu ứng thu nhỏ
+  | 'high-speed'           // màn trập tốc độ cao：đóng băngHành động
+  | 'bokeh'                // Độ sâu trường ảnh mờ：Điểm mơ ước
+  | 'reflection'           // sự phản ánh/bắn gương
+  | 'silhouette-technique';// bắn bóng
 
-// 场记/连戏 (Script Supervisor / Continuity)
+// Ghi chú hiện trường/Giám sát kịch bản / Continuity)
 export interface ContinuityCharacterState {
-  position: string;      // "画面左侧站立"
-  clothing: string;      // "蓝色西装，领带松开"
-  expression: string;    // "眉头紧皱"
-  props: string[];       // ["手持信封", "左手插兜"]
+  position: string;      // "Đứng bên trái màn hình"
+  clothing: string;      // "bộ đồ màu xanh，cà vạt bị lỏng"
+  expression: string;    // "cau mày"
+  props: string[];       // ["tay cầm phong bì", "túi bên trái"]
 }
 
 export interface ContinuityRef {
-  prevShotId: string | null;         // 上一镜头 ID
-  nextShotId: string | null;         // 下一镜头 ID
-  prevEndFrameUrl: string | null;    // 上一镜头尾帧（自动填充）
-  characterStates: Record<string, ContinuityCharacterState>;  // charName -> 状态快照
-  lightingContinuity: string;        // "与上一镜头保持同一侧光方向"
-  flaggedIssues: string[];           // AI 自动检测的穿帮风险
+  prevShotId: string | null;         // trướcCảnh quay ID
+  nextShotId: string | null;         // Tiếp theoCảnh quay ID
+  prevEndFrameUrl: string | null;    // trướcCảnh quay khung hình cuối cùng（tự động điền）
+  characterStates: Record<string, ContinuityCharacterState>;  // charName -> Trạng tháiSnapshot
+  lightingContinuity: string;        // "Tương tự như C trướcảnh quay duy trì cùng một hướng ánh sáng bên"
+  flaggedIssues: string[];           // AI tự động phát hiện nguy cơ vượt băng đảng
 }
 
 export type ShotStatus = 'idle' | 'generating' | 'completed' | 'failed';
@@ -456,86 +456,86 @@ export interface VideoInterval {
 export interface Shot {
   id: string;
   index: number;
-  episodeId?: string;        // 所属集ID
+  episodeId?: string;        // ID bộ thuộc về
   sceneRefId: string;        // Script scene id
   sceneId?: string;          // Scene store id
-  sceneViewpointId?: string; // 关联的场景视角ID（联合图切割后的视角）
+  sceneViewpointId?: string; // liên quan đến CảnhGóc nhìnID（G sau khi cắt đồ thị chungóc nhìn）
   
-  // === 分镜核心信息 ===
-  actionSummary: string;     // 动作描述（用户语言）
-  visualDescription?: string; // 详细的画面描述（用户语言，如：“法坛全景，黑暗中微弱光芒笼罩...”）
+  // === Phân cảnh thông tin cốt lõi ===
+  actionSummary: string;     // Hành độngMô tả（Người dùngôn ngữ）
+  visualDescription?: string; // Màn hình chi tiết Mô tả（Người dùngôn ngữ，Chẳng hạn như：“Bàn thờ phápàn cảnh，Ánh sáng yếu ớt bao trùm bóng tối...”）
   completionStatus?: CompletionStatus;
   
-  // === 镜头语言 ===
-  cameraMovement?: string;   // 鎡头运动（Dolly In, Pan Right, Static, Tracking等）
-  specialTechnique?: string; // 特殊拍摄手法（希区柯克变焦、子弹时间、FPV穿梭等）
-  shotSize?: string;         // 景别（Wide Shot, Medium Shot, Close-up, ECU等）
-  duration?: number;         // 预估时长（秒）
+  // === Cảnh quayngôn ngữ ===
+  cameraMovement?: string;   // Bài tập quay đầu（Dolly In, Pan Right, Tĩnh, Theo dõi, v.v.）
+  specialTechnique?: string; // Kỹ thuật chụp đặc biệt（zoom vòi、Viên đạn thứời gian、Xe đưa đón FPV, v.v.）
+  shotSize?: string;         // Cỡ cảnh（Chụp rộng, Chụp trung bình, Cận cảnh, ECU, v.v.）
+  duration?: number;         // ước tính thời lượng（giây）
   
-  // === 视觉生成 ===
-  visualPrompt?: string;     // 英文视觉描述（用于图片生成，兼容旧版）
+  // === Thị giác Tạo ===
+  visualPrompt?: string;     // Tiếng Anh Visual Mô tả（cho Hình ảnhTạo，Tương thích với các phiên bản cũ hơn）
   
-  // === 三层提示词系统 (Seedance 1.5 Pro) ===
-  imagePrompt?: string;      // 首帧提示词（英文，静态描述）
-  imagePromptZh?: string;    // 首帧提示词（中文）
-  videoPrompt?: string;      // 视频提示词（英文，动态动作）
-  videoPromptZh?: string;    // 视频提示词（中文）
-  endFramePrompt?: string;   // 尾帧提示词（英文，静态描述）
-  endFramePromptZh?: string; // 尾帧提示词（中文）
-  needsEndFrame?: boolean;   // 是否需要尾帧
+  // === Ba lớp NhắcHệ thống (Seedance 1.5 Pro) ===
+  imagePrompt?: string;      // Lời nhắc khung đầu tiên（Tiếng Anh，tĩnhMô tả）
+  imagePromptZh?: string;    // Lời nhắc khung đầu tiên（Tiếng Trung）
+  videoPrompt?: string;      // VideoPrompt（Tiếng Anh，Động Hành động）
+  videoPromptZh?: string;    // VideoPrompt（Tiếng Trung）
+  endFramePrompt?: string;   // Lời nhắc khung cuối cùng（Tiếng Anh，tĩnhMô tả）
+  endFramePromptZh?: string; // Lời nhắc khung cuối cùng（Tiếng Trung）
+  needsEndFrame?: boolean;   // Liệu khung hình cuối cùng có cần thiết hay không
   
-  // === 音频设计 ===
-  dialogue?: string;         // 对白/台词
-  ambientSound?: string;     // 环境声（如：“沉重的风声伴随空旷堂内回响”）
-  soundEffect?: string;      // 音效（如：“远处悠长的钟声”）
+  // === Âthiết kế m thanh ===
+  dialogue?: string;         // đối thoại/dòng
+  ambientSound?: string;     // âm thanh xung quanh（Chẳng hạn như：“Tiếng gió nặng nề vang vọng trong căn phòng trống”）
+  soundEffect?: string;      // Hiệu ứng âm thanh（Chẳng hạn như：“Tiếng chuông xa xăm”）
   
-  // === 角色信息 ===
+  // === Nhân vậthông tin t ===
   characterNames?: string[];
   characterIds: string[];
   characterVariations: Record<string, string>; // charId -> variationId
   
-  // === 情绪标签 ===
-  emotionTags?: string[];  // 情绪标签 ID 数组，如 ['sad', 'tense', 'serious']
+  // === Thẻ cảm xúc ===
+  emotionTags?: string[];  // Mảng ID thẻ tình cảm，Chẳng hạn như ['sad', 'tense', 'serious']
   
-  // === 叙事驱动字段（基于《电影语言的语法》） ===
-  narrativeFunction?: string;   // 叙事功能：铺垫/升级/高潮/转折/过渡/尾声
-  conflictStage?: string;       // 冲突阶段：引入/激化/对抗/转折/解决/余波/辅助
-  shotPurpose?: string;         // 镜头目的：此镜头如何服务于故事核心
-  storyAlignment?: string;      // 与世界观/故事核心的一致性：aligned/minor-deviation/needs-review
-  visualFocus?: string;         // 视觉焦点：观众应该看什么（按顺序）
-  cameraPosition?: string;      // 机位描述：摄影机相对于人物的位置
-  characterBlocking?: string;   // 人物布局：人物在画面中的位置关系
-  rhythm?: string;              // 节奏描述：这个镜头的节奏感
+  // === lĩnh vực dẫn dắt câu chuyện（Dựa trên《Ngữ pháp ngôn ngữ điện ảnh》） ===
+  narrativeFunction?: string;   // chức năng tường thuật：điềm báo/Nâng cấp/đỉnh điểm/bước ngoặt/Chuyển tiếp/Lời kết
+  conflictStage?: string;       // giai đoạn xung đột：giới thiệu/tăng cường/Đối đầu/bước ngoặt/giải quyết/hậu quả/phụ trợ
+  shotPurpose?: string;         // Cảnh quay mục đích：C nàyảNh quay phục vụ cốt lõi của câu chuyện như thế nào
+  storyAlignment?: string;      // và thế giới quan/Sự nhất quán ở cốt lõi của câu chuyện：aligned/minor-deviation/needs-review
+  visualFocus?: string;         // tập trung thị giác：Người xem nên xem gì（theo thứ tự）
+  cameraPosition?: string;      // Góc máyMô tả：Chữ V của camera so với nhân vậtị trí
+  characterBlocking?: string;   // Bố cục nhân vật：Chữ V của nhân vật trong ảnhị trímối quan hệ
+  rhythm?: string;              // Nhịp điệu Mô tả：C nàyảNhịp điệu nh quay
 
-  // === 灯光师 (Gaffer) ===
-  lightingStyle?: LightingStyle;           // 灯光风格预设
-  lightingDirection?: LightingDirection;   // 主光源方向
-  colorTemperature?: ColorTemperature;     // 色温
-  lightingNotes?: string;                  // 灯光自由描述（补充）
+  // === Gaffer ===
+  lightingStyle?: LightingStyle;           // Chiếu sángPhong cámặc định
+  lightingDirection?: LightingDirection;   // Hướng nguồn sáng chính
+  colorTemperature?: ColorTemperature;     // Nhiệt độ màu
+  lightingNotes?: string;                  // Tự do chiếu sáng Mô tả（bổ sung）
 
-  // === 跟焦员 (Focus Puller) ===
-  depthOfField?: DepthOfField;             // 景深
-  focusTarget?: string;                    // 焦点目标: "人物面部" / "桌上的信封"
-  focusTransition?: FocusTransition;       // 转焦动作
+  // === Kéo lấy nét ===
+  depthOfField?: DepthOfField;             // độ sâu trường ảnh
+  focusTarget?: string;                    // tiêu điểmĐích: "khuôn mặt" / "phong bì trên bàn"
+  focusTransition?: FocusTransition;       // Tập trung Hành động
 
-  // === 器材组 (Camera Rig) ===
-  cameraRig?: CameraRig;                   // 拍摄器材
-  movementSpeed?: MovementSpeed;           // 运动速度
+  // === Giàn khoan máy ảnh ===
+  cameraRig?: CameraRig;                   // Thiết bị chụp ảnh
+  movementSpeed?: MovementSpeed;           // Tốc độ di chuyển
 
-  // === 特效师 (On-set SFX) ===
-  atmosphericEffects?: AtmosphericEffect[]; // 氛围特效（可多选）
-  effectIntensity?: EffectIntensity;       // 特效强度
+  // === Hiệu ứphân chia ng (SFX cài sẵn) ===
+  atmosphericEffects?: AtmosphericEffect[]; // Không khí Xin chàoệu ứng（Có thể có nhiều lựa chọn）
+  effectIntensity?: EffectIntensity;       // Hiệu ứcường độ ng
 
-  // === 速度控制 (Speed Ramping) ===
-  playbackSpeed?: PlaybackSpeed;           // 播放速度
+  // === Kiểm soát tốc độ (Tăng tốc độ) ===
+  playbackSpeed?: PlaybackSpeed;           // Phátốc độ
 
-  // === 拍摄角度 / 焦距 / 技法 ===
-  cameraAngle?: CameraAngle;               // 拍摄角度
-  focalLength?: FocalLength;               // 镜头焦距
-  photographyTechnique?: PhotographyTechnique; // 摄影技法
+  // === góc chụp / tiêu cự / Kỹ thuật ===
+  cameraAngle?: CameraAngle;               // góc chụp
+  focalLength?: FocalLength;               // Cảtiêu cự nh quay
+  photographyTechnique?: PhotographyTechnique; // kỹ thuật chụp ảnh
 
-  // === 场记/连戏 (Continuity) ===
-  continuityRef?: ContinuityRef;           // 连戏参考
+  // === Ghi chú hiện trường/Tính liên tục ===
+  continuityRef?: ContinuityRef;           // Tài liệu tham khảo để chơi liên tục
 
   // Keyframes for start/end frame generation (CineGen-AI pattern)
   keyframes?: Keyframe[];

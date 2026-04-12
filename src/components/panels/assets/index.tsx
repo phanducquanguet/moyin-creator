@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * AssetsView - 资产面板主入口
- * 左侧导航树 + 右侧内容区
+ * AssetsView - tài sản\u9762\u677fChúa ơilối vào
+ * \u5de6\u4fa7\u5bfc\u822acây + bên phảibên trong\u5bb9Quận
  */
 
 import { useState } from "react";
@@ -38,7 +38,7 @@ export function AssetsView() {
   return (
     <div className="h-full">
       <ResizablePanelGroup direction="horizontal" className="h-full">
-        {/* 左侧导航 */}
+        {/* \u5de6\u4fa7\u5bfc\u822a */}
         <ResizablePanel defaultSize={15} minSize={12} maxSize={25}>
           <AssetSidebar
             activeSection={activeSection}
@@ -48,7 +48,7 @@ export function AssetsView() {
 
         <ResizableHandle withHandle />
 
-        {/* 右侧内容区 */}
+        {/* bên phảibên trong\u5bb9Quận */}
         <ResizablePanel defaultSize={85} minSize={60}>
           <div className="h-full overflow-hidden">
             {renderContent()}

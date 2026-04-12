@@ -27,64 +27,64 @@ export type { IProvider } from '@/lib/api-key-manager';
 // ==================== AI Feature Types ====================
 
 /**
- * AI 功能模块类型
- * 每个功能可以绑定一个 API 供应商
+ * Mô-đun chức năng AI Loại
+ * Mỗi chức năng có thểên kết API Nhà cung cấp
  */
 export type AIFeature = 
-  | 'script_analysis'       // 剧本分析
-  | 'character_generation'  // 角色图片生成
-  | 'scene_generation'      // 场景图片生成
-  | 'video_generation'      // 视频生成
-  | 'image_understanding'   // 图片理解/分析
-  | 'chat'                  // 通用对话
-  | 'freedom_image'         // 自由板块-图片生成
-  | 'freedom_video';        // 自由板块-视频生成
+  | 'script_analysis'       // Kịch bảnPhân tích
+  | 'character_generation'  // Nhân vậtHình ảnhTạo
+  | 'scene_generation'      // CảnhHình ảnhTạo
+  | 'video_generation'      // VideoTạo
+  | 'image_understanding'   // Hình ảtôi hiểu rồi/Phân tích
+  | 'chat'                  // cuộc trò chuyện chung
+  | 'freedom_image'         // Tấm miễn phí-Hình ảnhTạo
+  | 'freedom_video';        // Phần miễn phí-VideoTạo
 
 /**
- * 功能绑定配置
- * 每个功能可绑定多个供应商/模型（多选）
- * 格式: platform:model 数组，如 ['memefast:deepseek-v3.2', 'memefast:gemini-3-pro-image-preview']
+ * chức năngên kếcấu hình
+ * Mỗi chức năng có sẵnên kếtNhiều Nhà cung cấp/Mô hình（Nhiều lựa chọn）
+ * Định dạng: nền tảng: mảng mô hình，Chẳng hạn như ['memefast:deepseek-v3.2', 'memefast:gemini-3-pro-image-preview']
  */
 export type FeatureBindings = Record<AIFeature, string[] | null>;
 
 /**
- * 功能信息定义
+ * Định nghĩa thông tin chức năng
  */
 export const AI_FEATURES: Array<{
   key: AIFeature;
   name: string;
   description: string;
 }> = [
-  { key: 'script_analysis', name: '剧本分析', description: '将故事文本分解为结构化剧本' },
-  { key: 'character_generation', name: '角色生成', description: '生成角色参考图和变体服装' },
-  { key: 'scene_generation', name: '场景生成', description: '生成场景环境参考图' },
-  { key: 'video_generation', name: '视频生成', description: '将图片转换为视频' },
-  { key: 'image_understanding', name: '图片理解', description: '分析图片内容' },
-  { key: 'chat', name: '通用对话', description: 'AI 对话和文本生成' },
-  { key: 'freedom_image', name: '自由板块-图片', description: '自由板块独立的图片生成配置' },
-  { key: 'freedom_video', name: '自由板块-视频', description: '自由板块独立的视频生成配置' },
+  { key: 'script_analysis', name: 'Kịch bảnPhân tích', description: 'Chia văn bản câu chuyện thành cấu trúc Kịch bản' },
+  { key: 'character_generation', name: 'Nhân vậtTạo', description: 'TạoNhân vậtHình ảnh tham khảo và trang phục biến thể' },
+  { key: 'scene_generation', name: 'CảnhTạo', description: 'TạoCảbản đồ tham khảo môi trường nh' },
+  { key: 'video_generation', name: 'VideoTạo', description: 'Will Hình ảChuyển nh sang Video' },
+  { key: 'image_understanding', name: 'Hình ảtôi hiểu rồi', description: 'Phân tíchHình ảnh nội dung' },
+  { key: 'chat', name: 'cuộc trò chuyện chung', description: 'Đối thoại và văn bản AIạo' },
+  { key: 'freedom_image', name: 'Tấm miễn phí-Hình ảnh', description: 'Tấm miễn phí độc lập Hình ảnhTạoCấu hình' },
+  { key: 'freedom_video', name: 'Phần video miễn phí', description: 'Phần miễn phí VideoT độc lậpạoCấu hình' },
 ];
 
 
 // ==================== Types ====================
 
 /**
- * 高级生成选项
- * 控制视频生成的高级行为
+ * Nâng caoTạoTùy chọn
+ * Kiểm soát VideoTạo'sNâhành vi ng cao
  */
 export interface AdvancedGenerationOptions {
-  /** 启用视觉连续性：自动将上一分镜尾帧传递给下一分镜作为参考 */
+  /** Bật tính liên tục về mặt hình ảnh：Tự động thay đổi Ph trước đóân cảnh frame cuối cùng được chuyển tới Ph tiếp theoân cảnh để tham khảo */
   enableVisualContinuity: boolean;
-  /** 启用断点续传：批量生成中断后可从上次位置继续 */
+  /** Cho phép tải xuống có thể tiếp tục：Lô TạoSau khi bị gián đoạn, bạn có thể bắt đầu từ V cuối cùngị trítiếp tục */
   enableResumeGeneration: boolean;
-  /** 启用内容审核容错：遇到敏感内容自动跳过，继续生成其他分镜 */
+  /** Kích hoạt nội dungệkhả năng chịu lỗi：Tự động bỏ qua nội dung nhạy cảm khi gặp phải，Tiếp tục TạoKhácPhân cảnh */
   enableContentModeration: boolean;
-  /** 启用多模型自动切换：首分镜使用 t2v，后续使用 i2v */
+  /** Kích hoạt nhiều Mô hình chuyển mạch tự động：Tiến sĩ đầu tiênân cảnh sử dụng t2v，Việc sử dụng i2v sau đó */
   enableAutoModelSwitch: boolean;
 }
 
 
-/** 高级选项默认值 */
+/** Nâng tùy chọn cao Mặc địgiá trị nh */
 export const DEFAULT_ADVANCED_OPTIONS: AdvancedGenerationOptions = {
   enableVisualContinuity: true,
   enableResumeGeneration: true,
@@ -95,39 +95,39 @@ export const DEFAULT_ADVANCED_OPTIONS: AdvancedGenerationOptions = {
 // ==================== Image Host Types ====================
 
 /**
- * 图床平台
+ * Lưu trữ ảnền tảng nh
  */
 export type ImageHostPlatform = 'imgbb' | 'imgurl' | 'scdn' | 'catbox' | 'cloudflare_r2' | 'custom';
 
 /**
- * 图床供应商配置（独立映射）
+ * Lưu trữ ảnhNhà cung cấcấu hình p（lập bản đồ độc lập）
  */
 export interface ImageHostProvider {
   id: string;
   platform: ImageHostPlatform;
   name: string;
   baseUrl: string;
-  uploadPath: string; // 可为完整 URL 或路径
-  apiKey: string; // 支持多 Key（逗号/换行），允许游客上传的平台可留空
+  uploadPath: string; // Có thể là một URL đầy đủ hoặcĐường dẫn
+  apiKey: string; // Hỗ trợNhiều phím（dấu phẩy/dòng mới），Cho phép khách truy cậpải lêNền tảng của n có thể để trống
   enabled: boolean;
-  apiKeyParam?: string; // Query 参数名（如 key）
-  apiKeyHeader?: string; // Header 名称（可选）
-  apiKeyFormField?: string; // 表单字段中的 Key 名称（如 userhash）
-  apiKeyOptional?: boolean; // 是否允许不填 Key（游客上传）
-  expirationParam?: string; // 过期参数名（如 expiration）
-  imageField?: string; // 表单字段名（默认 image）
-  imagePayloadType?: 'base64' | 'file'; // 图片字段传输模式
-  nameField?: string; // 表单字段名（默认 name）
-  staticFormFields?: Record<string, string>; // 固定附加表单字段
-  responseUrlField?: string; // 响应中 URL 字段路径（如 data.url）
-  responseDeleteUrlField?: string; // 响应中删除 URL 字段路径
+  apiKeyParam?: string; // Query Tham sốtên（Chẳng hạn như chìa khóa）
+  apiKeyHeader?: string; // Header Tên（Tùy chọn）
+  apiKeyFormField?: string; // Phím T trong trường biểu mẫuên（Chẳng hạn như userhash）
+  apiKeyOptional?: boolean; // Có được phép để trống Key không?（du lịch Tải lên）
+  expirationParam?: string; // Đã hết hạnTham sốtên（Chẳng hạn như hết hạn）
+  imageField?: string; // Tên trường biểu mẫu（Mặc định image）
+  imagePayloadType?: 'base64' | 'file'; // Hình ảchế độ truyền trường nh
+  nameField?: string; // Tên trường biểu mẫu（Mặc định name）
+  staticFormFields?: Record<string, string>; // Đã sửa lỗi các trường biểu mẫu bổ sung
+  responseUrlField?: string; // Trường URL phản hồiĐường dẫn（Chẳng hạn như data.url）
+  responseDeleteUrlField?: string; // Đang phản hồiXoá trường URLĐường dẫn
 }
 
-/** 图床供应商预设（仅保留当前在用范围内的平台） */
+/** Lưu trữ ảnhNhà cung cấpMặc định（Chỉ giữ lại các nền tảng hiện đang được sử dụng） */
 export const IMAGE_HOST_PRESETS: Omit<ImageHostProvider, 'id' | 'apiKey'>[] = [
   {
     platform: 'scdn',
-    name: 'SCDN 图床',
+    name: 'SCDN Lưu trữ ảnh',
     baseUrl: 'https://img.scdn.io',
     uploadPath: '/api/v1.php',
     enabled: true,
@@ -175,7 +175,7 @@ export const IMAGE_HOST_PRESETS: Omit<ImageHostProvider, 'id' | 'apiKey'>[] = [
   },
   {
     platform: 'custom',
-    name: '自定义图床',
+    name: 'Tuỳ chỉnhLưu trữ ảnh',
     baseUrl: '',
     uploadPath: '',
     enabled: false,
@@ -189,7 +189,7 @@ export const IMAGE_HOST_PRESETS: Omit<ImageHostProvider, 'id' | 'apiKey'>[] = [
   },
 ];
 
-/** 首次启动默认创建的图床（仅 SCDN 默认开启，ImgBB 默认关闭） */
+/** Khởi động M lần đầu tiênặc địnhTạo là Lưu trữ ảnh（chỉ SCDN Mặc định mở，ImgBB Mặc địnhĐóng） */
 export const DEFAULT_IMAGE_HOST_PROVIDERS: Omit<ImageHostProvider, 'id' | 'apiKey'>[] =
   IMAGE_HOST_PRESETS.filter((preset) => preset.platform === 'scdn' || preset.platform === 'imgbb');
 
@@ -351,7 +351,7 @@ function normalizeImageHostProviders(providers: ImageHostProvider[] | undefined 
   return (providers || []).filter(isVisibleImageHostProvider).map(normalizeImageHostProvider);
 }
 
-/** Legacy 图床配置（仅用于迁移） */
+/** Legacy Lưu trữ ảnh cấu hình（Chỉ dành cho di chuyển） */
 export interface LegacyImageHostConfig {
   type: ImageHostPlatform;
   imgbbApiKey: string;
@@ -394,11 +394,11 @@ interface APIConfigState {
   modelEndpointTypes: Record<string, string[]>;
   
   // Model metadata from /api/pricing_new (MemeFast platform classification)
-  // model_name -> model_type: "文本" | "图像" | "音视频" | "检索"
+  // model_name -> model_type: "\u6587\u672c" | "\u56fe\u50cf" | "Âm thanhVideo" | "\u68c0\u7d22"
   modelTypes: Record<string, string>;
-  // model_name -> tags: ["对话","识图","工具"] etc.
+  // model_name -> tags: ["\u5bf9\u8bdd","\u8bc6\u56fe","\u5de5\u5177"] etc.
   modelTags: Record<string, string[]>;
-  // model_name -> enable_groups: ["官转","纯AZ","default"] (MemeFast only)
+  // model_name -> enable_groups: ["chuyển nhượng chính thức","AZ tinh khiết","default"] (MemeFast only)
   modelEnableGroups: Record<string, string[]>;
   
   // Discovered model limits (Error-driven Discovery)
@@ -480,12 +480,12 @@ export interface APIConfigStatus {
 // ==================== Provider Info ====================
 
 /**
- * 供应商信息映射
- * 1. memefast - 魔因API，全功能 AI 中转（推荐）
- * 2. runninghub - RunningHub，视角切换/多角度生成
+ * Nhà cung cấánh xạ thông tin p
+ * 1. memefast - API Moin，Chuyển AI đầy đủ tính năng（Đề xuất）
+ * 2. runninghub - RunningHub，Góc nhìnChuyển đổi/Đa góc Tạo
  */
 const PROVIDER_INFO: Record<ProviderId, { name: string; services: ServiceType[] }> = {
-  memefast: { name: '魔因API', services: ['chat', 'image', 'video', 'vision'] },
+  memefast: { name: 'API ma thuật', services: ['chat', 'image', 'video', 'vision'] },
   runninghub: { name: 'RunningHub', services: ['image', 'vision'] },
   openai: { name: 'OpenAI', services: [] },
   custom: { name: 'Custom', services: [] },
@@ -587,16 +587,16 @@ export const useAPIConfigStore = create<APIConfigStore>()(
 
       syncProviderModels: async (providerId) => {
         const provider = get().providers.find(p => p.id === providerId);
-        if (!provider) return { success: false, count: 0, error: '供应商不存在' };
+        if (!provider) return { success: false, count: 0, error: 'Nhà cung cấp không tồn tại' };
 
         const keys = parseApiKeys(provider.apiKey);
-        if (keys.length === 0) return { success: false, count: 0, error: '请先配置 API Key' };
+        if (keys.length === 0) return { success: false, count: 0, error: 'Vui lòng định cấu hình Khóa API trước' };
 
         const baseUrl = provider.baseUrl?.replace(/\/+$/, '');
-        if (!baseUrl) return { success: false, count: 0, error: 'Base URL 未配置' };
+        if (!baseUrl) return { success: false, count: 0, error: 'URL cơ sở chưa được định cấu hình' };
 
         try {
-          // 用 Set 收集所有 key 的模型，自动去重
+          // Sử dụng Set để thu thập Tất cả Chìa khóa Mô hình，Tự động loại bỏ trùng lặp
           const allModelIds = new Set<string>();
           const isMemefast = provider.platform === 'memefast';
           const memefastTypes: Record<string, string> = {};
@@ -605,19 +605,19 @@ export const useAPIConfigStore = create<APIConfigStore>()(
           const memefastEnableGroups: Record<string, string[]> = {};
 
           if (isMemefast) {
-            // MemeFast: /api/pricing_new 获取全量元数据（公开接口）
+            // MemeFast: /api/giá_new Nhận siêu dữ liệu đầy đủ（Côgiao diện ng khai）
             const domain = baseUrl.replace(/\/v\d+$/, '');
             const pricingUrl = `${domain}/api/pricing_new`;
 
             const response = await fetch(pricingUrl);
             if (!response.ok) {
-              return { success: false, count: 0, error: `pricing_new API 返回 ${response.status}` };
+              return { success: false, count: 0, error: `pricing_new API Quay lại ${response.status}` };
             }
 
             const json = await response.json();
             const data: Array<{ model_name: string; model_type?: string; tags?: string; supported_endpoint_types?: string[]; enable_groups?: string[] }> = json.data;
             if (!Array.isArray(data) || data.length === 0) {
-              return { success: false, count: 0, error: '响应格式异常' };
+              return { success: false, count: 0, error: 'phản ứngĐịnh dạngoại lệ' };
             }
 
             console.log(`[APIConfig] Fetched ${data.length} models from pricing_new`);
@@ -642,14 +642,14 @@ export const useAPIConfigStore = create<APIConfigStore>()(
               }
             }
 
-            // pricing_new 返回全量（公开列表），先收入
+            // pricing_new Quay lạsố tiền đầy đủ（Công khai list），Thu nhập đầu tiên
             for (const m of data) {
               if (typeof m.model_name === 'string' && m.model_name.length > 0) {
                 allModelIds.add(m.model_name);
               }
             }
 
-            // 再遍历每个 key 查 /v1/models 补充该 key 独有模型
+            // Sau đó duyệt từng phím để kiểm tra /v1/mô hình bổ sung khóa UniqueMô hình
             const modelsUrl = /\/v\d+$/.test(baseUrl)
               ? `${baseUrl}/models`
               : `${baseUrl}/v1/models`;
@@ -669,7 +669,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                 for (const m of arr) {
                   const id = typeof m === 'string' ? m : m.id;
                   if (typeof id === 'string' && id.length > 0) allModelIds.add(id);
-                  // 补充 endpoint_types
+                  // Bổ sung endpoint_types
                   if (typeof m !== 'string' && m.id && Array.isArray(m.supported_endpoint_types)) {
                     memefastEndpoints[m.id] = m.supported_endpoint_types as string[];
                   }
@@ -680,7 +680,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
               }
             }
           } else {
-            // Standard OpenAI-compatible: 遍历每个 key 查 /v1/models，合并去重
+            // Tương thích OpenAI tiêu chuẩn: Duyệt từng phím để kiểm tra /v1/models，Hợp nhất và loại bỏ trùng lặp
             const modelsUrl = /\/v\d+$/.test(baseUrl)
               ? `${baseUrl}/models`
               : `${baseUrl}/v1/models`;
@@ -696,7 +696,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                 });
 
                 if (!response.ok) {
-                  lastError = `key#${ki + 1} API 返回 ${response.status}`;
+                  lastError = `key#${ki + 1} API Quay lại ${response.status}`;
                   console.warn(`[APIConfig] ${lastError}`);
                   continue;
                 }
@@ -719,7 +719,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                 }
                 console.log(`[APIConfig] key#${ki + 1} contributed models, total so far: ${allModelIds.size}`);
               } catch (e) {
-                lastError = `key#${ki + 1} 网络请求失败`;
+                lastError = `key#${ki + 1} Yêu cầu mạng Thất bại`;
                 console.warn(`[APIConfig] ${lastError}:`, e);
               }
             }
@@ -734,13 +734,13 @@ export const useAPIConfigStore = create<APIConfigStore>()(
             }
 
             if (!anySuccess) {
-              return { success: false, count: 0, error: lastError || 'API 返回异常' };
+              return { success: false, count: 0, error: lastError || 'API Quay lạiException' };
             }
           }
 
           const modelIds = Array.from(allModelIds);
           if (modelIds.length === 0) {
-            return { success: false, count: 0, error: '未获取到任何模型' };
+            return { success: false, count: 0, error: 'Không thu được Mô hình' };
           }
 
           if (isMemefast) {
@@ -773,27 +773,27 @@ export const useAPIConfigStore = create<APIConfigStore>()(
           return { success: true, count: modelIds.length };
         } catch (error) {
           console.error('[APIConfig] Model sync failed:', error);
-          return { success: false, count: 0, error: '网络请求失败，请检查网络' };
+          return { success: false, count: 0, error: 'Yêu cầu mạng Thất bại，Vui lòng kiểm tra mạng' };
         }
       },
 
       // ==================== Feature Binding Management (Multi-Select) ====================
       
-      // 设置功能的所有绑定（替换）
+      // Cài đặhàm t của Tất cảLiên kết（thay thế）
       setFeatureBindings: (feature, bindings) => {
         set((state) => ({
           featureBindings: { ...state.featureBindings, [feature]: bindings },
         }));
-        console.log(`[APIConfig] Set ${feature} -> [${bindings?.join(', ') || '无'}]`);
+        console.log(`[APIConfig] Set ${feature} -> [${bindings?.join(', ') || 'không có'}]`);
       },
       
-      // 切换单个绑定（添加/移除）
+      // Chuyển đổi một Li đơnên kết（Thêm/Xóa）
       toggleFeatureBinding: (feature, binding) => {
         const current = get().featureBindings[feature] || [];
         const exists = current.includes(binding);
         
-        // 同时检查 legacy 格式（platform:model）是否存在
-        // 例如 binding = "{id}:deepseek-v3" 但 current 里可能有 "memefast:deepseek-v3"
+        // Đồng thời kiểm tra di sản Định dạng（platform:model）tồn tại
+        // Ví dụ ràng buộc = "{id}:deepseek-v3" Nhưng có thể có điều gì đó hiện tại "memefast:deepseek-v3"
         let legacyMatch: string | null = null;
         const idx = binding.indexOf(':');
         if (idx > 0) {
@@ -809,14 +809,14 @@ export const useAPIConfigStore = create<APIConfigStore>()(
         }
         
         if (exists || legacyMatch) {
-          // 删除：同时移除精确匹配和 legacy 格式
+          // Xoá：Xóa cả đối sánh chính xác và kế thừa Định dạng
           const newBindings = current.filter(b => b !== binding && b !== legacyMatch);
           set((state) => ({
             featureBindings: { ...state.featureBindings, [feature]: newBindings.length > 0 ? newBindings : null },
           }));
           console.log(`[APIConfig] Toggle ${feature}: ${binding} -> removed${legacyMatch ? ` (also removed legacy: ${legacyMatch})` : ''}`);
         } else {
-          // 添加
+          // Thêm
           const newBindings = [...current, binding];
           set((state) => ({
             featureBindings: { ...state.featureBindings, [feature]: newBindings.length > 0 ? newBindings : null },
@@ -825,16 +825,16 @@ export const useAPIConfigStore = create<APIConfigStore>()(
         }
       },
 
-      // 获取功能的所有绑定
+      // Nhận chức năng Tất cảLiên kết
       getFeatureBindings: (feature) => {
         const bindings = get().featureBindings;
         const value = bindings?.[feature];
-        // 兼容旧数据：如果是字符串，转为数组
+        // Tương thích với dữ liệu cũ：nếu nó là một chuỗi，Chuyển đổi thành mảng
         if (typeof value === 'string') return [value];
         return value || [];
       },
 
-      // 获取功能对应的所有 provider + model
+      // Lấy T tương ứng với hàmất cả provider + model
       getProvidersForFeature: (feature) => {
         const bindings = get().getFeatureBindings(feature);
         const results: Array<{ provider: IProvider; model: string }> = [];
@@ -844,10 +844,10 @@ export const useAPIConfigStore = create<APIConfigStore>()(
           if (idx <= 0) continue;
           const platformOrId = binding.slice(0, idx);
           const model = binding.slice(idx + 1);
-          // 1. 优先按 provider.id 精确匹配（始终安全）
+          // 1. Ưu tiên đối sánh chính xác dựa trên nhà cung cấp.id（luôn an toàn）
           let provider = get().providers.find(p => p.id === platformOrId);
-          // 2. Fallback: 按 platform 匹配，但仅当该 platform 下只有一个供应商时
-          //    （防止多个 custom 供应商时误选第一个）
+          // 2. Dự phòng: khớp theo nền tảng，Nhưng chỉ khi chỉ có một Nh dưới nền tảngà cung cấp thời gian
+          //    （Ngăn chặn nhiều tùy chỉnh Nhà cung cấChọn nhầm cái đầu tiên khi p）
           if (!provider) {
             const platformMatches = get().providers.filter(p => p.platform === platformOrId);
             if (platformMatches.length === 1) {
@@ -880,7 +880,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
       
       // Legacy single-select compat (deprecated, for backward compat)
       setFeatureBinding: (feature, providerId) => {
-        // 单选兼容：设置为单元素数组
+        // Tương thích với đài phát thanh：Cài đặt là mảng một phần tử
         get().setFeatureBindings(feature, providerId ? [providerId] : null);
       },
 
@@ -956,7 +956,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
       // ==================== Concurrency ====================
       
       setConcurrency: (n) => {
-        const value = Math.max(1, n); // 最小为1，无上限
+        const value = Math.max(1, n); // Tối thiểu là 1，Không có giới hạn trên
         set({ concurrency: value });
         console.log(`[APIConfig] Set concurrency to ${value}`);
       },
@@ -1080,8 +1080,8 @@ export const useAPIConfigStore = create<APIConfigStore>()(
           isAllConfigured: missing.length === 0,
           missingKeys: missing,
           friendlyMessage: missing.length === 0
-            ? '所有 API Key 已配置'
-            : `缺少以下 API Key：${missing.join('、')}`,
+            ? 'Tất cả Khóa API được định cấu hình'
+            : `Thiếu khóa API sau：${missing.join('、')}`,
         };
       },
 
@@ -1187,7 +1187,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                   {
                     id: generateId(),
                     platform: 'custom',
-                    name: '自定义图床',
+                    name: 'Tuỳ chỉnhLưu trữ ảnh',
                     baseUrl: legacyConfig.custom.uploadUrl || '',
                     uploadPath: '',
                     apiKey: legacyConfig.custom.apiKey || '',
@@ -1388,7 +1388,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
 
         // v12 → v13: Clear stale API metadata caches to force fresh sync on startup
         // This fixes the issue where cached modelEndpointTypes / modelEnableGroups / modelTypes / modelTags
-        // from an old version cause incorrect API routing after an in-place upgrade (覆盖安装)
+        // từ phiên bản cũ gây ra việc định tuyến API không chính xác sau khi nâng cấp tại chỗ (ghi đè cài đặt)
         if (version <= 12) {
           console.log(`[APIConfig] v12→v13: Clearing stale API metadata caches (modelEndpointTypes, modelTypes, modelTags, modelEnableGroups, discoveredModelLimits)`);
           result.modelEndpointTypes = {};

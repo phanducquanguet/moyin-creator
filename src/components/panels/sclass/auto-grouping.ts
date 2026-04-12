@@ -2,14 +2,14 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * auto-grouping.ts — S级智能分组算法
+ * auto-grouping.ts — lớp S\u667a\u80fd\u5206\u7ec4\u7b97\u6cd5
  *
- * 将 director-store 中的 SplitScene[] 自动分为 ShotGroup[]。
- * 策略：
- *   1. 按顺序贪心填装，每组总时长 ≤ maxDuration（默认15s）
- *   2. 场景切换优先断开（不同 sceneName 的镜头优先不在同一组）
- *   3. 角色重叠度高的镜头优先同组（characterIds 交集）
- *   4. 每组 2~maxPerGroup 个镜头
+ * \u5c06 director-store trongcủa SplitScene[] \u81ea\u52a8\u5206cho ShotGroup[]。
+ * Chiến lược：
+ *   1. theo thứ tự\u8d2a\u5fc3\u586b\u88c5，\u6bcfNhóm Tổng Thời lượng ≤ maxDuration（Mặc định15s）
+ *   2. Cảnh chuyển đổiƯu tiên\u65ad\u5f00（\u4e0d\u540c sceneName Cảnh quayƯu tiên\u4e0d\u5728\u540cmột\u7ec4）
+ *   3. Nhân vật\u91cd\u53e0\u5ea6\u9ad8Cảnh quayƯu tiên\u540c\u7ec4（characterIds \u4ea4đặt）
+ *   4. \u6bcf\u7ec4 2~maxPerGroup Cảnh quay
  */
 
 import type { SplitScene } from '@/stores/director-store';
@@ -18,13 +18,13 @@ import type { ShotGroup, SClassDuration } from '@/stores/sclass-store';
 // ==================== Config ====================
 
 export interface GroupingConfig {
-  /** 单组最大时长（秒），默认 15 */
+  /** \u5355\u7ec4\u6700\u5927Thời lượng（giây），Mặc định 15 */
   maxDuration: number;
-  /** 单组最大镜头数，默认 4 */
+  /** \u5355\u7ec4\u6700\u5927Cảnh quay\u6570，Mặc định 4 */
   maxPerGroup: number;
-  /** 单组最小镜头数，默认 1（最后一组可能为 1） */
+  /** \u5355\u7ec4\u6700\u5c0fCảnh quay\u6570，Mặc định 1（\u6700\u540emột\u7ec4\u53ef\u80fdcho 1） */
   minPerGroup: number;
-  /** 默认单镜时长（当 scene.duration 未设置时），默认 5 */
+  /** Mặc địnhthấu kính đơn Thời lượng（\u5f53 scene.duration \u672aCài đặt\u65f6），Mặc định 5 */
   defaultSceneDuration: number;
 }
 
@@ -37,12 +37,12 @@ const DEFAULT_CONFIG: GroupingConfig = {
 
 // ==================== Helpers ====================
 
-/** 获取单个分镜的有效时长 */
+/** \u83b7\u53d6Tiến sĩ đơnân cảnhCó\u6548Thời lượng */
 function getSceneDuration(scene: SplitScene, defaultDuration: number): number {
   return scene.duration > 0 ? scene.duration : defaultDuration;
 }
 
-/** 计算两个镜头的角色重叠度 (0~1) */
+/** Tính toán\u4e24Cảnh quayNhân vật\u91cd\u53e0\u5ea6 (0~1) */
 function characterOverlap(a: SplitScene, b: SplitScene): number {
   if (!a.characterIds?.length || !b.characterIds?.length) return 0;
   const setA = new Set(a.characterIds);
@@ -51,14 +51,14 @@ function characterOverlap(a: SplitScene, b: SplitScene): number {
   return union.size > 0 ? intersection.length / union.size : 0;
 }
 
-/** 判断两个镜头是否同场景 */
+/** \u5224\u65ad\u4e24Cảnh quay\u662f\u5426\u540cCảnh */
 function isSameScene(a: SplitScene, b: SplitScene): boolean {
-  // 使用 sceneName 判断，空值视为同场景
+  // sử dụng sceneName \u5224\u65ad，\u7a7a\u503c\u89c6cho\u540cCảnh
   if (!a.sceneName && !b.sceneName) return true;
   return a.sceneName === b.sceneName;
 }
 
-/** 生成唯一 ID */
+/** Tạo\u552fmột ID */
 function genId(): string {
   return `grp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -66,9 +66,9 @@ function genId(): string {
 // ==================== Core Algorithm ====================
 
 /**
- * 对 SplitScene[] 执行自动分组
+ * \u5bf9 SplitScene[] \u6267được rồi\u81ea\u52a8\u5206\u7ec4
  *
- * @returns ShotGroup[] — 每组包含 sceneIds、totalDuration 等
+ * @returns ShotGroup[] — \u6bcf\u7ec4chứa sceneIds、totalDuration Đợi đã
  */
 export function autoGroupScenes(
   scenes: SplitScene[],
@@ -87,7 +87,7 @@ export function autoGroupScenes(
     const dur = Math.round(Math.min(Math.max(currentDuration, 4), 15)) as SClassDuration;
     groups.push({
       id: genId(),
-      name: `第${groups.length + 1}组`,
+      name: `Không.${groups.length + 1}\u7ec4`,
       sceneIds: [...currentSceneIds],
       totalDuration: dur,
       imageRefs: [],
@@ -112,22 +112,22 @@ export function autoGroupScenes(
     const scene = scenes[i];
     const dur = getSceneDuration(scene, cfg.defaultSceneDuration);
 
-    // 决定是否需要在此处断开新组
+    // \u51b3\u5b9a\u662f\u5426\u9700\u8981\u5728\u6b64\u5904\u65ad\u5f00\u65b0\u7ec4
     let shouldBreak = false;
 
     if (currentSceneIds.length >= cfg.maxPerGroup) {
-      // 已满
+      // Đã rồi\u6ee1
       shouldBreak = true;
     } else if (currentDuration + dur > cfg.maxDuration && currentSceneIds.length > 0) {
-      // 加入后超时长上限
+      // \u52a0\u5165\u540e\u8d85Thời lượng\u4e0a\u9650
       shouldBreak = true;
     } else if (currentSceneIds.length > 0) {
-      // 场景切换检测：不同场景优先断开
+      // Cảnh chuyển đổiPhát hiện：\u4e0d\u540cCảnh ưu tiên\u65ad\u5f00
       const prevScene = scenes[i - 1];
       if (prevScene && !isSameScene(prevScene, scene)) {
-        // 不同场景 —— 如果当前组已有 ≥ minPerGroup 个镜头，断开
+        // \u4e0d\u540cCảnh —— Chẳng hạn như\u679chiện tại\u7ec4Đã rồiCó ≥ minPerGroup Cảnh quay，\u65ad\u5f00
         if (currentSceneIds.length >= cfg.minPerGroup) {
-          // 但若角色高度重叠，可以容忍（跨场景但同角色）
+          // \u4f46\u82e5Nhân vật\u9ad8\u5ea6\u91cd\u53e0，\u53ef\u4ee5\u5bb9\u5fcd（\u8de8Cảnh\u4f46\u540cNhân vật）
           const overlap = characterOverlap(prevScene, scene);
           if (overlap < 0.5) {
             shouldBreak = true;
@@ -144,14 +144,14 @@ export function autoGroupScenes(
     currentDuration += dur;
   }
 
-  // 最后一组
+  // \u6700\u540emột\u7ec4
   flush();
 
   return groups;
 }
 
 /**
- * 重新计算组的总时长
+ * \u91cd\u65b0Tính toánNhóm Tổng Thời lượng
  */
 export function recalcGroupDuration(
   group: ShotGroup,
@@ -168,20 +168,20 @@ export function recalcGroupDuration(
 }
 
 /**
- * 为组生成默认名称
+ * choNhóm TạoMặc địnhTên
  */
 export function generateGroupName(
   group: ShotGroup,
   scenes: SplitScene[],
   groupIndex: number,
 ): string {
-  if (group.sceneIds.length === 0) return `第${groupIndex + 1}组`;
+  if (group.sceneIds.length === 0) return `Không.${groupIndex + 1}\u7ec4`;
 
-  // 尝试使用场景名
+  // \u5c1d\u8bd5Sử dụng Cảnh tên
   const sceneMap = new Map(scenes.map((s) => [s.id, s]));
   const firstScene = sceneMap.get(group.sceneIds[0]);
 
-  // 使用组内顺序编号（而非 scene.id），避免 1-based ID 导致偏移
+  // sử dụng\u7ec4bên trong\u987a\u5e8f\u7f16\u53f7（\u800c\u975e scene.id），\u907f\u514d 1-based ID \u5bfc\u81f4\u504f\u79fb
   const allIds = scenes.map(s => s.id);
   const firstIdx = allIds.indexOf(group.sceneIds[0]);
   const lastIdx = allIds.indexOf(group.sceneIds[group.sceneIds.length - 1]);
@@ -189,8 +189,8 @@ export function generateGroupName(
   const lastNum = lastIdx >= 0 ? lastIdx + 1 : firstNum + group.sceneIds.length - 1;
 
   if (firstScene?.sceneName) {
-    return `${firstScene.sceneName} (镜头${firstNum}-${lastNum})`;
+    return `${firstScene.sceneName} (Cảnh quay${firstNum}-${lastNum})`;
   }
 
-  return `第${groupIndex + 1}组: 镜头${firstNum}-${lastNum}`;
+  return `Không.${groupIndex + 1}\u7ec4: Cảnh quay${firstNum}-${lastNum}`;
 }

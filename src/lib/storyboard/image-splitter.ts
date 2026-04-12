@@ -4,7 +4,7 @@
 /**
  * Image Splitter for Storyboard
  * 
- * Uses FIXED UNIFORM GRID approach (方案 D):
+ * Sử dụng phương pháp LƯỚI ĐỒNG PHỤC CỐ ĐỊNH (Tùy chọn D):
  * - Always uses uniform grid based on expected cols/rows from grid-calculator
  * - Adds edge margin cropping for tolerance (removes separator line residue)
  * - No complex image detection needed - coordinates are 100% deterministic
@@ -506,7 +506,7 @@ export function cropEdgeMargin(
 /**
  * Main function to split a storyboard image into individual scene frames.
  * 
- * Uses FIXED UNIFORM GRID approach (方案 D):
+ * Sử dụng phương pháp LƯỚI ĐỒNG PHỤC CỐ ĐỊNH (Tùy chọn D):
  * - Always uses uniform grid based on expected cols/rows
  * - No complex image detection (energy analysis removed)
  * - Adds edge margin cropping for tolerance
@@ -532,7 +532,7 @@ export async function splitStoryboardImage(
   const expectedCols = options.expectedCols || gridConfig.cols;
   const expectedRows = options.expectedRows || gridConfig.rows;
 
-  console.log('[ImageSplitter] Using FIXED UNIFORM GRID (方案 D)', {
+  console.log('[ImageSplitter] Sử dụng LƯỚI ĐỒNG PHỤC CỐ ĐỊNH (Tùy chọn D)', {
     imageSize: `${totalWidth}x${totalHeight}`,
     grid: `${expectedRows}x${expectedCols}`,
     sceneCount,
@@ -543,33 +543,33 @@ export async function splitStoryboardImage(
   const cellWidth = Math.floor(totalWidth / expectedCols);
   const cellHeight = Math.floor(totalHeight / expectedRows);
   
-  // === 动态居中裁剪修正（学习自合并生成的切割方法）===
-  // 计算目标宽高比
+  // === Động Căn giữaCắt chỉnh sửa（Học cách tự hợp nhất Tạphương pháp cắt của o）===
+  // Tính toánĐíchTỷ lệ khung hình
   const targetAspectW = aspectRatio === '16:9' ? 16 : 9;
   const targetAspectH = aspectRatio === '16:9' ? 9 : 16;
   const targetRatio = targetAspectW / targetAspectH;
   
-  // 计算原图每个格子的实际比例
+  // Tính T thực tế của mỗi lưới trong ảnh gốcỷ lệ
   const rawRatio = cellWidth / cellHeight;
   
-  // 计算裁剪参数（如果比例不匹配，进行居中裁剪修正）
+  // Tính toán cắt Tham số（nếu Tỷ lệkhông có trận đấu，Thực hiện C.ăn giữaCắt chỉnh sửa）
   let cropX = 0, cropY = 0, cropW = cellWidth, cropH = cellHeight;
   let outputWidth: number, outputHeight: number;
   
   if (Math.abs(rawRatio - targetRatio) < 0.01) {
-    // 宽高比已经接近目标，直接使用
+    // Tỷ lệ khung hình gần bằngĐích，Sử dụng trực tiếp
     outputWidth = cellWidth;
     outputHeight = cellHeight;
     console.log('[ImageSplitter] Ratio already matches target, no crop needed');
   } else if (rawRatio > targetRatio) {
-    // 原图格子太宽，需要裁剪宽度（居中裁剪）
+    // Lưới của ảnh gốc quá rộng，Cần cắt chiều rộng（Căn giữaCrop）
     cropW = Math.floor(cellHeight * targetRatio);
     cropX = Math.floor((cellWidth - cropW) / 2);
     outputWidth = cropW;
     outputHeight = cellHeight;
     console.log(`[ImageSplitter] Cell too wide (${rawRatio.toFixed(3)} > ${targetRatio.toFixed(3)}), crop width: ${cellWidth} → ${cropW}, offsetX: ${cropX}`);
   } else {
-    // 原图格子太高，需要裁剪高度（居中裁剪）
+    // Lưới của ảnh gốc quá cao，Yêu cầu cắt chiều cao（Căn giữaCrop）
     cropH = Math.floor(cellWidth / targetRatio);
     cropY = Math.floor((cellHeight - cropH) / 2);
     outputWidth = cellWidth;
@@ -577,7 +577,7 @@ export async function splitStoryboardImage(
     console.log(`[ImageSplitter] Cell too tall (${rawRatio.toFixed(3)} < ${targetRatio.toFixed(3)}), crop height: ${cellHeight} → ${cropH}, offsetY: ${cropY}`);
   }
   
-  // 双重保险：强制输出尺寸严格符合目标宽高比
+  // bảo hiểm kép：lực lượngĐầu raKích thước tuân thủ nghiêm ngặtĐíchTỷ lệ khung hình
   if (aspectRatio === '16:9') {
     outputHeight = Math.round(outputWidth * 9 / 16);
   } else {
@@ -585,7 +585,7 @@ export async function splitStoryboardImage(
     outputWidth = Math.round(outputHeight * 9 / 16);
   }
   
-  // Calculate Safety Margin (Inset) - 在裁剪后的区域内再收缩
+  // Tính Biên an toàn (Inset) - thu nhỏ trong vùng bị cắt
   // Default to 0.5% (0.005) if not specified
   const finalEdgeMargin = options.edgeMarginPercent ?? 0.005;
   const marginW = Math.floor(cropW * finalEdgeMargin);
@@ -628,8 +628,8 @@ export async function splitStoryboardImage(
 
     if (!ctx) continue;
 
-    // Calculate source rectangle with CROP + INSET (居中裁剪 + 安全边距)
-    // 先应用居中裁剪偏移，再应用安全边距
+    // Calculate source rectangle with CROP + INSET (Căn giữacrop + biên an toàn)
+    // đầu tiênÁp dụngCăn giữbù đắp acrop，Một lần nữaÁp dụký quỹ ngsafe
     const srcX = def.x + cropX + marginW;
     const srcY = def.y + cropY + marginH;
     const srcW = cropW - (marginW * 2);

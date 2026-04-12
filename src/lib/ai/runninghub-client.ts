@@ -3,7 +3,7 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
  * RunningHub API Client
- * 视角切换功能的API客户端
+ * Góc nhìnChuyển đổichức năngcủaAPI\u5ba2\u6237\u7aef
  */
 
 import { retryOperation } from '@/lib/utils/retry';
@@ -13,12 +13,12 @@ import { generateAnglePrompt } from './runninghub-angles';
 const normalizeBaseUrl = (baseUrl: string) => baseUrl.replace(/\/+$/, '');
 
 export interface RunningHubSubmitParams {
-  referenceImage: string;  // 原图URL或base64
-  anglePrompt: string;     // 视角提示词
+  referenceImage: string;  // \u539f\u56feURLhoặcbase64
+  anglePrompt: string;     // Góc nhìnPrompt
   apiKey: string;
   baseUrl: string;
   appId: string;
-  instanceType?: 'default' | 'plus';  // default: 24G显存, plus: 48G显存
+  instanceType?: 'default' | 'plus';  // default: 24G\u663e\u5b58, plus: 48G\u663e\u5b58
   usePersonalQueue?: boolean;
 }
 
@@ -31,17 +31,17 @@ export interface RunningHubTaskResult {
 }
 
 /**
- * 提交视角切换任务
+ * \u63d0\u4ea4Góc nhìnChuyển đổiNhiệm vụ
  */
 export async function submitAngleSwitchTask(
   params: RunningHubSubmitParams
 ): Promise<string> {
   const { referenceImage, anglePrompt, apiKey, baseUrl, appId, instanceType = 'default', usePersonalQueue = false } = params;
   if (!baseUrl) {
-    throw new Error('RunningHub Base URL 未配置');
+    throw new Error('RunningHub URL cơ sở chưa được định cấu hình');
   }
   if (!appId) {
-    throw new Error('RunningHub App ID 未配置');
+    throw new Error('RunningHub App ID Chưa được định cấu hình');
   }
 
   console.log('[RunningHub] Submitting angle switch task:', {
@@ -92,9 +92,9 @@ export async function submitAngleSwitchTask(
 
         const error = new Error(
           response.status === 401 || response.status === 403
-            ? 'API Key 无效或已过期'
+            ? 'Khóa API không hợp lệ hoặc đã hết hạn'
             : response.status >= 500
-              ? 'RunningHub 服务暂时不可用'
+              ? 'RunningHub Dịch vụ tạm thời không khả dụng'
               : errorMessage
         ) as Error & { status?: number };
         error.status = response.status;
@@ -121,12 +121,12 @@ export async function submitAngleSwitchTask(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('提交 RunningHub 任务失败');
+    throw new Error('\u63d0\u4ea4 RunningHub Nhiệm vụThất bại');
   }
 }
 
 /**
- * 查询任务状态
+ * Truy vấnNhiệm vụTrạng thái
  */
 export async function queryTaskStatus(
   taskId: string,
@@ -135,7 +135,7 @@ export async function queryTaskStatus(
 ): Promise<RunningHubTaskResult> {
   try {
     if (!baseUrl) {
-      throw new Error('RunningHub Base URL 未配置');
+      throw new Error('RunningHub URL cơ sở chưa được định cấu hình');
     }
     const response = await fetch(`${normalizeBaseUrl(baseUrl)}/query`, {
       method: 'POST',
@@ -178,7 +178,7 @@ export async function queryTaskStatus(
 }
 
 /**
- * 轮询任务直到完成
+ * \u8f6e\u8be2Nhiệm vụ\u76f4ĐếnHoàn thành
  */
 export async function pollTaskUntilComplete(
   taskId: string,
@@ -186,8 +186,8 @@ export async function pollTaskUntilComplete(
   baseUrl: string,
   onProgress?: (progress: number, status: string) => void
 ): Promise<string> {
-  const maxAttempts = 120; // 最多2分钟
-  const pollInterval = 2000; // 2秒
+  const maxAttempts = 120; // nhất2\u5206\u949f
+  const pollInterval = 2000; // 2giây
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const progress = Math.min(Math.floor((attempt / maxAttempts) * 100), 99);
@@ -221,11 +221,11 @@ export async function pollTaskUntilComplete(
     }
   }
 
-  throw new Error('视角切换超时，请重试');
+  throw new Error('Góc nhìnChuyển đổi\u8d85\u65f6，Xin vui lòng Thử lại');
 }
 
 /**
- * 一键生成视角切换（组合函数）
+ * một\u952eTạoGóc nhìnChuyển đổi（\u7ec4\u5408chức năng）
  */
 export async function generateAngleSwitch(params: {
   referenceImage: string;
@@ -239,7 +239,7 @@ export async function generateAngleSwitch(params: {
 }): Promise<string> {
   const { referenceImage, direction, elevation, shotSize, apiKey, baseUrl, appId, onProgress } = params;
 
-  // 生成提示词
+  // TạoPrompt
   const anglePrompt = generateAnglePrompt(direction, elevation, shotSize);
 
   console.log('[RunningHub] Starting angle switch:', {
@@ -249,7 +249,7 @@ export async function generateAngleSwitch(params: {
     prompt: anglePrompt,
   });
 
-  // 提交任务
+  // \u63d0\u4ea4Nhiệm vụ
   onProgress?.(0, 'SUBMITTING');
   const taskId = await submitAngleSwitchTask({
     referenceImage,
@@ -259,7 +259,7 @@ export async function generateAngleSwitch(params: {
     appId,
   });
 
-  // 轮询结果
+  // \u8f6e\u8be2kết quả
   onProgress?.(10, 'POLLING');
   const resultUrl = await pollTaskUntilComplete(taskId, apiKey, baseUrl, onProgress);
 

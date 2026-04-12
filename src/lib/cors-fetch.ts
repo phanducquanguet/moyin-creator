@@ -4,13 +4,13 @@
 /**
  * CORS-safe fetch wrapper
  *
- * 自动检测运行环境：
- * - Electron 桌面模式 → 直接使用原生 fetch()（无 CORS 限制）
- * - 浏览器开发模式   → 通过 Vite 开发服务器 /__api_proxy?url=... 代理转发
- * - 浏览器生产模式   → 直接 fetch()（需后端/Nginx 提供反向代理）
+ * \u81ea\u52a8Phát hiện\u8fd0được rồimôi trường：
+ * - Electron \u684c\u9762chế độ → Sử dụng trực tiếp\u539f\u751f fetch()（không có CORS \u9650\u5236）
+ * - \u6d4f\u89c8\u5668\u5f00\u53d1chế độ   → Chấp nhận Vite \u5f00\u53d1\u670d\u52a1\u5668 /__api_proxy?url=... \u4ee3\u7406\u8f6c\u53d1
+ * - \u6d4f\u89c8\u5668\u751f\u4ea7chế độ   → \u76f4\u63a5 fetch()（\u9700\u540e\u7aef/Nginx \u63d0\u4f9b\u53cd\u5411\u4ee3\u7406）
  */
 
-/** 检测是否在 Electron 环境中运行 */
+/** Phát hiện\u662f\u5426\u5728 Electron môi trườngtrong\u8fd0được rồi */
 function isElectron(): boolean {
   return !!(
     typeof window !== 'undefined' &&
@@ -18,20 +18,20 @@ function isElectron(): boolean {
   );
 }
 
-/** 检测是否在 Vite 开发服务器中运行 */
+/** Phát hiện\u662f\u5426\u5728 Vite \u5f00\u53d1\u670d\u52a1\u5668trong\u8fd0được rồi */
 function isViteDev(): boolean {
   return import.meta.env?.DEV === true;
 }
 
 /**
- * CORS 安全的 fetch 封装
+ * CORS \u5b89\u5168của fetch \u5c01\u88c5
  *
- * 在浏览器开发模式下，自动将请求代理到 Vite 开发服务器的
- * `/__api_proxy` 中间件，由服务端转发请求以绕过 CORS 限制。
+ * \u5728\u6d4f\u89c8\u5668\u5f00\u53d1chế độ\u4e0b，\u81ea\u52a8\u5c06Yêu cầu\u4ee3\u7406Đến Vite \u5f00\u53d1\u670d\u52a1\u5668của
+ * `/__api_proxy` trong\u95f4\u4ef6，\u7531Máy chủ chuyển tiếp yêu cầu\u4ee5Bỏ qua các hạn chế CORS。
  *
- * @param url    目标 URL（与原生 fetch 参数相同）
- * @param init   请求选项（与原生 fetch 参数相同）
- * @returns      Response（与原生 fetch 返回值相同）
+ * @param url    Đích URL（với\u539f\u751f fetch Tham số\u76f8\u540c）
+ * @param init   Yêu cầu\u9009\u9879（với\u539f\u751f fetch Tham số\u76f8\u540c）
+ * @returns      Response（với\u539f\u751f fetch Quay lại\u503c\u76f8\u540c）
  */
 export async function corsFetch(
   url: string | URL,
@@ -39,19 +39,19 @@ export async function corsFetch(
 ): Promise<Response> {
   const targetUrl = url.toString();
 
-  // Electron 或非开发环境：直连
+  // Electron hoặc\u975e\u5f00\u53d1môi trường：\u76f4\u8fde
   if (isElectron() || !isViteDev()) {
     return fetch(targetUrl, init);
   }
 
-  // 浏览器开发模式：走 Vite 代理
+  // \u6d4f\u89c8\u5668\u5f00\u53d1chế độ：đi Vite \u4ee3\u7406
   const proxyUrl = `/__api_proxy?url=${encodeURIComponent(targetUrl)}`;
 
-  // 将原始 headers 序列化到 x-proxy-headers 头中
-  // 这样代理中间件可以把它们转发给目标服务器
+  // \u5c06nguyên bản headers \u5e8fCột\u5316Đến x-proxy-headers \u5934trong
+  // \u8fd9\u6837\u4ee3\u7406trong\u95f4\u4ef6\u53ef\u4ee5\u628a\u5b83\u4eec\u8f6c\u53d1\u7ed9Đích\u670d\u52a1\u5668
   const proxyHeaders = new Headers(init?.headers);
 
-  // 把原始 headers 打包进一个特殊头，代理端负责解包
+  // \u628anguyên bản headers \u6253\u5305\u8fdbmộtmột\u7279\u6b8a\u5934，\u4ee3\u7406\u7aef\u8d1f\u8d23\u89e3\u5305
   const originalHeaders: Record<string, string> = {};
   proxyHeaders.forEach((value, key) => {
     originalHeaders[key] = value;

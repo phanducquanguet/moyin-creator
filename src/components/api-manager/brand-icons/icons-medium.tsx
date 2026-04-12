@@ -1,5 +1,5 @@
-// 中型品牌 SVG 图标（1000-2000 chars）
-// 源自 MemeFast pricing 页面 lobe-icons
+// trong\u578bThương hiệu SVG \u56fe\u6807（1000-2000 chars）
+// \u6e90\u81ea MemeFast pricing \u9875\u9762 lobe-icons
 import type { BrandIconFn } from "./index";
 
 export const iconsMedium: Record<string, BrandIconFn> = {

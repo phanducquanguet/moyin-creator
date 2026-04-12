@@ -56,14 +56,14 @@ import { ImagePreviewModal } from "@/components/panels/director/media-preview-mo
 
 // Preset variation types for quick creation
 const VARIATION_PRESETS = [
-  { name: "日常装", prompt: "casual everyday clothing, relaxed outfit" },
-  { name: "正装", prompt: "formal attire, business suit, elegant clothing" },
-  { name: "战斗装", prompt: "tactical gear, combat outfit, armor" },
-  { name: "睡衣", prompt: "sleepwear, pajamas, nightwear" },
-  { name: "运动装", prompt: "sportswear, athletic clothing, workout outfit" },
-  { name: "受伤状态", prompt: "injured appearance, bandages, wounds" },
-  { name: "雨天装扮", prompt: "raincoat, umbrella, wet weather gear" },
-  { name: "冬装", prompt: "winter clothing, warm coat, scarf" },
+  { name: "mặc hàng ngày", prompt: "casual everyday clothing, relaxed outfit" },
+  { name: "trang phục chính thức", prompt: "formal attire, business suit, elegant clothing" },
+  { name: "đồng phục chiến đấu", prompt: "tactical gear, combat outfit, armor" },
+  { name: "\u7761\u8863", prompt: "sleepwear, pajamas, nightwear" },
+  { name: "các môn thể thao\u88c5", prompt: "sportswear, athletic clothing, workout outfit" },
+  { name: "Bị thương\u72b6\u6001", prompt: "injured appearance, bandages, wounds" },
+  { name: "mưa\u5929\u88c5\u626e", prompt: "raincoat, umbrella, wet weather gear" },
+  { name: "mùa đông\u88c5", prompt: "winter clothing, warm coat, scarf" },
 ] as const;
 
 // Max clothing reference images per variation
@@ -112,7 +112,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 
     const remaining = MAX_CLOTHING_REFS - newClothingRefs.length;
     if (remaining <= 0) {
-      toast.error(`最多上传 ${MAX_CLOTHING_REFS} 张参考图`);
+      toast.error(`nhất\u4e0a\u4f20 ${MAX_CLOTHING_REFS} \u5f20Hình ảnh tham khảo`);
       return;
     }
 
@@ -120,7 +120,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 
     filesToProcess.forEach((file) => {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} 超过 5MB 限制`);
+        toast.error(`${file.name} \u8d85\u8fc7 5MB \u9650\u5236`);
         return;
       }
       const reader = new FileReader();
@@ -147,7 +147,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
   // ---- Add Variation ----
   const handleAddVariation = () => {
     if (!newVariationName.trim()) {
-      toast.error("请输入变体名称");
+      toast.error("\u8bf7\u8f93\u5165thay đổi\u4f53tên\u79f0");
       return;
     }
 
@@ -158,7 +158,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
     });
 
     resetAddForm();
-    toast.success("变体已添加");
+    toast.success("thay đổi\u4f53Đã rồi\u6dfb\u52a0");
   };
 
   const handleQuickAdd = (preset: typeof VARIATION_PRESETS[number]) => {
@@ -166,7 +166,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
       name: preset.name,
       visualPrompt: preset.prompt,
     });
-    toast.success(`已添加 "${preset.name}" 变体`);
+    toast.success(`Đã rồi\u6dfb\u52a0 "${preset.name}" thay đổi\u4f53`);
   };
 
   const resetAddForm = () => {
@@ -178,9 +178,9 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 
   // ---- Delete Variation ----
   const handleDeleteVariation = (variationId: string, name: string) => {
-    if (confirm(`确定要删除变体 "${name}" 吗？`)) {
+    if (confirm(`\u786e\u5b9a\u8981\u5220\u9664thay đổi\u4f53 "${name}" \u5417？`)) {
       deleteVariation(character.id, variationId);
-      toast.success("变体已删除");
+      toast.success("thay đổi\u4f53Đã rồi\u5220\u9664");
     }
   };
 
@@ -194,7 +194,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 
     // Need base character image for face consistency
     if (!characterBaseImage) {
-      toast.error("请先生成角色基础定妆照，以保持一致性");
+      toast.error("\u8bf7đầu tiên\u751f\u6210\u89d2\u8272\u57fa\u7840\u5b9a\u5986\u7167，\u4ee5giữmột\u81f4\u6027");
       return;
     }
 
@@ -213,10 +213,10 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
         imageUrl,
       });
 
-      toast.success("变体图片生成完成，请预览确认");
+      toast.success("thay đổi\u4f53\u56fe\u7247\u751f\u6210Hoàn thành，\u8bf7\u9884\u89c8\u786e\u8ba4");
     } catch (error) {
       const err = error as Error;
-      toast.error(`生成失败: ${err.message}`);
+      toast.error(`\u751f\u6210\u5931\u8d25: ${err.message}`);
     } finally {
       setGeneratingVariationId(null);
     }
@@ -231,7 +231,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
     const ts = Date.now();
     const safeName = `${character.name}_${varName}_${ts}`.replace(/[^a-zA-Z0-9\u4e00-\u9fa5_]/g, '_');
 
-    toast.loading("正在保存图片到本地...", { id: 'saving-wardrobe' });
+    toast.loading("\u6b63\u5728\u4fdd\u5b58\u56fe\u7247Đến\u672c\u5730...", { id: 'saving-wardrobe' });
 
     try {
       // 1. Persist image locally (same as generation-panel)
@@ -247,11 +247,11 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
         generatedAt: ts,
       });
 
-      // 3. Archive to media library (AI图片 folder)
+      // 3. Archive to media library (AI\u56fe\u7247 folder)
       const aiFolderId = getOrCreateCategoryFolder('ai-image');
       addMediaFromUrl({
         url: localPath,
-        name: `衣橱-${character.name}-${varName}`,
+        name: `\u8863\u6a71-${character.name}-${varName}`,
         type: 'image',
         source: 'ai-image',
         folderId: aiFolderId,
@@ -259,10 +259,10 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
       });
 
       setPreviewData(null);
-      toast.success("变体图片已保存到本地！", { id: 'saving-wardrobe' });
+      toast.success("thay đổi\u4f53\u56fe\u7247Đã rồi\u4fdd\u5b58Đến\u672c\u5730！", { id: 'saving-wardrobe' });
     } catch (error) {
       console.error('[Wardrobe] Failed to save preview:', error);
-      toast.error("保存失败", { id: 'saving-wardrobe' });
+      toast.error("\u4fdd\u5b58\u5931\u8d25", { id: 'saving-wardrobe' });
     }
   };
 
@@ -278,9 +278,9 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
         <DialogContent className="max-w-lg max-h-[80vh] p-0 gap-0 flex flex-col">
           <div className="px-6 pt-6 pb-3 shrink-0">
             <DialogHeader>
-              <DialogTitle>预览变体图片 - {variation?.name}</DialogTitle>
+              <DialogTitle>\u9884\u89c8thay đổi\u4f53\u56fe\u7247 - {variation?.name}</DialogTitle>
               <DialogDescription>
-                确认图片是否满意，满意则保存
+                \u786e\u8ba4\u56fe\u7247ĐúngKHÔNG\u6ee1\u610f，\u6ee1\u610f\u5219\u4fdd\u5b58
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -293,7 +293,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                 className="w-full h-auto"
               />
               <div className="absolute top-2 left-2 bg-amber-500 text-white text-xs px-2 py-1 rounded">
-                预览
+                \u9884\u89c8
               </div>
             </div>
           </div>
@@ -302,7 +302,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
             <div className="flex gap-2">
               <Button onClick={handleSavePreview} className="flex-1">
                 <Check className="h-4 w-4 mr-2" />
-                保存
+                \u4fdd\u5b58
               </Button>
               <Button 
                 onClick={() => handleGenerateVariation(variation!)} 
@@ -310,11 +310,11 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                 disabled={generatingVariationId !== null}
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
-                重新生成
+                \u91cdmới\u751f\u6210
               </Button>
             </div>
             <Button onClick={handleDiscardPreview} variant="ghost" className="w-full">
-              放弃并返回
+              \u653e\u5f03\u5e76\u8fd4\u56de
             </Button>
           </div>
         </DialogContent>
@@ -330,10 +330,10 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shirt className="h-5 w-5" />
-              {character.name} 的衣橱
+              {character.name} của\u8863\u6a71
             </DialogTitle>
             <DialogDescription>
-              管理角色的不同造型变体，AI 生成时将保持面部特征一致
+              \u7ba1\u7406\u89d2\u8272của\u4e0d\u540c\u9020\u578bthay đổi\u4f53，AI \u751f\u6210\u65f6\u5c06giữđặc điểm khuôn mặtmột\u81f4
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -356,14 +356,14 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h4 className="font-medium text-sm">{character.name}</h4>
-                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">基础定妆照</span>
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">\u57fa\u7840\u5b9a\u5986\u7167</span>
               </div>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
-                {character.visualTraits || character.description || '未设置视觉描述'}
+                {character.visualTraits || character.description || '\u672a\u8bbe\u7f6e\u89c6\u89c9\u63cf\u8ff0'}
               </p>
               {!characterBaseImage && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                  ⚠ 请先生成角色基础图片，衣橱变体需要基础定妆照作为参考
+                  ⚠ \u8bf7đầu tiên\u751f\u6210\u89d2\u8272\u57fa\u7840\u56fe\u7247，\u8863\u6a71thay đổi\u4f53\u9700\u8981\u57fa\u7840\u5b9a\u5986\u7167\u4f5cchoTài liệu tham khảo
                 </p>
               )}
             </div>
@@ -372,7 +372,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
           {/* Existing variations */}
           {variations.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">已有变体 ({variations.length})</Label>
+              <Label className="text-sm font-medium">Đã rồiCóthay đổi\u4f53 ({variations.length})</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {variations.map((variation) => (
                   <div
@@ -390,7 +390,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                           variation.referenceImage && "cursor-pointer ring-offset-background hover:ring-2 hover:ring-primary/40 hover:ring-offset-1 transition-shadow"
                         )}
                         onDoubleClick={() => variation.referenceImage && setZoomedImageUrl(variation.referenceImage)}
-                        title={variation.referenceImage ? "双击放大查看" : undefined}
+                        title={variation.referenceImage ? "\u53cc\u51fb\u653e\u5927\u67e5\u770b" : undefined}
                       >
                         {variation.referenceImage ? (
                           <img 
@@ -428,7 +428,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                                 <img src={img} alt="ref" className="w-full h-full object-cover" />
                               </div>
                             ))}
-                            <span className="text-[10px] text-muted-foreground self-center">参考</span>
+                            <span className="text-[10px] text-muted-foreground self-center">Tài liệu tham khảo</span>
                           </div>
                         )}
 
@@ -443,17 +443,17 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                           {generatingVariationId === variation.id ? (
                             <>
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                              生成中...
+                              \u751f\u6210trong...
                             </>
                           ) : variation.referenceImage ? (
                             <>
                               <RotateCcw className="h-3 w-3 mr-1" />
-                              重新生成
+                              \u91cdmới\u751f\u6210
                             </>
                           ) : (
                             <>
                               <Wand2 className="h-3 w-3 mr-1" />
-                              生成图片
+                              \u751f\u6210\u56fe\u7247
                             </>
                           )}
                         </Button>
@@ -467,7 +467,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 
           {/* Quick add presets */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">快速添加</Label>
+            <Label className="text-sm font-medium">Nhanh\u901f\u6dfb\u52a0</Label>
             <div className="flex flex-wrap gap-2">
               {VARIATION_PRESETS.map((preset) => {
                 const exists = variations.some(v => v.name === preset.name);
@@ -503,14 +503,14 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
               className="space-y-4 p-4 border rounded-lg bg-muted/30 min-w-0"
               onPointerDown={(e) => e.stopPropagation()}
             >
-              <Label className="text-sm font-medium">添加自定义变体</Label>
+              <Label className="text-sm font-medium">\u6dfb\u52a0\u81ea\u5b9a\u4e49thay đổi\u4f53</Label>
 
               {/* Variation name */}
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">变体名称 *</Label>
+                <Label className="text-xs text-muted-foreground">thay đổi\u4f53tên\u79f0 *</Label>
                 <Input
                   ref={nameInputRef}
-                  placeholder="如：婚纱、披风装、校服、古风汉服"
+                  placeholder="Chẳng hạn như：\u5a5a\u7eb1、\u62abgió\u88c5、\u6821\u670d、\u53e4gió\u6c49\u670d"
                   value={newVariationName}
                   onChange={(e) => setNewVariationName(e.target.value)}
                   autoFocus
@@ -520,10 +520,10 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
               {/* Clothing reference images upload */}
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  服装参考图（可选，最多 {MAX_CLOTHING_REFS} 张）
+                  quần áoHình ảnh tham khảo（Tùy chọn，nhất {MAX_CLOTHING_REFS} \u5f20）
                 </Label>
                 <p className="text-[11px] text-muted-foreground">
-                  上传想要角色穿的衣服/造型照片，AI 会将角色融合到该服装中
+                  \u4e0a\u4f20\u60f3\u8981\u89d2\u8272\u7a7fcủa\u8863\u670d/\u9020\u578b\u7167\u7247，AI \u4f1a\u5c06\u89d2\u8272\u878d\u5408Đến\u8be5quần áotrong
                 </p>
 
                 {/* Uploaded clothing refs */}
@@ -535,7 +535,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                     >
                       <img
                         src={img}
-                        alt={`服装参考 ${idx + 1}`}
+                        alt={`quần áoTài liệu tham khảo ${idx + 1}`}
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -545,7 +545,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                         <X className="h-3 w-3" />
                       </button>
                       <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-[9px] text-white text-center py-0.5">
-                        参考 {idx + 1}
+                        Tài liệu tham khảo {idx + 1}
                       </div>
                     </div>
                   ))}
@@ -557,7 +557,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
                       className="w-20 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-muted/50 transition-colors"
                     >
                       <Upload className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">上传</span>
+                      <span className="text-[10px] text-muted-foreground">\u4e0a\u4f20</span>
                     </button>
                   )}
                 </div>
@@ -574,15 +574,15 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 
               {/* Visual prompt */}
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">视觉描述（可选）</Label>
+                <Label className="text-xs text-muted-foreground">\u89c6\u89c9\u63cf\u8ff0（Tùy chọn）</Label>
                 <Textarea
-                  placeholder="描述服装细节或整体造型，如：\n- 白色蕾丝婚纱，长拖尾，头戴花冠\n- elegant white lace wedding dress, long train, floral headpiece"
+                  placeholder="\u63cf\u8ff0quần áoChi tiếthoặc\u6574\u4f53\u9020\u578b，Chẳng hạn như：\n- \u767d\u8272\u857e\u4e1d\u5a5a\u7eb1，\u957f\u62d6\u5c3e，\u5934\u6234\u82b1\u51a0\n- elegant white lace wedding dress, long train, floral headpiece"
                   value={newVariationPrompt}
                   onChange={(e) => setNewVariationPrompt(e.target.value)}
                   className="min-h-[72px]"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  可用中文或英文描述，支持混合。有参考图时可简短描述补充细节
+                  Có sẵnTiếng TrunghoặcTiếng Anh\u63cf\u8ff0，\u652f\u6301\u6df7\u5408。CóHình ảnh tham khảo\u65f6\u53ef\u7b80\u77ed\u63cf\u8ff0bổ sungChi tiết
                 </p>
               </div>
 
@@ -590,11 +590,11 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
               <div className="flex gap-2 pt-1">
                 <Button size="sm" onClick={handleAddVariation} disabled={!newVariationName.trim()}>
                   <Check className="h-3 w-3 mr-1" />
-                  添加变体
+                  \u6dfb\u52a0thay đổi\u4f53
                 </Button>
                 <Button size="sm" variant="outline" onClick={resetAddForm}>
                   <X className="h-3 w-3 mr-1" />
-                  取消
+                  \u53d6\u6d88
                 </Button>
               </div>
             </div>
@@ -605,15 +605,15 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
               onClick={() => setShowAddForm(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              添加自定义变体
+              \u6dfb\u52a0\u81ea\u5b9a\u4e49thay đổi\u4f53
             </Button>
           )}
 
           {/* Tips */}
           <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-            <p>💡 变体生成会参考角色基础定妆照，保持面部特征一致</p>
-            <p>💡 上传服装参考图可让 AI 更精准地生成目标造型</p>
-            <p>💡 建议先生成角色基础图片，再添加变体</p>
+            <p>💡 thay đổi\u4f53\u751f\u6210\u4f1aTài liệu tham khảo\u89d2\u8272\u57fa\u7840\u5b9a\u5986\u7167，giữđặc điểm khuôn mặtmột\u81f4</p>
+            <p>💡 \u4e0a\u4f20quần áoHình ảnh tham khảo\u53ef\u8ba9 AI \u66f4\u7cbe\u51c6\u5730\u751f\u6210\u76ee\u6807\u9020\u578b</p>
+            <p>💡 \u5efa\u8baeđầu tiên\u751f\u6210\u89d2\u8272\u57fa\u7840\u56fe\u7247，Một lần nữa\u6dfb\u52a0thay đổi\u4f53</p>
           </div>
           </div>
         </div>
@@ -621,7 +621,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
         <div className="px-6 pb-6 pt-3 border-t shrink-0">
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              关闭
+              \u5173\u95ed
             </Button>
           </DialogFooter>
         </div>
@@ -642,7 +642,7 @@ export function WardrobeModal({ character, open, onOpenChange }: WardrobeModalPr
 /**
  * Build character-sheet-format variation image.
  *
- * The output is a FULL CHARACTER SHEET (三视图 + 表情设定 + 比例设定 + 动作设定)
+ * The output is a FULL CHARACTER SHEET (ba\u89c6\u56fe + \u8868\u60c5cài đặt + \u6bd4\u4f8bcài đặt + \u52a8\u4f5ccài đặt)
  * matching the base character generation format, NOT a single portrait.
  *
  * Prompt structure = base character sheet prompt + clothing description overlay.
@@ -671,7 +671,7 @@ async function generateVariationImage(params: {
   const baseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
 
   if (!model || !baseUrl) {
-    throw new Error('图片生成服务未正确配置（缺少模型或 Base URL）');
+    throw new Error('\u56fe\u7247\u751f\u6210\u670d\u52a1\u672a\u6b63\u786eCấu hình（thiếu\u5c11\u6a21\u578bhoặc Base URL）');
   }
 
   // ---- Build CHARACTER SHEET prompt (same structure as generation-panel) ----
@@ -781,7 +781,7 @@ async function generateVariationImage(params: {
     return await pollForVariationImage(result.taskId, apiKey, baseUrl);
   }
 
-  throw new Error('无效的 API 响应');
+  throw new Error('không có\u6548của API phản ứng');
 }
 
 /**
@@ -837,7 +837,7 @@ async function pollForVariationImage(
       });
 
       if (!response.ok) {
-        if (response.status === 404) throw new Error('任务不存在');
+        if (response.status === 404) throw new Error('Nhiệm vụ\u4e0d\u5b58\u5728');
         continue;
       }
 
@@ -853,20 +853,20 @@ async function pollForVariationImage(
         }
         imageUrl = imageUrl || data.output_url || data.result_url || data.url;
         if (imageUrl) return imageUrl;
-        throw new Error('任务完成但无图片 URL');
+        throw new Error('Nhiệm vụHoàn thành\u4f46không có\u56fe\u7247 URL');
       }
 
       if (status === 'failed' || status === 'error') {
-        throw new Error(data.error || '图片生成失败');
+        throw new Error(data.error || '\u56fe\u7247\u751f\u6210\u5931\u8d25');
       }
     } catch (error) {
       if (error instanceof Error &&
-          (error.message.includes('失败') || error.message.includes('不存在') || error.message.includes('无图片'))) {
+          (error.message.includes('\u5931\u8d25') || error.message.includes('\u4e0d\u5b58\u5728') || error.message.includes('không có\u56fe\u7247'))) {
         throw error;
       }
       // Transient error, continue polling
     }
   }
 
-  throw new Error('图片生成超时');
+  throw new Error('\u56fe\u7247\u751f\u6210\u8d85\u65f6');
 }

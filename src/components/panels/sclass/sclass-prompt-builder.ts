@@ -2,15 +2,15 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * sclass-prompt-builder.ts — S级组级提示词构建
+ * sclass-prompt-builder.ts — lớp Scấp độ nhómPrompt\u6784\u5efa
  *
- * 核心功能：
- * 1. 自动从 character-library-store 提取角色参考图 → @Image
- * 2. 自动从 scene-store 提取场景参考图 → @Image
- * 3. 自动从 splitScene.dialogue 提取对白 → 唇形同步指令
- * 4. 合并组内各镜头的三层提示词为「镜头1→镜头2→镜头3」结构
- * 5. 收集用户上传的 @Video / @Audio 引用
- * 6. 检查 Seedance 2.0 限制（≤9图 + ≤3视频 + ≤3音频，总≤12，prompt≤5000字符）
+ * Chức năng cốt lõi：
+ * 1. \u81ea\u52a8từ character-library-store Trích xuất Nhân vậsự phản bội\u56fe → @Image
+ * 2. \u81ea\u52a8từ scene-store Trích xuấtCảnh tham khảo\u56fe → @Image
+ * 3. \u81ea\u52a8từ splitScene.dialogue Trích xuấtđối thoại → \u5507\u5f62\u540c\u6b65\u6307\u4ee4
+ * 4. \u5408\u5e76\u7ec4bên trong\u5404Cảnh quaycủaba\u5c42Promptcho「Cảnh quay1→Cảnh quay2→Cảnh quay3」\u7ed3\u6784
+ * 5. \u6536đặtNgười dùngTải lêncủa @Video / @Audio \u5f15sử dụng
+ * 6. \u68c0\u67e5 Hạn chế của Seedance 2.0（≤9\u56fe + ≤3Video + ≤3Âm thanh，\u603b≤12，prompt≤5000từ\u7b26）
  */
 
 import type { SplitScene } from '@/stores/director-store';
@@ -20,58 +20,58 @@ import type { ShotGroup, AssetRef, AssetPurpose, SClassAspectRatio, SClassResolu
 
 // ==================== Types ====================
 
-/** @引用收集结果 */
+/** @\u5f15sử dụng\u6536đặtkết quả */
 export interface CollectedRefs {
-  /** 图片引用（角色图 + 场景图 + 首帧图），最多 9 张 */
+  /** Hình ảnh tham khảo（Nhân vật\u56fe + Cảnh\u56fe + khung hình đầu tiêđồ thị n），nhất 9 \u5f20 */
   images: AssetRef[];
-  /** 视频引用（用户上传），最多 3 个 */
+  /** Trích dẫn video（Người dùngTải lên），nhất 3 một */
   videos: AssetRef[];
-  /** 音频引用（用户上传），最多 3 个 */
+  /** Âm thanh quote（Người dùngTải lên），nhất 3 một */
   audios: AssetRef[];
-  /** 总文件数 */
+  /** Tổng Tệp\u6570 */
   totalFiles: number;
-  /** 是否超出限制 */
+  /** \u662f\u5426\u8d85\u51fa\u9650\u5236 */
   overLimit: boolean;
-  /** 超限详情 */
+  /** \u8d85\u9650Chi tiết */
   limitWarnings: string[];
 }
 
-/** 组级 prompt 构建结果 */
+/** cấp độ nhóm prompt \u6784\u5efakết quả */
 export interface GroupPromptResult {
-  /** 最终组装的 prompt（发送给 API） */
+  /** \u6700\u7ec8\u7ec4\u88c5của prompt（\u53d1\u9001\u7ed9 API） */
   prompt: string;
-  /** prompt 字符数 */
+  /** prompt từ\u7b26\u6570 */
   charCount: number;
-  /** 是否超出 5000 字符限制 */
+  /** \u662f\u5426\u8d85\u51fa 5000 từ\u7b26\u9650\u5236 */
   overCharLimit: boolean;
-  /** 收集到的 @引用 */
+  /** \u6536đặtĐếncủa @\u5f15sử dụng */
   refs: CollectedRefs;
-  /** 各镜头的 prompt 片段（用于 UI 预览） */
+  /** \u5404Cảnh quaycủa prompt \u7247\u6bb5（sử dụng\u4e8e UI Xem trước） */
   shotSegments: ShotSegment[];
-  /** 对白唇形同步片段 */
+  /** đối thoại\u5507\u5f62\u540c\u6b65\u7247\u6bb5 */
   dialogueSegments: DialogueSegment[];
 }
 
-/** 单个镜头的 prompt 片段 */
+/** Đơn Cảnh quaycủa prompt \u7247\u6bb5 */
 export interface ShotSegment {
   sceneId: number;
   sceneName: string;
-  /** 该镜头在组内的索引（1-based） */
+  /** \u8be5Cảnh quay\u5728\u7ec4bên trongcủa\u7d22\u5f15（1-based） */
   shotIndex: number;
-  /** 镜头描述（动作 + 镜头语言） */
+  /** Cảnh quayMô tả（Hành động + Cảnh quayngôn ngữ） */
   description: string;
-  /** 对白文本 */
+  /** đối thoại\u6587\u672c */
   dialogue: string;
-  /** 时长（秒） */
+  /** Thời lượng（giây） */
   duration: number;
 }
 
-/** 对白唇形同步片段 */
+/** đối thoại\u5507\u5f62\u540c\u6b65\u7247\u6bb5 */
 export interface DialogueSegment {
   sceneId: number;
   characterName: string;
   text: string;
-  /** 在视频中的大致时间位置（秒） */
+  /** \u5728Videotrongcủa\u5927\u81f4Thời gianVị trí（giây） */
   timeOffset: number;
 }
 
@@ -90,7 +90,7 @@ export const SEEDANCE_LIMITS = {
 // ==================== Grid Image Merge ====================
 
 /**
- * 计算网格布局（N×N 策略）
+ * Tính toánbố trí lưới（N×N Chiến lược）
  */
 function calculateGridLayout(count: number): { cols: number; rows: number; paddedCount: number } {
   if (count <= 4) return { cols: 2, rows: 2, paddedCount: 4 };
@@ -98,63 +98,63 @@ function calculateGridLayout(count: number): { cols: number; rows: number; padde
 }
 
 /**
- * 将多张首帧图片合并为一张格子图（Canvas 拼接）
+ * \u5c06Nhiều hình ảnhkhung hình đầu tiênHình ảnh\u5408\u5e76chomột mảnhbiểu đồ lưới（Canvas \u62fc\u63a5）
  *
- * 布局规则（N×N 策略，与 handleMergedGenerate 一致）：
- * - 1-4 张 → 2×2，不足的格子留空
- * - 5-9 张 → 3×3，不足的格子留空
- * 宽高比：N×N 网格下，整图宽高比 = 单格宽高比 = 目标画幅比
+ * Bố cụcquy tắc（N×N Chiến lược，với handleMergedGenerate một\u81f4）：
+ * - 1-4 \u5f20 → 2×2，\u4e0d\u8db3của\u683c\u5b50Để trống
+ * - 5-9 \u5f20 → 3×3，\u4e0d\u8db3của\u683c\u5b50Để trống
+ * \u5bbd\u9ad8\u6bd4：N×N \u7f51\u683c\u4e0b，\u6574\u56fe\u5bbd\u9ad8\u6bd4 = \u5355\u683c\u5bbd\u9ad8\u6bd4 = Đích\u753b\u5e45\u6bd4
  *
- * @param imageUrls 图片 URL 列表（base64 / http / local-image://）
- * @param aspectRatio 目标宽高比，如 '16:9' 或 '9:16'
- * @returns 合并后的 dataUrl (image/png)
+ * @param imageUrls Hình ảnh URL danh sách（base64 / http / local-image://）
+ * @param aspectRatio ĐíchTỷ lệ khung hình，Chẳng hạn như '16:9' hoặc '9:16'
+ * @returns \u5408\u5e76\u540ecủa dataUrl (image/png)
  */
 export async function mergeToGridImage(
   imageUrls: string[],
   aspectRatio: string = '16:9',
 ): Promise<string> {
-  if (imageUrls.length === 0) throw new Error('mergeToGridImage: 无图片可合并');
+  if (imageUrls.length === 0) throw new Error('mergeToGridImage: không cóHình ảnh\u53ef\u5408\u5e76');
   if (imageUrls.length === 1) {
-    // 单张直接返回，无需合并
+    // \u5355\u5f20Quay trực tiếp lại，không có\u9700\u5408\u5e76
     return imageUrls[0];
   }
 
   const { cols, rows } = calculateGridLayout(imageUrls.length);
 
-  // 解析宽高比
+  // phân tích cú pháp\u5bbd\u9ad8\u6bd4
   const [aw, ah] = aspectRatio.split(':').map(Number);
   const cellAspect = (aw || 16) / (ah || 9);
 
-  // 每个格子的像素尺寸（基于合理分辨率）
+  // \u6bcflướtôi là\u50cf\u7d20Kích thước（Dựa trên\u5408\u7406Độ phân giải）
   const cellWidth = cellAspect >= 1 ? 512 : Math.round(512 * cellAspect);
   const cellHeight = cellAspect >= 1 ? Math.round(512 / cellAspect) : 512;
 
   const totalWidth = cellWidth * cols;
   const totalHeight = cellHeight * rows;
 
-  // 加载所有图片
+  // \u52a0\u8f7dTất cảHình ảnh
   const loadImage = (src: string): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(`加载图片失败: ${src.substring(0, 60)}...`));
+      img.onerror = () => reject(new Error(`\u52a0\u8f7dHình ảnhThất bại: ${src.substring(0, 60)}...`));
       img.src = src;
     });
 
   const images = await Promise.all(imageUrls.map(loadImage));
 
-  // Canvas 拼接
+  // Canvas \u62fc\u63a5
   const canvas = document.createElement('canvas');
   canvas.width = totalWidth;
   canvas.height = totalHeight;
   const ctx = canvas.getContext('2d')!;
 
-  // 填充灰色背景（空格子）
+  // \u586b\u5145\u7070\u8272Nền（\u7a7a\u683c\u5b50）
   ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, totalWidth, totalHeight);
 
-  // 绘制每张图片到对应格子，居中裁剪保持宽高比
+  // \u7ed8\u5236\u6bcf\u5f20Hình ảnhĐến\u5bf9\u5e94\u683c\u5b50，Căn giữaCropgiữ\u5bbd\u9ad8\u6bd4
   for (let i = 0; i < images.length; i++) {
     const img = images[i];
     const col = i % cols;
@@ -162,15 +162,15 @@ export async function mergeToGridImage(
     const dx = col * cellWidth;
     const dy = row * cellHeight;
 
-    // 计算 cover 裁剪区域
+    // Tính toán cover \u88c1\u526aQuận\u57df
     const imgAspect = img.width / img.height;
     let sx = 0, sy = 0, sw = img.width, sh = img.height;
     if (imgAspect > cellAspect) {
-      // 图片太宽，裁宽度
+      // Hình ảnh\u592a\u5bbd，\u88c1\u5bbd\u5ea6
       sw = Math.round(img.height * cellAspect);
       sx = Math.round((img.width - sw) / 2);
     } else {
-      // 图片太高，裁高度
+      // Hình ảnh\u592a\u9ad8，\u88c1\u9ad8\u5ea6
       sh = Math.round(img.width / cellAspect);
       sy = Math.round((img.height - sh) / 2);
     }
@@ -184,8 +184,8 @@ export async function mergeToGridImage(
 // ==================== Reference Collection ====================
 
 /**
- * 从 character-library-store 提取角色参考图
- * 每个角色取第一张 view 图片
+ * từ character-library-store Trích xuất Nhân vậsự phản bội\u56fe
+ * Mỗi Nhân vật\u53d6Không.một mảnh view Hình ảnh
  */
 export function collectCharacterRefs(
   characterIds: string[],
@@ -201,7 +201,7 @@ export function collectCharacterRefs(
     const char = characters.find(c => c.id === charId);
     if (!char) continue;
 
-    // 优先使用 base64（持久化），其次使用 URL
+    // Ưu tiênsử dụng base64（\u6301\u4e45\u5316），\u5176lầnsử dụng URL
     const view = char.views[0];
     const imageUrl = view?.imageBase64 || view?.imageUrl || char.thumbnailUrl;
     if (!imageUrl) continue;
@@ -209,7 +209,7 @@ export function collectCharacterRefs(
     refs.push({
       id: `char_${charId}`,
       type: 'image',
-      tag: `@图片`,  // tag 会在最终组装时重新编号
+      tag: `@Hình ảnh`,  // tag \u4f1a\u5728\u6700\u7ec8\u7ec4\u88c5\u65f6\u91cd\u65b0\u7f16\u53f7
       localUrl: imageUrl,
       httpUrl: null,
       fileName: `${char.name}_ref.png`,
@@ -223,8 +223,8 @@ export function collectCharacterRefs(
 }
 
 /**
- * 从 scene-store 提取场景参考图
- * 通过 SplitScene.sceneLibraryId 关联
+ * từ scene-store Trích xuấtCảnh tham khảo\u56fe
+ * Chấp nhận SplitScene.sceneLibraryId \u5173\u8054
  */
 export function collectSceneRefs(
   scenes: SplitScene[],
@@ -234,13 +234,13 @@ export function collectSceneRefs(
   const seen = new Set<string>();
 
   for (const splitScene of scenes) {
-    // 方式1: 直接使用分镜上已关联的场景参考图
+    // \u65b9\u5f0f1: Sử dụng trực tiếpPhân cảnh\u4e0aĐã rồiliên quan đến Cảnh tham khảo\u56fe
     if (splitScene.sceneReferenceImage && !seen.has(splitScene.sceneReferenceImage)) {
       seen.add(splitScene.sceneReferenceImage);
       refs.push({
         id: `scene_ref_${splitScene.id}`,
         type: 'image',
-        tag: '@图片',
+        tag: '@Hình ảnh',
         localUrl: splitScene.sceneReferenceImage,
         httpUrl: null,
         fileName: `scene_${splitScene.sceneName || splitScene.id}.png`,
@@ -251,7 +251,7 @@ export function collectSceneRefs(
       continue;
     }
 
-    // 方式2: 通过 sceneLibraryId 从场景库查找
+    // \u65b9\u5f0f2: Chấp nhận sceneLibraryId từThư viện cảnh\u67e5\u627e
     if (splitScene.sceneLibraryId && !seen.has(splitScene.sceneLibraryId)) {
       seen.add(splitScene.sceneLibraryId);
       const sceneObj = sceneLibrary.find(s => s.id === splitScene.sceneLibraryId);
@@ -260,7 +260,7 @@ export function collectSceneRefs(
         refs.push({
           id: `scene_lib_${splitScene.sceneLibraryId}`,
           type: 'image',
-          tag: '@图片',
+          tag: '@Hình ảnh',
           localUrl: sceneImg,
           httpUrl: null,
           fileName: `${sceneObj?.name || 'scene'}_ref.png`,
@@ -276,7 +276,7 @@ export function collectSceneRefs(
 }
 
 /**
- * 收集组内各镜头的首帧图片作为 @Image
+ * \u6536đặt\u7ec4bên trong\u5404Cảnh quaycủakhung hình đầu tiênHình ảnh\u4f5ccho @Image
  */
 export function collectFirstFrameRefs(scenes: SplitScene[]): AssetRef[] {
   const refs: AssetRef[] = [];
@@ -286,7 +286,7 @@ export function collectFirstFrameRefs(scenes: SplitScene[]): AssetRef[] {
     refs.push({
       id: `firstframe_${scene.id}`,
       type: 'image',
-      tag: '@图片',
+      tag: '@Hình ảnh',
       localUrl: imageUrl,
       httpUrl: scene.imageHttpUrl || null,
       fileName: `shot_${scene.id + 1}_frame.png`,
@@ -299,14 +299,14 @@ export function collectFirstFrameRefs(scenes: SplitScene[]): AssetRef[] {
 }
 
 /**
- * 汇总所有 @引用并执行配额校验
+ * \u6c47Tổng Tất cả @\u5f15sử dụng\u5e76\u6267được rồi\u914d\u989d\u6821\u9a8c
  *
- * 新版优先级（格子图模式）：
- *   @Image1 = 格子图（1张） > @Image2~9 = 角色参考图（≤8张）
- * 旧版优先级（兼容）：
- *   首帧图 > 角色图 > 场景图，合计≤9张
+ * \u65b0\u7248ưu tiên（biểu đồ lướichế độ）：
+ *   @Image1 = biểu đồ lưới（1\u5f20） > @Image2~9 = Nhân vậsự phản bội\u56fe（≤8\u5f20）
+ * \u65e7\u7248ưu tiên（\u517c\u5bb9）：
+ *   khung hình đầu tiêđồ thị n > Nhân vật\u56fe > Cảnh\u56fe，\u5408\u8ba1≤9\u5f20
  *
- * @param gridImageRef 如果提供，则使用格子图模式（不再逐张添加首帧）
+ * @param gridImageRef Chẳng hạn như\u679c\u63d0\u4f9b，\u5219sử dụngbiểu đồ lướichế độ（\u4e0dMột lần nữa\u9010\u5f20Thêmkhung hình đầu tiên）
  */
 export function collectAllRefs(
   group: ShotGroup,
@@ -315,52 +315,52 @@ export function collectAllRefs(
   sceneLibrary: Scene[],
   gridImageRef?: AssetRef | null,
 ): CollectedRefs {
-  // 1. 收集角色参考图（去重：组内所有镜头的 characterIds 合并）
+  // 1. Thu thập Nhân vậsự phản bội\u56fe（\u53bb\u91cd：\u7ec4bên trongTất cảCảnh quaycủa characterIds \u5408\u5e76）
   const allCharIds = Array.from(
     new Set(scenes.flatMap(s => s.characterIds || []))
   );
   const charRefs = collectCharacterRefs(allCharIds, characters);
 
-  // 2. 收集场景参考图
+  // 2. \u6536đặtCảnh tham khảo\u56fe
   const sceneRefs = collectSceneRefs(scenes, sceneLibrary);
 
   let images: AssetRef[];
 
   if (gridImageRef) {
-    // ========== 格子图模式 ==========
-    // 格子图占 1 槽，剩余给角色引用 + 场景参考图
+    // ========== biểu đồ lướichế độ ==========
+    // biểu đồ lưới\u5360 1 \u69fd，\u5269\u4f59\u7ed9Nhân vật\u5f15sử dụng + Cảnh tham khảo\u56fe
     const remainingSlots = SEEDANCE_LIMITS.maxImages - 1;
     const charSlice = charRefs.slice(0, remainingSlots);
     images = [gridImageRef, ...charSlice];
-    // 如果还有槽位，加入场景参考图
+    // Chẳng hạn như\u679c\u8fd8Có\u69fd\u4f4d，\u52a0\u5165Cảnh tham khảo\u56fe
     const usedSlots = images.length;
     if (usedSlots < SEEDANCE_LIMITS.maxImages) {
       images.push(...sceneRefs.slice(0, SEEDANCE_LIMITS.maxImages - usedSlots));
     }
   } else {
-    // ========== 旧版兼容模式：逐张首帧 > 角色 > 场景 ==========
+    // ========== \u65e7\u7248\u517c\u5bb9chế độ：\u9010\u5f20khung hình đầu tiên > Nhân vật > Cảnh ==========
     const frameRefs = collectFirstFrameRefs(scenes);
     const allImageRefs = [...frameRefs, ...charRefs, ...sceneRefs];
     images = allImageRefs.slice(0, SEEDANCE_LIMITS.maxImages);
   }
 
-  // 5. 用户上传的视频/音频引用（已在 group 中）
+  // 5. Người dùngTải lêncủaVideo/Âm thanh quote（Đã rồi\u5728 group trong）
   const videoSlice = (group.videoRefs || []).slice(0, SEEDANCE_LIMITS.maxVideos);
   const audioSlice = (group.audioRefs || []).slice(0, SEEDANCE_LIMITS.maxAudios);
 
-  // 6. 重新编号 tag（map 创建新对象，消除副作用）
-  const taggedImages = images.map((ref, i) => ({ ...ref, tag: `@图片${i + 1}` }));
-  const taggedVideos = videoSlice.map((ref, i) => ({ ...ref, tag: `@视频${i + 1}` }));
-  const taggedAudios = audioSlice.map((ref, i) => ({ ...ref, tag: `@音频${i + 1}` }));
+  // 6. \u91cd\u65b0\u7f16\u53f7 tag（map Tạo\u65b0\u5bf9\u8c61，\u6d88\u9664\u526f\u4f5csử dụng）
+  const taggedImages = images.map((ref, i) => ({ ...ref, tag: `@Hình ảnh${i + 1}` }));
+  const taggedVideos = videoSlice.map((ref, i) => ({ ...ref, tag: `@Video${i + 1}` }));
+  const taggedAudios = audioSlice.map((ref, i) => ({ ...ref, tag: `@Âm thanh${i + 1}` }));
 
-  // 7. 配额校验
+  // 7. \u914d\u989d\u6821\u9a8c
   const totalFiles = taggedImages.length + taggedVideos.length + taggedAudios.length;
   const warnings: string[] = [];
   if (taggedImages.length >= SEEDANCE_LIMITS.maxImages) {
-    warnings.push(`图片引用已达上限 ${SEEDANCE_LIMITS.maxImages}`);
+    warnings.push(`Hình ảnh tham khảoĐã rồi\u8fbe\u4e0a\u9650 ${SEEDANCE_LIMITS.maxImages}`);
   }
   if (totalFiles > SEEDANCE_LIMITS.maxTotalFiles) {
-    warnings.push(`总文件数 ${totalFiles} 超出限制 ${SEEDANCE_LIMITS.maxTotalFiles}`);
+    warnings.push(`Tổng Tệp\u6570 ${totalFiles} \u8d85\u51fa\u9650\u5236 ${SEEDANCE_LIMITS.maxTotalFiles}`);
   }
 
   return {
@@ -376,7 +376,7 @@ export function collectAllRefs(
 // ==================== Dialogue / Lip-Sync ====================
 
 /**
- * 从组内镜头提取对白，生成唇形同步片段
+ * từ\u7ec4bên trongCảnh quayTrích xuấtđối thoại，Tạo\u5507\u5f62\u540c\u6b65\u7247\u6bb5
  */
 export function extractDialogueSegments(
   scenes: SplitScene[],
@@ -391,21 +391,21 @@ export function extractDialogueSegments(
     if (scene.dialogue && scene.dialogue.trim()) {
       const dialogueText = scene.dialogue.trim();
 
-      // 检测对白文本是否已包含说话人格式（如 "村民：妹子" 或 "村民（操着方言）：妹子"）
+      // Phát hiệnđối thoại\u6587\u672c\u662f\u5426Đã rồichứanói\u4ebaĐịnh dạng（Chẳng hạn như "dân làng：\u59b9\u5b50" hoặc "dân làng（\u64cd\u7740\u65b9\u8a00）：\u59b9\u5b50"）
       const speakerMatch = dialogueText.match(/^([^\uff1a:]{1,20})[\uff1a:](.+)$/s);
 
       let characterName: string;
       let text: string;
 
       if (speakerMatch) {
-        // 对白自带说话人，直接使用
+        // đối thoại\u81ea\u5e26nói\u4eba，Sử dụng trực tiếp
         characterName = speakerMatch[1].trim();
         text = speakerMatch[2].trim();
       } else {
-        // 回退到 characterIds 查找角色名
+        // \u56de\u9000Đến characterIds \u67e5\u627eNhân vậtên t
         characterName = scene.characterIds?.[0]
-          ? characters.find(c => c.id === scene.characterIds[0])?.name || '角色'
-          : '角色';
+          ? characters.find(c => c.id === scene.characterIds[0])?.name || 'Nhân vật'
+          : 'Nhân vật';
         text = dialogueText;
       }
 
@@ -424,22 +424,22 @@ export function extractDialogueSegments(
 }
 
 /**
- * 将对白片段转为唇形同步指令文本
+ * \u5c06đối thoại\u7247\u6bb5\u8f6ccho\u5507\u5f62\u540c\u6b65\u6307\u4ee4\u6587\u672c
  */
 function buildDialoguePromptPart(segments: DialogueSegment[]): string {
   if (segments.length === 0) return '';
 
   const lines = segments.map(s =>
-    `[约${s.timeOffset}s处] ${s.characterName}：「${s.text}」— 口型同步，自然口部动作`
+    `[khoảng${s.timeOffset}s\u5904] ${s.characterName}：「${s.text}」— \u53e3\u578b\u540c\u6b65，tự nhiên\u53e3\u90e8Hành động`
   );
 
-  return `\n\n对白与口型同步：\n${lines.join('\n')}`;
+  return `\n\đối thoạivới\u53e3\u578b\u540c\u6b65：\n${lines.join('\n')}`;
 }
 
 // ==================== Shot Segment Building ====================
 
 /**
- * 为单个镜头构建描述片段（完整版 — 涵盖分镜卡片上所有可用字段）
+ * cho một C duy nhấtảnh quay\u6784\u5efaMô tả\u7247\u6bb5（\u5b8c\u6574\u7248 — \u6db5\u76d6Phân cảnh\u5361\u7247\u4e0aTất cảCó sẵntừ\u6bb5）
  */
 function buildShotSegment(
   scene: SplitScene,
@@ -448,11 +448,11 @@ function buildShotSegment(
 ): ShotSegment {
   const parts: string[] = [];
 
-  // 过滤无效值的辅助函数
+  // Lọckhông có\u6548\u503ccủaphụ trợchức năng
   const isValid = (v?: string | null): v is string =>
-    !!v && !['none', 'null', '无', '无技法', '默认'].includes(v.toLowerCase().trim());
+    !!v && !['none', 'null', 'không có', 'không cóKỹ thuật', 'Mặc định'].includes(v.toLowerCase().trim());
 
-  // ===== 镜头语言（运镜 + 景别 + 角度 + 焦距 + 摄影技法） =====
+  // ===== Cảnh quayngôn ngữ（\u8fd0\u955c + Cỡ cảnh + góc + tiêu cự + kỹ thuật chụp ảnh） =====
   if (isValid(scene.cameraMovement)) parts.push(scene.cameraMovement);
   if (isValid(scene.shotSize)) parts.push(scene.shotSize);
   if (isValid(scene.cameraAngle)) parts.push(scene.cameraAngle);
@@ -460,15 +460,15 @@ function buildShotSegment(
   if (isValid(scene.photographyTechnique)) parts.push(scene.photographyTechnique);
   if (isValid(scene.specialTechnique)) parts.push(scene.specialTechnique);
 
-  // ===== 机位描述 =====
+  // ===== Góc máyMô tả =====
   if (scene.cameraPosition?.trim()) parts.push(`camera: ${scene.cameraPosition.trim()}`);
 
-  // ===== 动作描述（优先视频提示词，其次动作摘要） =====
+  // ===== Hành độngMô tả（Ưu tiênVideoPrompt，\u5176lầnHành độngTóm tắt） =====
   const action = scene.videoPromptZh?.trim() || scene.videoPrompt?.trim()
     || scene.actionSummary?.trim() || '';
   if (action) parts.push(action);
 
-  // ===== 灯光 =====
+  // ===== đèn =====
   const lightParts: string[] = [];
   if (isValid(scene.lightingStyle)) lightParts.push(scene.lightingStyle);
   if (isValid(scene.lightingDirection)) lightParts.push(scene.lightingDirection);
@@ -476,37 +476,37 @@ function buildShotSegment(
   if (scene.lightingNotes?.trim()) lightParts.push(scene.lightingNotes.trim());
   if (lightParts.length > 0) parts.push(`lighting: ${lightParts.join(', ')}`);
 
-  // ===== 景深 + 焦点 =====
+  // ===== độ sâu trường ảnh + tiêu điểm =====
   if (isValid(scene.depthOfField)) parts.push(`DoF: ${scene.depthOfField}`);
   if (scene.focusTarget?.trim()) parts.push(`focus: ${scene.focusTarget.trim()}`);
   if (isValid(scene.focusTransition)) parts.push(`focus-transition: ${scene.focusTransition}`);
 
-  // ===== 器材 + 运动速度 =====
+  // ===== Thiết bị + Tốc độ di chuyển =====
   if (isValid(scene.cameraRig)) parts.push(`rig: ${scene.cameraRig}`);
   if (isValid(scene.movementSpeed) && !['normal', 'static'].includes(scene.movementSpeed!)) parts.push(`speed: ${scene.movementSpeed}`);
 
-  // ===== 氛围特效 =====
+  // ===== Không khí Xin chàoệu ứng =====
   if (scene.atmosphericEffects && scene.atmosphericEffects.length > 0) {
     parts.push(`atmosphere: ${scene.atmosphericEffects.join(', ')}`);
   }
 
-  // ===== 播放速度 =====
+  // ===== Phátốc độ =====
   if (scene.playbackSpeed && scene.playbackSpeed !== 'normal') {
     parts.push(`playback: ${scene.playbackSpeed}`);
   }
 
-  // ===== 情绪氛围 =====
+  // ===== cảm xúcbầu không khí =====
   if (scene.emotionTags && scene.emotionTags.length > 0) {
     parts.push(`mood: ${scene.emotionTags.join(' → ')}`);
   }
 
-  // ===== @Image 引用（该镜头的首帧） =====
+  // ===== @Image \u5f15sử dụng（\u8be5Cảnh quaycủakhung hình đầu tiên） =====
   const frameRef = refs.images.find(r => r.id === `firstframe_${scene.id}`);
   if (frameRef) parts.push(`reference: ${frameRef.tag}`);
 
   return {
     sceneId: scene.id,
-    sceneName: scene.sceneName || `镜头${scene.id + 1}`,
+    sceneName: scene.sceneName || `Cảnh quay${scene.id + 1}`,
     shotIndex,
     description: parts.join(', '),
     dialogue: scene.dialogue || '',
@@ -521,59 +521,59 @@ export interface BuildGroupPromptOptions {
   scenes: SplitScene[];
   characters: Character[];
   sceneLibrary: Scene[];
-  /** 风格 token（从 storyboardConfig） */
+  /** Phong cách token（từ storyboardConfig） */
   styleTokens?: string[];
-  /** 宽高比 */
+  /** \u5bbd\u9ad8\u6bd4 */
   aspectRatio?: SClassAspectRatio;
-  /** 是否包含对白唇形同步 */
+  /** \u662f\u5426chứađối thoại\u5507\u5f62\u540c\u6b65 */
   enableLipSync?: boolean;
-  /** 格子图引用（如果提供，使用格子图模式收集引用） */
+  /** biểu đồ lưới\u5f15sử dụng（Chẳng hạn như\u679c\u63d0\u4f9b，sử dụngbiểu đồ lướichế độ\u6536đặt\u5f15sử dụng） */
   gridImageRef?: AssetRef | null;
 }
 
-/** purpose → 中文提示语映射 */
+/** purpose → Tiếng TrungGợi ý\u8bed\u6620\u5c04 */
 const PURPOSE_PROMPT_MAP: Record<AssetPurpose, string> = {
-  character_ref: '保持角色外观一致',
-  scene_ref: '作为场景参考',
-  first_frame: '作为首帧',
-  grid_image: '为角色参考格子图，保持角色一致性',
-  camera_replicate: '精准复刻镜头运动轨迹和速度',
-  action_replicate: '复刻动作节奏和幅度',
-  effect_replicate: '复刻视觉特效和转场效果',
-  beat_sync: '作为背景音乐，视频节奏严格匹配音乐节拍',
-  bgm: '作为背景音乐参考',
-  voice_ref: '作为语音参考',
-  prev_video: '接续前段视频，保持角色和场景一致',
-  video_extend: '作为被延长的视频，平滑衔接',
-  video_edit_src: '作为被编辑的源视频',
-  general: '作为参考',
+  character_ref: 'giữNhân vậtBên ngoài\u89c2một\u81f4',
+  scene_ref: '\u4f5ccho Cảnh tham khảo',
+  first_frame: '\u4f5cchokhung hình đầu tiên',
+  grid_image: 'choNhân vậsự phản bộibiểu đồ lưới，giữNhân vậtTính nhất quán',
+  camera_replicate: '\u7cbe\u51c6\u590d\u523bCảnh quay thể thao\u8f68\u8ff9vàtốc độ',
+  action_replicate: '\u590d\u523bHành động\u8282\u594fvà\u5e45\u5ea6',
+  effect_replicate: '\u590d\u523bTầm nhìnHiệu ứngvà\u8f6c\u573a\u6548\u679c',
+  beat_sync: '\u4f5cchoNềnÂm nhạc，Video\u8282\u594f\u4e25\u683ctrận đấuâm nhạc\u8282\u62cd',
+  bgm: '\u4f5cchoNềnÂm nhạcTài liệu tham khảo',
+  voice_ref: '\u4f5cchoTham chiếu bằng giọng nói',
+  prev_video: '\u63a5\u7eed\u524d\u6bb5Video，giữNhân vậtvàCảnhmột\u81f4',
+  video_extend: '\u4f5cchoVideo mở rộng，\u5e73\u6ed1\u8854\u63a5',
+  video_edit_src: '\u4f5cchoBé Chỉnh sửNguồn Video của một',
+  general: '\u4f5cchoTài liệu tham khảo',
 };
 
-/** 编辑类型 → prompt 模板前缀 */
+/** Chỉnh sửaLoại → prompt \u6a21\u677f\u524d\u7f00 */
 const EDIT_TYPE_TEMPLATE: Record<EditType, string> = {
-  plot_change: '颠覆@视频1里的剧情，',
-  character_swap: '视频1中的角色换成图片中的角色，动作完全模仿原视频，',
-  attribute_modify: '将视频1中',
-  element_add: '在视频1的画面中添加',
+  plot_change: '\u98a0\u8986@Video1\u91cccủa\u5267\u60c5，',
+  character_swap: 'Video1trongNhân vật\u6362\u6210Hình ảnhtrongNhân vật，Hành động\u5b8c\u5168\u6a21\u4eff\u539fVideo，',
+  attribute_modify: '\u5c06Video1trong',
+  element_add: '\u5728Video1bức tranhtrongThêm',
 };
 
 /**
- * 构建组级 prompt — S级核心函数
+ * \u6784\u5efacấp độ nhóm prompt — lớp Schức năng cốt lõi
  *
- * 输出格式（中文模板）：
+ * Đầu raĐịnh dạng（Tiếng Trung\u6a21\u677f）：
  * ```
- * 多镜头叙事视频（共3个镜头，总时长14s）：
+ * Nhiều Cảnh quay tường thuậtVideo（tổng cộng3Cảnh quay，Tổng Thời lượng14s）：
  *
- * 镜头1 [0s-5s]「场景名」：[运镜], [动作]
- * 镜头2 [5s-9s]「场景名」：[运镜], [动作]
+ * Cảnh quay1 [0s-5s]「Cảnh tên」：[\u8fd0\u955c], [Hành động]
+ * Cảnh quay2 [5s-9s]「Cảnh tên」：[\u8fd0\u955c], [Hành động]
  *
- * 角色参考：@图片4（角色A）保持角色外观一致
- * 场景参考：@图片6 作为场景参考
+ * Nhân vậsự phản bội：@Hình ảnh4（Nhân vậtA）giữNhân vậtBên ngoài\u89c2một\u81f4
+ * Cảnh tham khảo：@Hình ảnh6 \u4f5ccho Cảnh tham khảo
  *
- * 对白与口型同步：
- * [约2s处] 角色A：「台词」— 口型同步，自然口部动作
+ * đối thoạivới\u53e3\u578b\u540c\u6b65：
+ * [khoảng2s\u5904] Nhân vậtA：「dòng」— \u53e3\u578b\u540c\u6b65，tự nhiên\u53e3\u90e8Hành động
  *
- * 风格：电影感, 暖色调...
+ * Phong cách：Cảm giác điện ảnh, Ấm Tông màu...
  * ```
  */
 export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptResult {
@@ -588,25 +588,25 @@ export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptR
     gridImageRef,
   } = options;
 
-  // 0. 延长/编辑模式 — 走独立分支
+  // 0. mở rộng/Chỉnh sửachế độ — điđộc lập\u5206\u652f
   const genType = group.generationType || 'new';
   if (genType === 'extend' || genType === 'edit') {
     return buildExtendEditPrompt(group, scenes, characters, sceneLibrary, styleTokens);
   }
 
-  // 1. 收集所有 @引用（格子图模式或旧版模式）
+  // 1. \u6536Đặt Tất cả @\u5f15sử dụng（biểu đồ lướichế độhoặc\u65e7\u7248chế độ）
   const refs = collectAllRefs(group, scenes, characters, sceneLibrary, gridImageRef);
 
-  // 2. 构建各镜头片段
+  // 2. \u6784\u5efa\u5404Cảnh quay\u7247\u6bb5
   const shotSegments = scenes.map((scene, idx) =>
     buildShotSegment(scene, idx + 1, refs)
   );
 
-  // 3. 计算时间轴
+  // 3. Tính toánThời gian\u8f74
   let timeOffset = 0;
   const totalDuration = shotSegments.reduce((sum, s) => sum + s.duration, 0);
 
-  // 4. 如果用户已手动编辑过 mergedPrompt，优先使用
+  // 4. Chẳng hạn như\u679cNgười dùngĐã rồitay\u52a8Chỉnh sửa\u8fc7 mergedPrompt，Ưu tiênsử dụng
   if (group.mergedPrompt && group.mergedPrompt.trim()) {
     const dialogueSegs = enableLipSync ? extractDialogueSegments(scenes, characters) : [];
     return {
@@ -619,7 +619,7 @@ export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptR
     };
   }
 
-  // 4.5 AI 校准后的 prompt 优先级在手动编辑之下、自动拼接之上
+  // 4.5 AI \u6821\u51c6\u540ecủa prompt ưu tiên\u5728tay\u52a8Chỉnh sửa\u4e4b\u4e0b、nối tự động\u4e4b\u4e0a
   if (group.calibratedPrompt && group.calibrationStatus === 'done') {
     const dialogueSegs = enableLipSync ? extractDialogueSegments(scenes, characters) : [];
     return {
@@ -632,45 +632,45 @@ export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptR
     };
   }
 
-  // 5. 自动组装 prompt（中文模板）
+  // 5. \u81ea\u52a8\u7ec4\u88c5 prompt（Tiếng Trung\u6a21\u677f）
   const promptParts: string[] = [];
 
-  // 标题行
+  // Tiêu đềđược rồi
   if (gridImageRef) {
     promptParts.push(
-      `多镜头叙事视频，参考 @图片1 格子图（共${scenes.length}个镜头，总时长${totalDuration}s）：`
+      `Nhiều Cảnh quay tường thuậtVideo，Tài liệu tham khảo @Hình ảnh1 biểu đồ lưới（tổng cộng${scenes.length}Cảnh quay，Tổng Thời lượng${totalDuration}s）：`
     );
   } else {
     promptParts.push(
-      `多镜头叙事视频（共${scenes.length}个镜头，总时长${totalDuration}s）：`
+      `Nhiều Cảnh quay tường thuậtVideo（tổng cộng${scenes.length}Cảnh quay，Tổng Thời lượng${totalDuration}s）：`
     );
   }
   promptParts.push('');
 
-  // 各镜头描述
+  // \u5404Cảnh quayMô tả
   for (const seg of shotSegments) {
     const endTime = timeOffset + seg.duration;
     promptParts.push(
-      `镜头${seg.shotIndex} [${timeOffset}s-${endTime}s]「${seg.sceneName}」：${seg.description}`
+      `Cảnh quay${seg.shotIndex} [${timeOffset}s-${endTime}s]「${seg.sceneName}」：${seg.description}`
     );
     timeOffset = endTime;
   }
 
-  // 角色引用（基于 purpose 生成精确指令）
+  // Nhân vật\u5f15sử dụng（Dựa trên purpose Tạo\u7cbe\u786e\u6307\u4ee4）
   const charRefLines = refs.images
     .filter(r => r.id.startsWith('char_'))
     .map(r => {
       const charId = r.id.replace('char_', '');
       const char = characters.find(c => c.id === charId);
       const hint = PURPOSE_PROMPT_MAP[r.purpose || 'character_ref'];
-      return `${r.tag}（${char?.name || '角色'}）${hint}`;
+      return `${r.tag}（${char?.name || 'Nhân vật'}）${hint}`;
     });
   if (charRefLines.length > 0) {
     promptParts.push('');
-    promptParts.push(`角色参考：${charRefLines.join('；')}`);
+    promptParts.push(`Nhân vậsự phản bội：${charRefLines.join('；')}`);
   }
 
-  // 场景引用
+  // Cảnh tham khảo
   const sceneRefLines = refs.images
     .filter(r => r.id.startsWith('scene_'))
     .map(r => {
@@ -678,51 +678,51 @@ export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptR
       return `${r.tag} ${hint}`;
     });
   if (sceneRefLines.length > 0) {
-    promptParts.push(`场景参考：${sceneRefLines.join('；')}`);
+    promptParts.push(`Cảnh tham khảo：${sceneRefLines.join('；')}`);
   }
 
-  // 视频引用
+  // Trích dẫn video
   if (refs.videos.length > 0) {
     const videoLines = refs.videos.map(r => {
       const hint = PURPOSE_PROMPT_MAP[r.purpose || 'camera_replicate'];
       return `${r.tag}（${r.fileName}）${hint}`;
     });
-    promptParts.push(`视频参考：${videoLines.join('；')}`);
+    promptParts.push(`VideoTài liệu tham khảo：${videoLines.join('；')}`);
   }
 
-  // 音频引用
+  // Âm thanh quote
   if (refs.audios.length > 0) {
     const audioRefLines = refs.audios.map(r => {
       const hint = PURPOSE_PROMPT_MAP[r.purpose || 'bgm'];
       return `${r.tag}（${r.fileName}）${hint}`;
     });
-    promptParts.push(`音频参考：${audioRefLines.join('；')}`);
+    promptParts.push(`Âm thanh tham khảo：${audioRefLines.join('；')}`);
   }
 
-  // 音频设计（环境音 + 音效，按镜头列出）
+  // Âthiết kế m thanh（âm thanh xung quanh + Hiệu ứng âm thanh，\u6309Cảnh quayCột\u51fa）
   const audioDesignLines: string[] = [];
   for (let i = 0; i < scenes.length; i++) {
     const s = scenes[i];
     const aParts: string[] = [];
     if (s.audioAmbientEnabled !== false && s.ambientSound?.trim()) {
-      aParts.push(`环境音：${s.ambientSound.trim()}`);
+      aParts.push(`âm thanh xung quanh：${s.ambientSound.trim()}`);
     }
     const sfxText = s.soundEffectText?.trim();
     const sfxTags = s.soundEffects?.length ? s.soundEffects.join('、') : '';
     if (s.audioSfxEnabled !== false && (sfxText || sfxTags)) {
-      aParts.push(`音效：${sfxText || sfxTags}`);
+      aParts.push(`Hiệu ứng âm thanh：${sfxText || sfxTags}`);
     }
     if (aParts.length > 0) {
-      audioDesignLines.push(`镜头${i + 1}：${aParts.join('；')}`);
+      audioDesignLines.push(`Cảnh quay${i + 1}：${aParts.join('；')}`);
     }
   }
   if (audioDesignLines.length > 0) {
     promptParts.push('');
-    promptParts.push('音频设计：');
+    promptParts.push('Âthiết kế m thanh：');
     promptParts.push(...audioDesignLines);
   }
 
-  // 对白唇形同步
+  // đối thoại\u5507\u5f62\u540c\u6b65
   const dialogueSegments = enableLipSync
     ? extractDialogueSegments(scenes, characters)
     : [];
@@ -731,16 +731,16 @@ export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptR
     promptParts.push(dialoguePart);
   }
 
-  // 风格（不再注入：校准后的各镜头 prompt 已包含风格描述）
+  // Phong cách（\u4e0dMột lần nữaLưu ý\u5165：\u6821\u51c6\u540ecủa\u5404Cảnh quay prompt Đã rồiChứa Phong cáchMô tả）
 
-  // 宽高比提示
+  // \u5bbd\u9ad8\u6bd4Gợi ý
   if (aspectRatio) {
-    promptParts.push(`画幅：${aspectRatio}`);
+    promptParts.push(`\u753b\u5e45：${aspectRatio}`);
   }
 
-  // 一致性约束
+  // một\u81f4\u6027khoảng\u675f
   promptParts.push('');
-  promptParts.push('全部镜头保持角色外观一致，镜头间平滑过渡，不出现文字或水印。');
+  promptParts.push('Tất cảCảnh quaygiữNhân vậtBên ngoài\u89c2một\u81f4，Cảnh quay\u95f4\u5e73\u6ed1Chuyển tiếp，\u4e0d\u51fa\u73b0\u6587từhoặc\u6c34\u5370。');
 
   const prompt = promptParts.join('\n');
 
@@ -757,12 +757,12 @@ export function buildGroupPrompt(options: BuildGroupPromptOptions): GroupPromptR
 // ==================== Extend / Edit Prompt Builder ====================
 
 /**
- * 延长/编辑模式的 prompt 构建器
+ * mở rộng/Chỉnh sửachế độcủa prompt \u6784\u5efa\u5668
  *
- * 与常规多镜头叙事不同：
- * - 不建格子图
- * - source video 自动占据 @视频1 位
- * - prompt 使用延长/编辑专用模板
+ * với\u5e38\u89c4Nhiều Cảnh quay\u53d9\u4e8b\u4e0d\u540c：
+ * - \u4e0d\u5efabiểu đồ lưới
+ * - source video \u81ea\u52a8\u5360\u636e @Video1 \u4f4d
+ * - prompt sử dụngmở rộng/Chỉnh sửa\u4e13sử dụng\u6a21\u677f
  */
 function buildExtendEditPrompt(
   group: ShotGroup,
@@ -771,32 +771,32 @@ function buildExtendEditPrompt(
   sceneLibrary: Scene[],
   styleTokens?: string[],
 ): GroupPromptResult {
-  // --- 收集引用（不建格子图） ---
-  // source video 占 @视频1，用户上传的 videoRefs 从 @视频2 开始
+  // --- \u6536đặt\u5f15sử dụng（\u4e0d\u5efabiểu đồ lưới） ---
+  // source video \u5360 @Video1，Người dùngTải lêncủa videoRefs từ @Video2 Bắt đầu
   const sourceVideoRef: AssetRef | null = group.sourceVideoUrl ? {
     id: 'source_video',
     type: 'video',
-    tag: '@视频1',
+    tag: '@Video1',
     localUrl: group.sourceVideoUrl,
     httpUrl: group.sourceVideoUrl.startsWith('http') ? group.sourceVideoUrl : null,
-    fileName: '源视频',
+    fileName: '\u6e90Video',
     fileSize: 0,
     duration: null,
     purpose: group.generationType === 'extend' ? 'video_extend' : 'video_edit_src',
   } : null;
 
-  // 用户额外上传的视频/音频
+  // Người dùng\u989dBên ngoàiTải lêncủaVideo/Âm thanh
   const userVideoRefs = (group.videoRefs || []).slice(0, sourceVideoRef ? SEEDANCE_LIMITS.maxVideos - 1 : SEEDANCE_LIMITS.maxVideos);
   const allVideoRefs = sourceVideoRef ? [sourceVideoRef, ...userVideoRefs] : userVideoRefs;
-  const taggedVideos = allVideoRefs.map((ref, i) => ({ ...ref, tag: `@视频${i + 1}` }));
+  const taggedVideos = allVideoRefs.map((ref, i) => ({ ...ref, tag: `@Video${i + 1}` }));
 
   const audioSlice = (group.audioRefs || []).slice(0, SEEDANCE_LIMITS.maxAudios);
-  const taggedAudios = audioSlice.map((ref, i) => ({ ...ref, tag: `@音频${i + 1}` }));
+  const taggedAudios = audioSlice.map((ref, i) => ({ ...ref, tag: `@Âm thanh${i + 1}` }));
 
-  // 图片引用（角色参考图 + 用户额外上传）
+  // Hình ảnh tham khảo（Nhân vậsự phản bội\u56fe + Người dùng\u989dBên ngoàiTải lên）
   const allCharIds = Array.from(new Set(scenes.flatMap(s => s.characterIds || [])));
   const charRefs = collectCharacterRefs(allCharIds, characters);
-  const taggedImages = charRefs.slice(0, SEEDANCE_LIMITS.maxImages).map((ref, i) => ({ ...ref, tag: `@图片${i + 1}` }));
+  const taggedImages = charRefs.slice(0, SEEDANCE_LIMITS.maxImages).map((ref, i) => ({ ...ref, tag: `@Hình ảnh${i + 1}` }));
 
   const totalFiles = taggedImages.length + taggedVideos.length + taggedAudios.length;
   const refs: CollectedRefs = {
@@ -805,11 +805,11 @@ function buildExtendEditPrompt(
     audios: taggedAudios,
     totalFiles,
     overLimit: totalFiles > SEEDANCE_LIMITS.maxTotalFiles,
-    limitWarnings: totalFiles > SEEDANCE_LIMITS.maxTotalFiles ? [`总文件数 ${totalFiles} 超出限制 ${SEEDANCE_LIMITS.maxTotalFiles}`] : [],
+    limitWarnings: totalFiles > SEEDANCE_LIMITS.maxTotalFiles ? [`Tổng Tệp\u6570 ${totalFiles} \u8d85\u51fa\u9650\u5236 ${SEEDANCE_LIMITS.maxTotalFiles}`] : [],
   };
 
-  // --- 构建 prompt ---
-  // 用户手动编辑优先
+  // --- \u6784\u5efa prompt ---
+  // Người dùngManualChỉnh sửaƯu tiên
   if (group.mergedPrompt && group.mergedPrompt.trim()) {
     return {
       prompt: group.mergedPrompt,
@@ -825,31 +825,31 @@ function buildExtendEditPrompt(
   const genType = group.generationType || 'new';
 
   if (genType === 'extend') {
-    // --- 延长模式 ---
-    const direction = group.extendDirection === 'forward' ? '向前' : '向后';
+    // --- mở rộngchế độ ---
+    const direction = group.extendDirection === 'forward' ? '\u5411\u524d' : '\u5411\u540e';
     const dur = group.totalDuration || 10;
-    promptParts.push(`${direction}延长${dur}s视频。`);
+    promptParts.push(`${direction}mở rộng${dur}sVideo。`);
   } else {
-    // --- 编辑模式 ---
+    // --- Chỉnh sửachế độ ---
     const editType = group.editType || 'plot_change';
     promptParts.push(EDIT_TYPE_TEMPLATE[editType]);
   }
 
-  // 角色参考指令
+  // Nhân vậsự phản bội\u6307\u4ee4
   if (taggedImages.length > 0) {
     const charRefHints = taggedImages
       .filter(r => r.id.startsWith('char_'))
       .map(r => {
         const charId = r.id.replace('char_', '');
         const char = characters.find(c => c.id === charId);
-        return `参考${r.tag}（${char?.name || '角色'}）保持角色外观一致`;
+        return `Tài liệu tham khảo${r.tag}（${char?.name || 'Nhân vật'}）giữNhân vậtBên ngoài\u89c2một\u81f4`;
       });
     if (charRefHints.length > 0) {
       promptParts.push(charRefHints.join('；'));
     }
   }
 
-  // 风格（不再注入：校准后的各镜头 prompt 已包含风格描述）
+  // Phong cách（\u4e0dMột lần nữaLưu ý\u5165：\u6821\u51c6\u540ecủa\u5404Cảnh quay prompt Đã rồiChứa Phong cáchMô tả）
 
   const prompt = promptParts.join('\n');
 
@@ -864,7 +864,7 @@ function buildExtendEditPrompt(
 }
 
 /**
- * 快速预估一个组的 @引用数量（不执行完整构建）
+ * Nhanh\u901f\u9884\u4f30mộtmột\u7ec4của @\u5f15sử dụng\u6570\u91cf（\u4e0d\u6267được rồi\u5b8c\u6574\u6784\u5efa）
  */
 export function estimateGroupRefs(
   group: ShotGroup,

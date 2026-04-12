@@ -70,7 +70,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
           <MapPin className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          选择一个场景查看详情
+          \u9009\u62e9mộtCảnh\u67e5\u770bChi tiết
         </p>
       </div>
     );
@@ -79,29 +79,29 @@ export function SceneDetail({ scene }: SceneDetailProps) {
   const handleSaveName = () => {
     if (editName.trim() && editName.trim() !== scene.name) {
       updateScene(scene.id, { name: editName.trim() });
-      toast.success("名称已更新");
+      toast.success("TênĐã rồiCập nhật");
     }
     setIsEditingName(false);
   };
 
   const handleDelete = () => {
-    if (confirm(`确定要删除场景 "${scene.name}" 吗？`)) {
+    if (confirm(`\u786e\u5b9a\u8981XoáCảnh "${scene.name}" \u5417？`)) {
       deleteScene(scene.id);
       selectScene(null);
-      toast.success("场景已删除");
+      toast.success("CảnhĐã rồiXoá");
     }
   };
 
   const handleSaveNotes = () => {
     updateScene(scene.id, { notes: editNotes.trim() || undefined });
     setIsEditingNotes(false);
-    toast.success("备注已更新");
+    toast.success("Bình luậnĐã rồiCập nhật");
   };
 
   const handleSaveLocation = () => {
     if (editLocation.trim()) {
       updateScene(scene.id, { location: editLocation.trim() });
-      toast.success("地点描述已更新");
+      toast.success("Vị trí Mô tảĐã rồiCập nhật");
     }
     setIsEditingLocation(false);
   };
@@ -109,7 +109,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
   const handleSaveVisualPrompt = () => {
     updateScene(scene.id, { visualPrompt: editVisualPrompt.trim() || undefined });
     setIsEditingVisualPrompt(false);
-    toast.success("视觉提示词已更新");
+    toast.success("Lời nhắc trực quanĐã rồiCập nhật");
   };
 
   const handleAddTag = () => {
@@ -118,7 +118,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
     const currentTags = scene.tags || [];
     if (!currentTags.includes(tag)) {
       updateScene(scene.id, { tags: [...currentTags, tag] });
-      toast.success("标签已添加");
+      toast.success("nhãnĐã Thêm");
     }
     setNewTag("");
   };
@@ -132,11 +132,11 @@ export function SceneDetail({ scene }: SceneDetailProps) {
     if (!scene.referenceImage) return;
     try {
       let href = scene.referenceImage;
-      // local-image:// 需要先转为 base64 才能导出
+      // local-image:// \u9700\u8981đầu tiên\u8f6ccho base64 \u624d\u80fdXuất
       if (href.startsWith('local-image://')) {
         const base64 = await readImageAsBase64(href);
         if (!base64) {
-          toast.error("无法读取本地图片");
+          toast.error("Không thể đọc H cục bộình ảnh");
           return;
         }
         href = base64;
@@ -147,7 +147,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
       link.click();
     } catch (error) {
       console.error('Export failed:', error);
-      toast.error("导出失败");
+      toast.error("XuấtThất bại");
     }
   };
 
@@ -201,7 +201,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
           <div className="space-y-2">
             <div 
               className="aspect-video rounded-lg bg-muted overflow-hidden border relative cursor-zoom-in"
-              title="双击查看完整图片"
+              title="\u53cc\u51fb\u67e5\u770b\u5b8c\u6574Hình ảnh"
               draggable={!!scene.referenceImage}
               onDoubleClick={() => {
                 if (resolvedImage) setPreviewImageUrl(resolvedImage);
@@ -243,7 +243,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
 
           {/* Scene info */}
           <div className="space-y-3">
-            <div className="text-xs font-medium text-muted-foreground">场景信息</div>
+            <div className="text-xs font-medium text-muted-foreground">Cảnh thông tin</div>
             
             {/* Time and Atmosphere badges */}
             <div className="flex flex-wrap gap-1.5">
@@ -257,10 +257,10 @@ export function SceneDetail({ scene }: SceneDetailProps) {
               </Badge>
             </div>
 
-            {/* Location - 可编辑 */}
+            {/* Location - Cán Chỉnh sửa */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs text-muted-foreground">地点描述</Label>
+                <Label className="text-xs text-muted-foreground">Vị trí Mô tả</Label>
                 {!isEditingLocation && (
                   <Button
                     size="icon"
@@ -280,30 +280,30 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                   <Textarea
                     value={editLocation}
                     onChange={(e) => setEditLocation(e.target.value)}
-                    placeholder="输入地点描述..."
+                    placeholder="Đầu vàoVị trí Mô tả..."
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <Button size="sm" className="h-6 text-xs" onClick={handleSaveLocation}>
-                      保存
+                      Lưu
                     </Button>
                     <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setIsEditingLocation(false)}>
-                      取消
+                      Huỷ
                     </Button>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs whitespace-pre-wrap bg-muted rounded p-2 max-h-[100px] overflow-y-auto">
-                  {scene.location || '点击编辑添加地点描述...'}
+                  {scene.location || '\u70b9\u51fbChỉnh sửaThêmVị trí Mô tả...'}
                 </p>
               )}
             </div>
 
-            {/* Visual prompt - 可编辑 */}
+            {/* Visual prompt - Cán Chỉnh sửa */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs text-muted-foreground">视觉提示词</Label>
+                <Label className="text-xs text-muted-foreground">Lời nhắc trực quan</Label>
                 {!isEditingVisualPrompt && (
                   <Button
                     size="icon"
@@ -323,32 +323,32 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                   <Textarea
                     value={editVisualPrompt}
                     onChange={(e) => setEditVisualPrompt(e.target.value)}
-                    placeholder="输入场景的视觉描述，用于 AI 生成参考图..."
+                    placeholder="Đầu vàoCảnh visual Mô tả，sử dụng\u4e8e AI TạoHình ảnh tham khảo..."
                     className="text-xs min-h-[80px]"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <Button size="sm" className="h-6 text-xs" onClick={handleSaveVisualPrompt}>
-                      保存
+                      Lưu
                     </Button>
                     <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setIsEditingVisualPrompt(false)}>
-                      取消
+                      Huỷ
                     </Button>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground bg-muted rounded p-2 max-h-[80px] overflow-y-auto">
-                  {scene.visualPrompt || '点击编辑添加视觉提示词...'}
+                  {scene.visualPrompt || '\u70b9\u51fbChỉnh sửaThêLời nhắc mVisual...'}
                 </p>
               )}
             </div>
 
-            {/* Notes / 地点备注 */}
+            {/* Notes / Ghi chú vị trí */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <StickyNote className="h-3 w-3" />
-                  地点备注
+                  Ghi chú vị trí
                 </Label>
                 {!isEditingNotes && (
                   <Button
@@ -369,33 +369,33 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
-                    placeholder="添加剧情相关的备注..."
+                    placeholder="Thêm\u5267\u60c5\u76f8\u5173củaBình luận..."
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <Button size="sm" className="h-6 text-xs" onClick={handleSaveNotes}>
-                      保存
+                      Lưu
                     </Button>
                     <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setIsEditingNotes(false)}>
-                      取消
+                      Huỷ
                     </Button>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded p-2 text-amber-800 dark:text-amber-200">
-                  {scene.notes || '点击编辑添加备注...'}
+                  {scene.notes || '\u70b9\u51fbChỉnh sửaThêmBình luận...'}
                 </p>
               )}
             </div>
 
             <Separator />
 
-            {/* Tags / 标签 */}
+            {/* Tags / nhãn */}
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Tag className="h-3 w-3" />
-                场景标签
+                Cảthẻ nh
               </Label>
               <div className="flex flex-wrap gap-1">
                 {(scene.tags || []).map((tag) => (
@@ -414,7 +414,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 <Input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="添加标签..."
+                  placeholder="Thêthẻ m..."
                   className="h-7 text-xs"
                   onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
                 />
@@ -438,11 +438,11 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 onClick={handleExportImage}
               >
                 <Download className="h-4 w-4 mr-2" />
-                导出概念图
+                Xuấtkhái niệm\u56fe
               </Button>
             )}
             
-            {/* 如果是子场景，显示生成四视图按钮 */}
+            {/* Chẳng hạn như\u679c\u662f\u5b50Cảnh，\u663e\u793aTạobốn\u89c6\u56fe\u6309\u94ae */}
             {scene.isViewpointVariant && scene.referenceImage && (
               <Button
                 variant="outline"
@@ -450,11 +450,11 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 size="sm"
                 onClick={() => {
                   selectScene(scene.id);
-                  toast.info("请在左侧生成控制台选择「四视图」模式，然后点击生成");
+                  toast.info("\u8bf7\u5728\u5de6\u4fa7Tạo\u63a7\u5236\u53f0\u9009\u62e9「bốn\u89c6\u56fe」chế độ，\u7136\u540e\u70b9\u51fbTạo");
                 }}
               >
                 <Box className="h-4 w-4 mr-2" />
-                生成四视图
+                Tạobốn\u89c6\u56fe
               </Button>
             )}
 
@@ -465,14 +465,14 @@ export function SceneDetail({ scene }: SceneDetailProps) {
               onClick={handleDelete}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              删除场景
+              XoáCảnh
             </Button>
           </div>
 
           {/* Tips */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>💡 场景概念图可拖拽到 AI 导演面板使用</p>
-            <p>💡 保持同一场景的光影一致性</p>
+            <p>💡 Cảbản đồ khái niệm nh\u53ef\u62d6\u62fdĐến AI giám đốc\u9762\u677fsử dụng</p>
+            <p>💡 giữ\u540cmộtCảnhÁnh sángmột\u81f4\u6027</p>
           </div>
         </div>
       </ScrollArea>

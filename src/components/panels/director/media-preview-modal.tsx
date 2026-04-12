@@ -4,9 +4,9 @@
 "use client";
 
 /**
- * 媒体预览模态组件 (Media Preview Modals)
- * 用于全屏预览图片和视频
- * 支持: HTTP URL / data URI / local-image:// 协议
+ * \u5a92\u4f53\u9884\u89c8\u6a21\u6001\u7ec4\u4ef6 (Media Preview Modals)
+ * sử dụng\u4e8e\u5168\u5c4f\u9884\u89c8\u56fe\u7247và\u89c6\u9891
+ * \u652f\u6301: HTTP URL / data URI / local-image:// \u534f\u8bae
  */
 
 import React, { useEffect, useCallback } from "react";
@@ -23,7 +23,7 @@ export function ImagePreviewModal({
   isOpen, 
   onClose 
 }: ImagePreviewModalProps) {
-  // Escape 键关闭
+  // Escape \u952e\u5173\u95ed
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose();
   }, [onClose]);
@@ -31,7 +31,7 @@ export function ImagePreviewModal({
   useEffect(() => {
     if (!isOpen) return;
     document.addEventListener('keydown', handleKeyDown);
-    // 阻止背景滚动
+    // \u963b\u6b62\u80cc\u666f\u6eda\u52a8
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -59,7 +59,7 @@ export function ImagePreviewModal({
           <X className="h-5 w-5" />
         </button>
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-white/60 text-xs bg-black/40 px-3 py-1 rounded-full pointer-events-none">
-          点击空白处或按 Esc 关闭
+          \u70b9\u51fb\u7a7a\u767d\u5904hoặc\u6309 Esc \u5173\u95ed
         </div>
       </div>
     </div>

@@ -197,8 +197,8 @@ function modelSupportsCapability(
   modelName: string,
   provider: { platform: string; capabilities?: ModelCapability[] },
   required?: ModelCapability,
-  modelType?: string,     // "文本" | "图像" | "音视频" | "检索" (giá trị từ API, không dịch)
-  modelTagsList?: string[] // ["对话","识图","工具"] (giá trị từ API, không dịch)
+  modelType?: string,     // "Văn bản" | "Hình ảnh" | "Âm thanh/Video" | "Tìm kiếm" (giá trị từ API, không dịch)
+  modelTagsList?: string[] // ["Trò chuyện","Nhận dạng ảnh","Công cụ"] (giá trị từ API, không dịch)
 ): boolean {
   if (!required) return true;
 
@@ -212,17 +212,17 @@ function modelSupportsCapability(
   if (modelType) {
     switch (required) {
       case 'text':
-        return modelType === '文本';
+        return modelType === '\u6587\u672c';
       case 'image_generation':
-        return modelType === '图像';
+        return modelType === '\u56fe\u50cf';
       case 'video_generation':
-        // Trong loại âm thanh/video chỉ lọc những cái có tag “视频” (loại trừ thuần âm thanh/TTS/nhạc)
-        return modelType === '音视频' && (modelTagsList?.some(t => t.includes('视频')) ?? false);
+        // Trong loại âm thanh/video chỉ lọc những cái có tag “Video” (loại trừ thuần âm thanh/TTS/nhạc)
+        return modelType === '\u97f3\u89c6\u9891' && (modelTagsList?.some(t => t.includes('\u89c6\u9891')) ?? false);
       case 'vision':
-        // Khả năng nhận dạng ảnh trải qua nhiều model_type, chỉ xem tags có chứa “识图” hoặc “多模态” không
-        return modelTagsList?.some(t => t.includes('识图') || t.includes('多模态')) ?? false;
+        // Khả năng nhận dạng ảnh trải qua nhiều model_type, chỉ xem tags có chứa "Nhận dạng ảnh" hoặc "Đa phương thức" không
+        return modelTagsList?.some(t => t.includes('\u8bc6\u56fe') || t.includes('\u591a\u6a21\u6001')) ?? false;
       case 'embedding':
-        return modelType === '检索';
+        return modelType === '\u68c0\u7d22';
       default:
         break;
     }

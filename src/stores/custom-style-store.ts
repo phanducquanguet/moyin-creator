@@ -3,8 +3,8 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
  * Custom Style Store
- * 用户自定义风格资产管理，独立于内置预设
- * 使用 localStorage 持久化（全局资产，不按项目分割）
+ * Người dùngTuỳ chỉnhPhong cáchQuản lý tài sản，Độc lập với các cài đặt trước tích hợp
+ * Sử dụng localStorage để duy trì sự kiên trì（tài sản toàn cầu，Đừng nhấn Dự án phép chia）
  */
 
 import { create } from 'zustand';
@@ -15,16 +15,16 @@ import { registerCustomStyleLookup, type StylePreset } from '@/lib/constants/vis
 
 export interface CustomStyle {
   id: string;
-  name: string;                 // 风格名称（必填）
-  prompt: string;               // 用户原始提示词（可能混合了风格+场景描述）
-  negativePrompt: string;       // 负面提示词
-  description: string;          // 描述
-  referenceImages: string[];    // 参考图路径 (local-image://styles/...)
-  tags: string[];               // 标签
-  folderId: string | null;      // 所属文件夹
-  // === AI 提取的结构化风格词（优先级高于 prompt） ===
-  styleTokens?: string;         // 纯视觉风格关键词（画风/光线/色彩/材质）→ 角色/场景设定图使用
-  sceneTokens?: string;         // 场景/构图/道具描述 → 导演台/分镜使用
+  name: string;                 // Phong cáchTên（Bắt buộc）
+  prompt: string;               // Người dùngoriginPrompt（Có thể trộn lẫn với Phong cách+CảnhMô tả）
+  negativePrompt: string;       // Lời nhắc tiêu cực
+  description: string;          // Mô tả
+  referenceImages: string[];    // Hình ảnh tham khảoĐường dẫn (local-image://styles/...)
+  tags: string[];               // nhãn
+  folderId: string | null;      // Thuộc về Th.ư mục
+  // === Cấu trúc Phong c được trích xuất bằng AIách từ（Mức độ ưu tiên cao hơn lời nhắc） ===
+  styleTokens?: string;         // Hình ảnh thuần khiết Phong cáchkeywords（phong cách vẽ tranh/ánh sáng/Màu sắc/Chất liệu）→ Nhân vật/Cảcách sử dụng sơ đồ thiết lập nh
+  sceneTokens?: string;         // Cảnh/thành phần/Dự luật Mô tả → Bàn giám đốc/Phân cảnh sử dụng
   createdAt: number;
   updatedAt: number;
 }
@@ -40,7 +40,7 @@ interface CustomStyleState {
   styles: CustomStyle[];
   folders: CustomStyleFolder[];
   selectedStyleId: string | null;
-  editingStyleId: string | null;    // null = 不在编辑, 'new' = 新建, 其他 = 编辑已有
+  editingStyleId: string | null;    // null = Không phải ở Chỉnh sửa, 'new' = Tạo mớtôi, người khác = Chỉnh sửđã rồi
 }
 
 interface CustomStyleActions {
@@ -126,7 +126,7 @@ export const useCustomStyleStore = create<CustomStyleStore>()(
         const copy: CustomStyle = {
           ...source,
           id: newId,
-          name: `${source.name} (副本)`,
+          name: `${source.name} (Sao chép)`,
           createdAt: now,
           updatedAt: now,
         };
@@ -162,7 +162,7 @@ export const useCustomStyleStore = create<CustomStyleStore>()(
       deleteFolder: (id) => {
         set((state) => ({
           folders: state.folders.filter((f) => f.id !== id),
-          // 移到根目录
+          // Di chuyển đến thư mục gốc Thư mục
           styles: state.styles.map((s) =>
             s.folderId === id ? { ...s, folderId: null, updatedAt: Date.now() } : s
           ),
@@ -192,44 +192,44 @@ export const useCustomStyleStore = create<CustomStyleStore>()(
   )
 );
 
-// ==================== 注册自定义风格查找回调 ====================
-// 让 visual-styles.ts 的工具函数（getStyleById/getStylePrompt 等）
-// 能查找到用户自定义风格（存储在 localStorage 的用户数据）
+// ==================== Đăng kýTuỳ chỉnhPhong cách tìm cuộc gọi lại ====================
+// Hãy để chức năng tiện ích của visual-styles.ts（getStyleById/getStylePrompt, v.v.）
+// Ng có thể được tìm thấyười dùngTuỳ chỉnhPhong cách（Ng được lưu trữ trong localStorageười dùdữ liệu）
 
 /**
- * 从提示词中推断风格分类（支持中英文关键词）
- * 关键词匹配：
- *   real → realistic/photorealistic/photography/写实/真人/实景/电影级/实拍/胶片
- *   3d   → 3d/render/unreal/c4d/三维/渲染/虚幻引擎
- *   stop_motion → stop motion/claymation/定格/黏土
- *   其余 → '2d'
+ * Suy ra Phong c từ Nhắcách phân loại（Hỗ trợTừ khóa tiếng Trung và tiếng Anh）
+ * kết hợp từ khóa：
+ *   real → realistic/photorealistic/photography/Thực tế/người thật/Cảnh thật/lớp phim/Bắn thật/phim ảnh
+ *   3d   → 3d/render/unreal/c4d/ba chiều/kết xuất/Công cụ không thực
+ *   stop_motion → stop motion/claymation/khung đóng băng/Đất sét
+ *   Phần còn lại → '2d'
  */
 function inferCategoryFromPrompt(prompt: string): import('@/lib/constants/visual-styles').StyleCategory {
   const lower = prompt.toLowerCase();
-  // 英文关键词
+  // từ khóa tiếng anh
   if (/\b(realistic|photorealistic|real\s?person|photography|real\s?life|cinematic\s?lighting.*skin)/.test(lower)) {
     return 'real';
   }
-  // 中文关键词：写实/真人/实景/电影级写实/实拍/胶片/剧照
-  if (/(写实|真人|实景|电影级|实拍|胶片|剧照|无\s?CGI|皮肤纹理|毛孔)/.test(prompt)) {
+  // từ khóa tiếng trung：Thực tế/người thật/Cảnh thật/Chủ nghĩa hiện thực điện ảnh/Bắn thật/phim ảnh/ảnh tĩnh
+  if (/(thực tế|người thật|Cảnh thật|lớp phim|Bắn thật|phim ảnh|ảnh tĩnh|không có\s?CGI|kết cấu da|lỗ chân lông)/.test(prompt)) {
     return 'real';
   }
-  // 英文 3D 关键词
+  // Từ khóa 3D tiếng Anh
   if (/\b(3d|render|unreal\s?engine|c4d|blender|voxel|low\s?poly)/.test(lower)) {
     return '3d';
   }
-  // 中文 3D 关键词
-  if (/(三维|3D|渲染|虚幻引擎|建模)/.test(prompt)) {
+  // Từ khóa 3D tiếng Trung
+  if (/(ba chiều|3D|kết xuất|Công cụ không thực|làm người mẫu)/.test(prompt)) {
     return '3d';
   }
-  // 定格动画
-  if (/\b(stop.?motion|claymation|puppet)/.test(lower) || /(定格|黏土|木偶)/.test(prompt)) {
+  // Hồ đóng băngạt ảnh
+  if (/\b(stop.?motion|claymation|puppet)/.test(lower) || /(Khung hình cố định|Đất sét|con rối)/.test(prompt)) {
     return 'stop_motion';
   }
   return '2d';
 }
 
-/** 从分类推断媒介类型 */
+/** Suy ra Lo trung bình từ phân loạiại */
 function inferMediaType(category: import('@/lib/constants/visual-styles').StyleCategory): import('@/lib/constants/visual-styles').MediaType {
   switch (category) {
     case 'real': return 'cinematic';
@@ -243,12 +243,12 @@ registerCustomStyleLookup((id: string): StylePreset | undefined => {
   const style = useCustomStyleStore.getState().styles.find(s => s.id === id);
   if (!style) return undefined;
 
-  // 智能推断 category/mediaType（用户编辑器目前无这两个字段）
+  // Hạng mục suy luận thông minh/mediaType（Người dùngChỉnh sửThiết bị hiện không có hai trường này）
   const effectivePrompt = style.prompt || '';
   const category = inferCategoryFromPrompt(effectivePrompt);
   const mediaType = inferMediaType(category);
 
-  // 优先使用 AI 提取的 styleTokens（纯视觉风格），否则回退到原始 prompt
+  // Ưu tiên sử dụng styleTokens được trích xuất bằng AI（Hình ảnh thuần khiết Phong cách），Nếu không thì quay lại dấu nhắc ban đầu
   const prompt = style.styleTokens
     || effectivePrompt
     || `${style.name} style, professional quality`;

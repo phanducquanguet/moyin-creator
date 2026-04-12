@@ -4,14 +4,14 @@
 /**
  * AI Character Calibrator
  * 
- * 使用 AI 智能校准从剧本中提取的角色列表
+ * Sử dụng AI hiệu chỉnh thông minh từ Kịch bảntrongĐã trích xuất Nhân vậdanh sách t
  * 
- * 功能：
- * 1. 统计每个角色的出场次数、对白条数、出场集数
- * 2. AI 分析识别真正角色 vs 非角色词
- * 3. AI 合并重复角色（王总 = 投资人王总）
- * 4. AI 分类主角/配角/龙套（结合出场统计）
- * 5. AI 补充角色信息（年龄、性别、关系）
+ * chức năng：
+ * 1. Thống kêMỗi Nhân vậtcủaSố lần xuất hiện、đối thoại\u6761\u6570、xuất hiệnđặt\u6570
+ * 2. AI Phân tích\u8bc6\u522b\u771f\u6b63Nhân vật vs \u975eNhân vật\u8bcd
+ * 3. AI \u5408\u5e76\u91cd\u590dNhân vật（\u738b\u603b = \u6295\u8d44\u4eba\u738b\u603b）
+ * 4. AI \u5206\u7c7bnhân vật chính/vai phụ/\u9f99\u5957（\u7ed3\u5408Ngoại hìnhống kê）
+ * 5. AI bổ sungNhân vậthông tin t（tuổi tác、giới tính、mối quan hệ）
  */
 
 import type { ScriptCharacter, ProjectBackground, EpisodeRawScript, CharacterIdentityAnchors, CharacterNegativePrompt, PromptLanguage, CalibrationStrictness, FilteredCharacterRecord } from '@/types/script';
@@ -21,82 +21,82 @@ import { estimateTokens, safeTruncate } from '@/lib/ai/model-registry';
 import { useScriptStore } from '@/stores/script-store';
 import { buildSeriesContextSummary } from './series-meta-sync';
 
-// ==================== 类型定义 ====================
+// ==================== LoạiĐịnh nghĩa ====================
 
 export interface CharacterCalibrationResult {
-  /** 校准后的角色列表 */
+  /** \u6821\u51c6\u540eNhân vậdanh sách t */
   characters: CalibratedCharacter[];
-  /** 被过滤的词（非角色） */
+  /** Là Lọccủa\u8bcd（\u975eNhân vật） */
   filteredWords: string[];
-  /** 被过滤的角色（带原因，用于用户确认/恢复） */
+  /** Là LọcNhân vật（\u5e26lý do，sử dụng\u4e8eNgười dùngXác nhận/\u6062\u590d） */
   filteredCharacters: FilteredCharacterRecord[];
-  /** 合并记录（哪些被合并到一起） */
+  /** \u5408\u5e76Bản ghi（\u54ea\u4e9b\u88ab\u5408\u5e76Đếnmột\u8d77） */
   mergeRecords: MergeRecord[];
-  /** AI 分析说明 */
+  /** AI Phân tíchGiải thích */
   analysisNotes: string;
 }
 
 export interface CalibratedCharacter {
   id: string;
   name: string;
-  /** 角色重要性：protagonist(主角), supporting(重要配角), minor(次要角色), extra(龙套) */
+  /** Nhân vậtquan trọng\u6027：protagonist(nhân vật chính), supporting(quan trọngvai phụ), minor(MinorNhân vật), extra(\u9f99\u5957) */
   importance: 'protagonist' | 'supporting' | 'minor' | 'extra';
-  /** 出场集数范围 */
+  /** xuất hiệnđặt\u6570\u8303\u56f4 */
   episodeRange?: [number, number];
-  /** 出场次数 */
+  /** Số lần xuất hiện */
   appearanceCount: number;
-  /** AI 补充的角色描述 */
+  /** AI bổ sungNhân vậtMô tả */
   role?: string;
-  /** AI 推断的年龄 */
+  /** AI suy luậncủatuổi tác */
   age?: string;
-  /** AI 推断的性别 */
+  /** AI suy luậncủagiới tính */
   gender?: string;
-  /** 与其他角色的关系 */
+  /** với Nh khácân vậmối quan hệ */
   relationships?: string;
-  /** 原始提取的名字变体 */
+  /** nguyên bảnTrích xuấtcủatêntừthay đổi\u4f53 */
   nameVariants: string[];
-  // === 专业角色设计字段 ===
-  /** 英文视觉提示词（用于AI图像生成） */
+  // === NH chuyên nghiệpân vậlĩnh vực thiết kế t ===
+  /** Lời nhắc trực quan bằng tiếng Anh（cho hình ảnh AI Tạo） */
   visualPromptEn?: string;
-  /** 中文视觉提示词 */
+  /** Lời nhắc trực quan của Trung Quốc */
   visualPromptZh?: string;
-  /** 面部特征描述 */
+  /** đặc điểm khuôn mặtMô tả */
   facialFeatures?: string;
-  /** 独特标记（疆痕、胎记等） */
+  /** dấu ấn độc đáo（\u7586\u75d5、vết bớtĐợi đã） */
   uniqueMarks?: string;
-  /** 服装风格 */
+  /** quần áoPhong cách */
   clothingStyle?: string;
   
-  // === 6层身份锚点（角色一致性）===
-  /** 身份锚点 - 6层特征锁定 */
+  // === Neo nhận dạng lớp 6（Nhân vậtTính nhất quán）===
+  /** Identity Anchors – Khóa tính năng 6 lớp */
   identityAnchors?: CharacterIdentityAnchors;
-  /** 负面提示词 */
+  /** Lời nhắc tiêu cực */
   negativePrompt?: CharacterNegativePrompt;
 }
 
 export interface MergeRecord {
-  /** 最终使用的名字 */
+  /** \u6700\u7ec8sử dụngcủatêntừ */
   finalName: string;
-  /** 被合并的变体 */
+  /** các biến thể hợp nhất */
   variants: string[];
-  /** 合并原因 */
+  /** Lý do sáp nhập */
   reason: string;
 }
 
 export interface CalibrationOptions {
-  /** 上次校准的角色列表，用于合并确保角色不丢失 */
+  /** \u4e0alần\u6821\u51c6Nhân vậdanh sách t，sử dụng\u4e8e\u5408\u5e76\u786e\u4fddNhân vật\u4e0d\u4e22\u5931 */
   previousCharacters?: CalibratedCharacter[];
-  /** 提示词语言选项 */
+  /** Tùy chọn ngôn ngữ nhắc nhở */
   promptLanguage?: PromptLanguage;
-  /** 校准严格度 */
+  /** \u6821\u51c6\u4e25\u683c\u5ea6 */
   strictness?: CalibrationStrictness;
 }
 
-// ==================== 从剧本重新提取角色 ====================
+// ==================== từKịch bản\u91cd\u65b0Trích xuất Nhân vật ====================
 
 /**
- * 从 episodeRawScripts 中重新提取所有角色
- * 这会遍历所有集的所有场景，提取场景人物和对白说话人
+ * từ episodeRawScripts trong\u91cd\u65b0Trích xuất Tất cảNhân vật
+ * \u8fd9\u4f1a\u904d\u5386Tất cảđặtTất cảCảnh，Trích xuấtCảnh nhân vậtvàđối thoạinói\u4eba
  */
 export function extractAllCharactersFromEpisodes(
   episodeScripts: EpisodeRawScript[]
@@ -104,18 +104,18 @@ export function extractAllCharactersFromEpisodes(
   const characterSet = new Set<string>();
   
   if (!episodeScripts || !Array.isArray(episodeScripts)) {
-    console.warn('[extractAllCharactersFromEpisodes] episodeScripts 无效');
+    console.warn('[extractAllCharactersFromEpisodes] tập lệnh không hợp lệ');
     return [];
   }
   
-  // 遍历所有集
+  // \u904d\u5386Tất cảđặt
   for (const ep of episodeScripts) {
     if (!ep || !ep.scenes) continue;
     
     for (const scene of ep.scenes) {
       if (!scene) continue;
       
-      // 从场景人物列表提取
+      // Từ Cảnh nhân vậdanh sách tTrích xuất
       const sceneChars = scene.characters || [];
       for (const name of sceneChars) {
         if (name && name.trim()) {
@@ -123,7 +123,7 @@ export function extractAllCharactersFromEpisodes(
         }
       }
       
-      // 从对白中提取说话人
+      // từđối thoạitrongTrích xuấtnói\u4eba
       const dialogues = scene.dialogues || [];
       for (const dialogue of dialogues) {
         if (dialogue && dialogue.character && dialogue.character.trim()) {
@@ -133,39 +133,39 @@ export function extractAllCharactersFromEpisodes(
     }
   }
   
-  // 转换为 ScriptCharacter 数组
+  // \u8f6c\u6362cho ScriptCharacter \u6570\u7ec4
   const characters: ScriptCharacter[] = Array.from(characterSet).map((name, index) => ({
     id: `char_raw_${index + 1}`,
     name,
   }));
   
-  console.log(`[extractAllCharactersFromEpisodes] 从 ${episodeScripts.length} 集剧本中提取到 ${characters.length} 个角色`);
+  console.log(`[extractAllCharactersFromEpisodes] từ ${episodeScripts.length} đặtKịch bảntrongTrích xuấtĐến ${characters.length} Nhân vật`);
   return characters;
 }
 
-// ==================== 出场统计 ====================
+// ==================== Ngoại hìnhống kê ====================
 
-/** 角色出场统计 */
+/** Nhân vậtNgoại hìnhống kê */
 export interface CharacterStats {
   name: string;
-  /** 场景出场次数 */
+  /** Cảnh xuất hiện */
   sceneCount: number;
-  /** 对白条数 */
+  /** đối thoại\u6761\u6570 */
   dialogueCount: number;
-  /** 出场的集数列表 */
+  /** Danh sách các tập mà họ xuất hiện */
   episodes: number[];
-  /** 首次出场集数 */
+  /** Xuất hiện lần đầu trong các tập phim */
   firstEpisode: number;
-  /** 最后出场集数 */
+  /** Xuất hiện tập cuối */
   lastEpisode: number;
-  /** 对白样本（前3条） */
+  /** mẫu đối thoại（3 mục hàng đầu） */
   dialogueSamples: string[];
-  /** 出场场景样本 */
+  /** Ngoại hình Cảnh mẫu */
   sceneSamples: string[];
 }
 
 /**
- * 统计每个角色的出场情况
+ * Thống kêMỗi Nhân vậsự xuất hiện của t
  */
 export function collectCharacterStats(
   characterNames: string[],
@@ -173,17 +173,17 @@ export function collectCharacterStats(
 ): Map<string, CharacterStats> {
   const stats = new Map<string, CharacterStats>();
   
-  // 防御性检查
+  // kiểm tra phòng thủ
   if (!characterNames || !Array.isArray(characterNames)) {
-    console.warn('[collectCharacterStats] characterNames 无效');
+    console.warn('[collectCharacterStats] tên ký tự không hợp lệ');
     return stats;
   }
   if (!episodeScripts || !Array.isArray(episodeScripts)) {
-    console.warn('[collectCharacterStats] episodeScripts 无效');
+    console.warn('[collectCharacterStats] tập lệnh không hợp lệ');
     return stats;
   }
   
-  // 初始化
+  // \u521d\u59cb\u5316
   for (const name of characterNames) {
     if (!name) continue;
     stats.set(name, {
@@ -198,7 +198,7 @@ export function collectCharacterStats(
     });
   }
   
-  // 遍历所有剧本
+  // \u904d\u5386Tất cảKịch bản
   for (const ep of episodeScripts) {
     if (!ep || !ep.scenes) continue;
     const epIndex = ep.episodeIndex ?? 0;
@@ -206,11 +206,11 @@ export function collectCharacterStats(
     for (const scene of ep.scenes) {
       if (!scene) continue;
       
-      // 检查场景人物
+      // \u68c0\u67e5Cảnh nhân vật
       const sceneChars = scene.characters || [];
       for (const charName of sceneChars) {
         if (!charName) continue;
-        // 精确匹配或包含匹配
+        // \u7cbe\u786etrận đấuhoặcchứatrận đấu
         for (const name of characterNames) {
           if (!name) continue;
           if (charName === name || charName.includes(name) || name.includes(charName)) {
@@ -223,13 +223,13 @@ export function collectCharacterStats(
             s.firstEpisode = Math.min(s.firstEpisode, epIndex);
             s.lastEpisode = Math.max(s.lastEpisode, epIndex);
             if (s.sceneSamples.length < 3) {
-              s.sceneSamples.push(`第${epIndex}集: ${scene.sceneHeader || '未知场景'}`);
+              s.sceneSamples.push(`Không.${epIndex}Đặt: ${scene.sceneHeader || 'Không rõCảnh'}`);
             }
           }
         }
       }
       
-      // 检查对白
+      // \u68c0\u67e5đối thoại
       const dialogues = scene.dialogues || [];
       for (const dialogue of dialogues) {
         if (!dialogue || !dialogue.character) continue;
@@ -249,7 +249,7 @@ export function collectCharacterStats(
     }
   }
   
-  // 修正 Infinity
+  // \u4fee\u6b63 Infinity
   for (const s of stats.values()) {
     if (s.firstEpisode === Infinity) s.firstEpisode = 0;
   }
@@ -257,15 +257,15 @@ export function collectCharacterStats(
   return stats;
 }
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 使用 AI 校准角色列表
+ * sử dụng AI \u6821\u51c6Nhân vậdanh sách t
  * 
- * @param rawCharacters 原始提取的角色列表
- * @param background 项目背景（大纲）
- * @param episodeScripts 分集剧本（提供上下文）
- * @param options API 配置
+ * @param rawCharacters nguyên bảnĐã trích xuất Nhân vậdanh sách t
+ * @param background Dự ánNền（phác thảo）
+ * @param episodeScripts \u5206đặtKịch bản（\u63d0\u4f9b\u4e0a\u4e0b\u6587）
+ * @cấu hình API tùy chọn param
  */
 export async function calibrateCharacters(
   rawCharacters: ScriptCharacter[],
@@ -277,35 +277,35 @@ export async function calibrateCharacters(
   const promptLanguage = options?.promptLanguage || 'zh+en';
   const strictness = options?.strictness || 'normal';
   
-  // 1. 先统计每个角色的出场情况
+  // 1. đầu tiênThống kêMỗi Nhân vậsự xuất hiện của t
   const characterNames = rawCharacters.map(c => c.name);
   const stats = collectCharacterStats(characterNames, episodeScripts);
   
-  // 2. 构建带统计信息的角色列表，按智能优先级排序
+  // 2. \u6784\u5efaVới Thống kêthông tinNhân vậdanh sách t，\u6309\u667a\u80fdưu tiênSắp xếp
   const charsWithStats = rawCharacters.map(c => {
     const s = stats.get(c.name);
     const name = c.name;
     
-    // 判断是否是群演（纯职业称呿、数字编号、群体描述）
-    // loose 模式下不标记群演，全部保留给 AI 判断
+    // \u5224\u65ad\u662f\u5426\u662f\u7fa4\u6f14（\u7eafSự nghiệp\u79f0\u547f、con số\u7f16\u53f7、\u7fa4\u4f53Mô tả）
+    // loose chế độ\u4e0b\u4e0d\u6807\u8bb0\u7fa4\u6f14，Tất cả\u4fdd\u7559\u7ed9 AI \u5224\u65ad
     const isGroupExtra = strictness === 'loose' ? false : [
-      '保安', '警察', '员工', '护士', '医生', '记者', 
-      '律师', '路人', '众人', '若干', '群众', '大妈',
+      '\u4fdd\u5b89', 'cảnh sát', '\u5458\u5de5', '\u62a4\u58eb', 'bác sĩ', '\u8bb0\u8005', 
+      'luật sư', '\u8def\u4eba', '\u4f17\u4eba', '\u82e5\u5e72', '\u7fa4\u4f17', '\u5927\u5988',
     ].some(keyword => 
       name === keyword || 
       name === keyword + '1' || 
       name === keyword + '2' ||
-      name.startsWith('几名') ||
-      name.startsWith('两个') ||
-      name.startsWith('若干')
+      name.startsWith('\u51e0tên') ||
+      name.startsWith('\u4e24một') ||
+      name.startsWith('\u82e5\u5e72')
     );
     
-    // 判断是否有具体名字（中文名字2-4字，或有昵称后缀）
+    // \u5224\u65ad\u662f\u5426Có\u5177\u4f53têntừ（Tên tiếng Trungtừ2-4từ，hoặcCó\u6635\u79f0\u540e\u7f00）
     const hasSpecificName = (
-      (name.length >= 2 && name.length <= 4 && /[\u4e00-\u9fa5]/.test(name)) || // 中文名字
-      name.includes('哥') || name.includes('姐') || name.includes('董') || // 有称呼
-      name.includes('总') || name.includes('老') || name.includes('小') || // 有称呼
-      /^[A-Z][a-z]+$/.test(name) // 英文名
+      (name.length >= 2 && name.length <= 4 && /[\u4e00-\u9fa5]/.test(name)) || // Tên tiếng Trungtừ
+      name.includes('\u54e5') || name.includes('\u59d0') || name.includes('\u8463') || // Có\u79f0\u547c
+      name.includes('\u603b') || name.includes('\u8001') || name.includes('\u5c0f') || // Có\u79f0\u547c
+      /^[A-Z][a-z]+$/.test(name) // tên tiếng anh
     );
     
     return {
@@ -315,20 +315,20 @@ export async function calibrateCharacters(
       episodeCount: s?.episodes.length || 0,
       isGroupExtra,
       hasSpecificName,
-      // 智能优先级：有名字的优先，然后按出场排序
-      priority: isGroupExtra ? -1000 : // 群演最低
-                hasSpecificName ? 1000 + (s?.sceneCount || 0) + (s?.dialogueCount || 0) : // 有名字优先
-                (s?.sceneCount || 0) + (s?.dialogueCount || 0), // 没名字按出场
+      // \u667a\u80fdưu tiên：Cótêntừưu tiên，\u7136\u540e\u6309xuất hiệnSắp xếp
+      priority: isGroupExtra ? -1000 : // \u7fa4\u6f14\u6700\u4f4e
+                hasSpecificName ? 1000 + (s?.sceneCount || 0) + (s?.dialogueCount || 0) : // CótêntừƯu tiên
+                (s?.sceneCount || 0) + (s?.dialogueCount || 0), // \u6ca1têntừ\u6309xuất hiện
     };
   }).sort((a, b) => b.priority - a.priority);
   
-  // 限制发送给 AI 的角色数量，避免输出截断
-  // 优先保留有名字的角色
+  // \u9650\u5236\u53d1\u9001\u7ed9 AI Nhân vật\u6570\u91cf，\u907f\u514dĐầu ra\u622a\u65ad
+  // Ưu tiên\u4fdd\u7559CótêntừNhân vật
   const maxCharsToSend = 150;
   const charsToProcess = charsWithStats.slice(0, maxCharsToSend);
   const skippedCount = charsWithStats.length - charsToProcess.length;
   
-  // 3. 准备批处理 items（每个角色带上统计信息和对白样本）
+  // 3. \u51c6\u5907lô\u5904\u7406 items（Mỗi Nhân vật\u5e26\u4e0aThống kêthông tinvàmẫu đối thoại）
   const batchItems = charsToProcess.map(c => ({
     name: c.name,
     sceneCount: c.sceneCount,
@@ -337,105 +337,105 @@ export async function calibrateCharacters(
     dialogueSamples: stats.get(c.name)?.dialogueSamples || [],
   }));
   
-  // 计算总场次数用于判断核心主角的 10% 阈值
+  // Tính toán\u603b\u573alần\u6570sử dụng\u4e8e\u5224\u65adnhân vật chính cốt lõtôi là 10% \u9608\u503c
   let totalSceneCount = 0;
   for (const ep of episodeScripts) {
     if (ep?.scenes) totalSceneCount += ep.scenes.length;
   }
   const coreThreshold = Math.max(Math.floor(totalSceneCount * 0.1), 10);
   
-  // === 根据严格度生成不同的筛选指令段 ===
+  // === \u6839\u636e\u4e25\u683c\u5ea6Tạo\u4e0d\u540ccủa\u7b5b\u9009\u6307\u4ee4\u6bb5 ===
   const strictnessInstructions = strictness === 'strict'
-    ? `【筛选模式：严格】
-- 只保留明确的主角、重要配角、和有具体名字的次要角色
-- 出场 ≤1 且无对白的角色过滤
-- 纯称呼没有具体名字的角色过滤（如"学习委员"、"戴眼镜的男生"）
-- 群演全部过滤`
+    ? `【\u7b5b\u9009chế độ：\u4e25\u683c】
+- Chỉ giữ nhân vật chính rõ ràng、quan trọngvai phụ、và Nh thứ cấp với tên cụ thểân vật
+- xuất hiện ≤1 Nh không có hội thoạiân vậtLọc
+- Địa chỉ thuần túy của Nh không có tên cụ thểân vậtLọc（Chẳng hạn như"ủy ban nghiên cứu"、"Anh Nam đeo kính"）
+- Tất cả các tính năng bổ sung là Lọc`
     : strictness === 'loose'
-    ? `【筛选模式：宽松】
-- 几乎不过滤，保留所有能识别的角色
-- 包括群演、低频角色、只有称呼的角色（如"学习委员"、"戴眼镜的男生"）
-- 只过滤纯描述词（如"眼框微湿"、"干练优雅"）和非人物词（如"全体员工"、"核心团队"）`
-    : `【筛选模式：标准】
-- 有名字或称呼的角色全部保留
-- 只过滤纯群演、群体、非角色词`;
+    ? `【\u7b5b\u9009chế độ：lỏng lẻo】
+- Khắc nghiệtọc，Giữ Tất cả\u80fd\u8bc6\u522bNhân vật
+- bao gồm\u7fa4\u6f14、\u4f4e\u9891Nhân vật、Chỉ Có\u79f0\u547cNhân vật（Chẳng hạn như"ủy ban nghiên cứu"、"Anh Nam đeo kính"）
+- \u53eaLọc\u7eafMô tả\u8bcd（Chẳng hạn như"\u773c\u6846\u5fae\u6e7f"、"\u5e72\u7ec3\u4f18\u96c5"）và\u975enhân vật\u8bcd（Chẳng hạn như"\u5168\u4f53\u5458\u5de5"、"cốt lõi\u56e2\u961f"）`
+    : `【\u7b5b\u9009chế độ：Tiêu chuẩn】
+- Cótêntừhoặc\u79f0\u547cNhân vậtTất cả\u4fdd\u7559
+- \u53eaLọc\u7eaf\u7fa4\u6f14、\u7fa4\u4f53、\u975eNhân vật\u8bcd`;
   
-  // 注入剧级上下文
+  // Lưu ý\u5165bối cảnh kịch
   const store = useScriptStore.getState();
   const activeProjectId = store.activeProjectId;
   const seriesMeta = activeProjectId ? store.projects[activeProjectId]?.seriesMeta : null;
   const seriesCtx = buildSeriesContextSummary(seriesMeta || null);
   const seriesCtxBlock = seriesCtx ? `\n\n${seriesCtx}\n` : '';
 
-  const systemPrompt = `你是专业的影视剧本分析师，擅长从剧本数据中识别和校准角色。${seriesCtxBlock}
-【核心目标】
-校准后的角色列表将用于生成角色三视图。
+  const systemPrompt = `\u4f60\u662f\u4e13\u4e1acủa\u5f71\u89c6Kịch bảnPhân tích chia，\u64c5\u957ftừKịch bảdữ liệutrong\u8bc6\u522bvà\u6821\u51c6Nhân vật。${seriesCtxBlock}
+【cốt lõiĐích】
+\u6821\u51c6\u540eNhân vậdanh sách t\u5c06cho TạoNhân vậtba\u89c6\u56fe。
 
 ${strictnessInstructions}
 
-【严格执行 - 保留规则】
+【\u4e25\u683c\u6267được rồi - \u4fdd\u7559quy tắc】
 
-**1. 核心主角 (protagonist)** - 必须保留
-   - 名字明确，出场多，贯穿全剧
-   - 例：张明、老周、苏晴
+**1. nhân vật chính cốt lõi (protagonist)** - \u5fc5\u987b\u4fdd\u7559
+   - têntừ\u660e\u786e，xuất hiện\u591a，\u8d2f\u7a7f\u5168\u5267
+   - Ví dụ：Trương Minh、\u8001\u5468、\u82cfrõ ràng
 
-**2. 重要配角 (supporting)** - 必须保留
-   - 有具体名字或昵称：刀疑哥、龙哥、李强、王艳、小乐、阿强
-   - 有固定称呼：赖董、王总、周总、李医生
-   - 出场 ≥1 且有对白、或出场 ≥2
+**2. quan trọngvai phụ (supporting)** - \u5fc5\u987b\u4fdd\u7559
+   - Có\u5177\u4f53têntừhoặc\u6635\u79f0：\u5200\u7591\u54e5、\u9f99\u54e5、\u674e\u5f3a、\u738b\u8273、\u5c0f\u4e50、\u963f\u5f3a
+   - Có\u56fa\u5b9a\u79f0\u547c：\u8d56\u8463、\u738b\u603b、\u5468\u603b、\u674ebác sĩ
+   - xuất hiện ≥1 \u4e14Cóđối thoại、hoặcxuất hiện ≥2
 
-**3. 次要角色 (minor)** - 必须保留
-   - 有具体名字，偶尔出场
-   - 对剧情有一定作用
-   - **只出场1次但有名字的也要保留！**
+**3. MinorNhân vật (minor)** - \u5fc5\u987b\u4fdd\u7559
+   - Có\u5177\u4f53têntừ，\u5076\u5c14xuất hiện
+   - \u5bf9\u5267\u60c5Cómột\u5b9a\u4f5csử dụng
+   - **\u53eaxuất hiện1lần\u4f46Cótêntừcủa\u4e5f\u8981\u4fdd\u7559！**
 
-**4. 群演/配角 (extra)** - ${strictness === 'strict' ? '可以过滤' : strictness === 'loose' ? '必须保留' : '尽量保留'}
-   - 有称呼但出场极少的，标记为 extra
-   - 例：李老头、小刘、王大妈
+**4. \u7fa4\u6f14/vai phụ (extra)** - ${strictness === 'strict' ? '\u53ef\u4ee5Lọc' : strictness === 'loose' ? '\u5fc5\u987b\u4fdd\u7559' : '\u5c3d\u91cf\u4fdd\u7559'}
+   - Có\u79f0\u547c\u4f46xuất hiện\u6781\u5c11của，\u6807\u8bb0cho extra
+   - Ví dụ：\u674e\u8001\u5934、\u5c0f\u5218、\u738b\u5927\u5988
 
-${strictness !== 'strict' ? `【极其重要 - 宽松筛选原则】
-- **有名字的全部保留！**（即使只出场1次）
-- **有称呼的全部保留！**（如老X、小X、X哥、X姐、X总、X董）
-- **不确定的保留！**（宁可多保留，不要遗漏）
-` : ''}【过滤规则】
+${strictness !== 'strict' ? `【cực kỳ quan trọng - lỏng lẻo\u7b5b\u9009\u539f\u5219】
+- **CótêntừTất cả\u4fdd\u7559！**（\u5373\u4f7f\u53eaxuất hiện1lần）
+- **Có\u79f0\u547cTất cả\u4fdd\u7559！**（Chẳng hạn như\u8001X、bé X、Anh X、Chị X、Ông X、X Đông）
+- **\u4e0d\u786e\u5b9acủa\u4fdd\u7559！**（Thà giữ nhiều hơn，đừng bỏ lỡ）
+` : ''}【Lọcquy tắc】
 
-**必须过滤的（无名字的纯群演）：**
-- 纯职业词：保安、警察、护士、医生、记者、员工、律师、服务员、司机
-- 数字编号：保安1、警察2、护士3、员工A
-- 群体词：若干人、众人、几名保安、两个大妈、一群人
-- 非角色词：全体员工、保安部、核心团队
-- 描述词：眼框微湿、干练优雅、眼神沉静
+**\u5fc5\u987bLọccủa（không cótêntừcủa\u7eaf\u7fa4\u6f14）：**
+- \u7eafSự nghiệp\u8bcd：\u4fdd\u5b89、cảnh sát、\u62a4\u58eb、bác sĩ、\u8bb0\u8005、\u5458\u5de5、luật sư、\u670d\u52a1\u5458、người lái xe
+- con số\u7f16\u53f7：\u4fdd\u5b891、cảnh sát2、\u62a4\u58eb3、\u5458\u5de5A
+- \u7fa4\u4f53\u8bcd：\u82e5\u5e72\u4eba、\u4f17\u4eba、\u51e0tên\u4fdd\u5b89、\u4e24một\u5927\u5988、một\u7fa4\u4eba
+- \u975eNhân vật\u8bcd：\u5168\u4f53\u5458\u5de5、\u4fdd\u5b89\u90e8、cốt lõi\u56e2\u961f
+- Mô tả\u8bcd：\u773c\u6846\u5fae\u6e7f、\u5e72\u7ec3\u4f18\u96c5、\u773c\u795e\u6c89\u9759
 
-**绝对不能过滤的：**
-- 任何有姓名的：张明、李强、王艳、林风、马克
-- 任何有昵称的：刀疑哥、龙哥、小乐、阿强、老李、小刘
-- 有姓氏+职业：赖董、王总、周总、李医生、张秘书、林师傅
-- 有姓氏+称谓：李老头、王大妈、周妹
+**\u7edd\u5bf9\u4e0d\u80fdLọccủa：**
+- \u4efb\u4f55Có\u59d3têncủa：Trương Minh、\u674e\u5f3a、\u738b\u8273、\u6797gió、con ngựa\u514b
+- \u4efb\u4f55Có\u6635\u79f0của：\u5200\u7591\u54e5、\u9f99\u54e5、\u5c0f\u4e50、\u963f\u5f3a、\u8001\u674e、\u5c0f\u5218
+- Có\u59d3\u6c0f+Sự nghiệp：\u8d56\u8463、\u738b\u603b、\u5468\u603b、\u674ebác sĩ、\u5f20\u79d8\u4e66、\u6797phép chia\u5085
+- Có\u59d3\u6c0f+\u79f0\u8c13：\u674e\u8001\u5934、\u738b\u5927\u5988、\u5468\u59b9
 
-【合并规则】
-只合并明确是同一人的不同称呼：
-- 例："王总" 和 "投资人王总" → 合并为 "王总"
-- 例："刀疑哥" 和 "李强" 如果剧情明确是同一人 → 合并
+【\u5408\u5e76quy tắc】
+\u53ea\u5408\u5e76\u660e\u786e\u662f\u540cmột\u4ebacủa\u4e0d\u540c\u79f0\u547c：
+- Ví dụ："\u738b\u603b" và "\u6295\u8d44\u4eba\u738b\u603b" → \u5408\u5e76cho "\u738b\u603b"
+- Ví dụ："\u5200\u7591\u54e5" và "\u674e\u5f3a" Chẳng hạn như\u679c\u5267\u60c5\u660e\u786e\u662f\u540cmột\u4eba → \u5408\u5e76
 
-【数量约束】
-- 主角：1-3 个
-- 配角：5-30 个（有名字的全部保留，不要限制）
-- 总角色数：建议 15-40 个，宁多勿少
+【\u6570\u91cfkhoảng\u675f】
+- nhân vật chính：1-3 một
+- vai phụ：5-30 một（CótêntừTất cả\u4fdd\u7559，\u4e0d\u8981\u9650\u5236）
+- \u603bNhân vật\u6570：\u5efa\u8bae 15-40 một，\u5b81\u591a\u52ff\u5c11
 
-【重要】每个被过滤的角色请在 filteredCharacters 中说明过滤原因。
+【quan trọng】\u6bcfmộtLà LọcNhân vật\u8bf7\u5728 filteredCharacters trongGiải thíchLọclý do。
 
-请以JSON格式返回分析结果。`;
+Vui lòng sử dụng JSONĐịnh dạngQuay lạiPhân tích kết quả。`;
 
-  // 共享的背景上下文（每批都带，用 safeTruncate 截断）
+  // Đã chia sẻNềnContext（\u6bcflô\u90fd\u5e26，sử dụng safeTruncate \u622a\u65ad）
   const outlineContext = safeTruncate(background.outline || '', 1500);
   const biosContext = safeTruncate(background.characterBios || '', 1000);
 
-  // === 第一步：AI 角色分析（自动分批）===
+  // === bước đầu tiên：AI Nhân vậtPhân tích（\u81ea\u52a8\u5206lô）===
   let parsed: any;
   try {
-    console.log('[CharacterCalibrator] 开始 AI 角色分析...');
+    console.log('[CharacterCalibrator] Bắt đầu AI Nhân vậtPhân tích...');
     
-    // 闭包收集跨批次的聚合字段
+    // Đóng cửa thu thập các trường tổng hợp theo lô
     const allFilteredWords: string[] = [];
     const allFilteredCharacters: FilteredCharacterRecord[] = [];
     const allMergeRecords: MergeRecord[] = [];
@@ -448,12 +448,12 @@ ${strictness !== 'strict' ? `【极其重要 - 宽松筛选原则】
       items: batchItems,
       feature: 'script_analysis',
       buildPrompts: (batch) => {
-        // 每批构建独立的角色列表和对白样本
+        // \u6bcflô\u6784\u5efađộc lậpNhân vậdanh sách tvàmẫu đối thoại
         const charList = batch.map((c, i) => {
           if (c.sceneCount === 0 && c.dialogueCount === 0) {
-            return `${i + 1}. ${c.name} [未统计到出场]`;
+            return `${i + 1}. ${c.name} [\u672aThống kêĐếnxuất hiện]`;
           }
-          return `${i + 1}. ${c.name} [出场${c.sceneCount}场, 对白${c.dialogueCount}条, 集数${c.episodeCount}]`;
+          return `${i + 1}. ${c.name} [xuất hiện${c.sceneCount}\u573a, đối thoại${c.dialogueCount}\u6761, đặt\u6570${c.episodeCount}]`;
         }).join('\n');
         
         const batchDialogues: string[] = [];
@@ -464,60 +464,60 @@ ${strictness !== 'strict' ? `【极其重要 - 宽松筛选原则】
           }
         }
         
-        const user = `【剧本信息】
-剧名：《${background.title}》
-${background.genre ? `类型：${background.genre}` : ''}
-${background.era ? `时代背景：${background.era}` : ''}
-${background.timelineSetting ? `时间线：${background.timelineSetting}` : ''}
-总集数：${episodeScripts.length}集
-总场次数：${totalSceneCount}场
-核心主角阈值：出场 ≥ ${coreThreshold} 场
+        const user = `【Kịch bảthông tin】
+Tiêu đề phim truyền hình：《${background.title}》
+${background.genre ? `Loại：${background.genre}` : ''}
+${background.era ? `Thời đại Nền：${background.era}` : ''}
+${background.timelineSetting ? `Thờtôi gian dòng：${background.timelineSetting}` : ''}
+tổng số tập：${episodeScripts.length}đặt
+\u603b\u573alần\u6570：${totalSceneCount}\u573a
+nhân vật chính cốt lõi\u9608\u503c：xuất hiện ≥ ${coreThreshold} \u573a
 
-【故事大纲】
-${outlineContext || '无'}
+【Tóm tắt】
+${outlineContext || 'không có'}
 
-【人物小传】
-${biosContext || '无'}
+【Tiểu sử】
+${biosContext || 'không có'}
 
-【待校准的角色列表 + 出场统计】（共${batch.length}个）
+【\u5f85\u6821\u51c6Nhân vậdanh sách t + Ngoại hìnhống kê】（tổng cộng${batch.length}một）
 ${charList}
 
-【角色对白样本】
+【Nhân vậtmẫu đối thoại】
 ${batchDialogues.slice(0, 100).join('\n')}
 
-请按照分级规则校准角色，返回JSON格式：
+\u8bf7\u6309\u7167\u5206\u7ea7quy tắc\u6821\u51c6Nhân vật，Quay lạiJSONĐịnh dạng：
 {
   "characters": [
     {
-      "name": "角色名",
+      "name": "Nhân vậtên t",
       "importance": "protagonist/supporting/minor/extra",
       "appearanceCount": 150,
       "dialogueCount": 200,
       "episodeSpan": [1, 60],
-      "role": "角色描述",
-      "age": "年龄",
-      "gender": "性别",
-      "relationships": "关系"
+      "role": "Nhân vậtMô tả",
+      "age": "tuổi tác",
+      "gender": "giới tính",
+      "relationships": "mối quan hệ"
     }
   ],
-  "filteredWords": ["被过滤的非角色词"],
+  "filteredWords": ["Là Lọccủa\u975eNhân vật\u8bcd"],
   "filteredCharacters": [
-    { "name": "被过滤的角色名", "reason": "过滤原因" }
+    { "name": "Là LọcNhân vậtên t", "reason": "Lọclý do" }
   ],
   "mergeRecords": [
-    { "finalName": "最终名", "variants": ["变体1", "变体2"], "reason": "原因" }
+    { "finalName": "\u6700\u7ec8tên", "variants": ["thay đổi\u4f531", "thay đổi\u4f532"], "reason": "lý do" }
   ],
-  "analysisNotes": "分析说明"
+  "analysisNotes": "Phân tíchGiải thích"
 }
 
-【极其重要！请特别注意】
-1. ${strictness === 'strict' ? '严格过滤低频无名角色' : strictness === 'loose' ? '尽可能保留所有角色，包括群演' : '有名字的全部保留！有称呼的全部保留！不确定的保留！'}
-2. 每个被过滤的角色必须在 filteredCharacters 中说明原因
-3. 不要生成群演XX组标签`;
+【cực kỳ quan trọng！\u8bf7L đặc biệtưu ý】
+1. ${strictness === 'strict' ? '\u4e25\u683cLọc\u4f4e\u9891không cótênNhân vật' : strictness === 'loose' ? '\u5c3d\u53ef\u80fdGiữ Tất cảNhân vật，bao gồm\u7fa4\u6f14' : 'CótêntừTất cả\u4fdd\u7559！Có\u79f0\u547cTất cả\u4fdd\u7559！\u4e0d\u786e\u5b9acủa\u4fdd\u7559！'}
+2. \u6bcfmộtLà LọcNhân vật\u5fc5\u987b\u5728 filteredCharacters trongGiải thíchlý do
+3. \u4e0d\u8981Tạo\u7fa4\u6f14XX\u7ec4nhãn`;
         return { system: systemPrompt, user };
       },
       parseResult: (raw) => {
-        // 增强容错的 JSON 解析
+        // Phân tích cú pháp JSON có khả năng chịu lỗi nâng cao
         let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         const jsonStart = cleaned.indexOf('{');
         const jsonEnd = cleaned.lastIndexOf('}');
@@ -529,11 +529,11 @@ ${batchDialogues.slice(0, 100).join('\n')}
         try {
           batchParsed = JSON.parse(cleaned);
         } catch (jsonErr) {
-          console.warn('[CharacterCalibrator] 批次JSON解析失败，尝试修复...');
+          console.warn('[CharacterCalibrator] Phân tích cú pháp JSON hàng loạt Thất bại，\u5c1d\u8bd5sửa chữa...');
           const lastCompleteChar = cleaned.lastIndexOf('},');
           if (lastCompleteChar > 0) {
             const truncated = cleaned.slice(0, lastCompleteChar + 1);
-            const fixedJson = truncated + '],"filteredWords":[],"mergeRecords":[],"analysisNotes":"部分结果"}';
+            const fixedJson = truncated + '],"filteredWords":[],"mergeRecords":[],"analysisNotes":"một phầnkết quả"}';
             try {
               batchParsed = JSON.parse(fixedJson);
             } catch {
@@ -541,7 +541,7 @@ ${batchDialogues.slice(0, 100).join('\n')}
               if (charsMatch) {
                 try {
                   const charsArray = JSON.parse('[' + charsMatch[1] + ']');
-                  batchParsed = { characters: charsArray, filteredWords: [], mergeRecords: [], analysisNotes: '部分结果' };
+                  batchParsed = { characters: charsArray, filteredWords: [], mergeRecords: [], analysisNotes: 'một phầnkết quả' };
                 } catch {
                   throw jsonErr;
                 }
@@ -554,18 +554,18 @@ ${batchDialogues.slice(0, 100).join('\n')}
           }
         }
         
-        // 收集聚合字段
+        // Thu thập các trường tổng hợp
         allFilteredWords.push(...(batchParsed.filteredWords || []));
         if (batchParsed.filteredCharacters) {
           allFilteredCharacters.push(...batchParsed.filteredCharacters.map((fc: any) => ({
             name: fc.name || '',
-            reason: fc.reason || '未说明',
+            reason: fc.reason || '\u672aGiải thích',
           })));
         }
         allMergeRecords.push(...(batchParsed.mergeRecords || []));
         if (batchParsed.analysisNotes) allAnalysisNotes.push(batchParsed.analysisNotes);
         
-        // 返回 Map<角色名, 角色数据>
+        // Quay lại Map<Nhân vậtên t, Nhân vật\u6570\u636e>
         const map = new Map<string, any>();
         for (const c of (batchParsed.characters || [])) {
           if (c.name) map.set(c.name, c);
@@ -573,7 +573,7 @@ ${batchDialogues.slice(0, 100).join('\n')}
         return map;
       },
       estimateItemTokens: (item) => estimateTokens(
-        `${item.name} [出场${item.sceneCount}场, 对白${item.dialogueCount}条] ` +
+        `${item.name} [xuất hiện${item.sceneCount}\u573a, đối thoại${item.dialogueCount}\u6761] ` +
         item.dialogueSamples.join(' ')
       ),
       estimateItemOutputTokens: () => 200,
@@ -584,7 +584,7 @@ ${batchDialogues.slice(0, 100).join('\n')}
     });
     
     if (failedBatches > 0) {
-      console.warn(`[CharacterCalibrator] ${failedBatches} 批次失败，使用部分结果`);
+      console.warn(`[CharacterCalibrator] ${failedBatches} đợt thứất bại，Sử dụng kết quả một phần`);
     }
     
     parsed = {
@@ -592,15 +592,15 @@ ${batchDialogues.slice(0, 100).join('\n')}
       filteredWords: [...new Set(allFilteredWords)],
       filteredCharacters: allFilteredCharacters,
       mergeRecords: allMergeRecords,
-      analysisNotes: allAnalysisNotes.join('; ') || '批处理完成',
+      analysisNotes: allAnalysisNotes.join('; ') || 'lô\u5904\u7406Hoàn thành',
     };
     
-    console.log('[CharacterCalibrator] AI 角色分析成功，解析到', parsed.characters.length, '个角色');
+    console.log('[CharacterCalibrator] AI Nhân vậtPhân tíchThành công，phân tích cú phápĐến', parsed.characters.length, 'Nhân vật');
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    console.error('[CharacterCalibrator] AI角色分析失败:', err.message);
-    console.error('[CharacterCalibrator] 错误堆栈:', err.stack);
-    // 返回原始数据作为降级方案，但带上统计信息
+    console.error('[CharacterCalibrator] AINhân vậtPhân tíchThất bại:', err.message);
+    console.error('[CharacterCalibrator] Lỗi\u5806\u6808:', err.stack);
+    // Quay lạinguyên bảdữ liệu\u4f5cchoHạ cấp\u65b9\u6848，\u4f46\u5e26\u4e0aThống kêthông tin
     return {
       characters: rawCharacters.map((c, i) => {
         const s = stats.get(c.name);
@@ -617,11 +617,11 @@ ${batchDialogues.slice(0, 100).join('\n')}
       filteredWords: [],
       filteredCharacters: [],
       mergeRecords: [],
-      analysisNotes: `AI角色分析失败(${err.message})，返回基于统计的结果`,
+      analysisNotes: `AINhân vậtPhân tíchThất bại(${err.message})，Quay lạtôi dựa trên Thống kêkết quả`,
     };
   }
     
-  // === 第二步：转换为标准格式并添加ID ===
+  // === Không.Hai\u6b65：\u8f6c\u6362choTiêu chuẩnĐịnh dạng\u5e76ThêmID ===
   const characters: CalibratedCharacter[] = (parsed.characters || []).map((c: any, i: number) => ({
     id: `char_${i + 1}`,
     name: c.name,
@@ -635,7 +635,7 @@ ${batchDialogues.slice(0, 100).join('\n')}
     episodeRange: c.episodeSpan,
   }));
     
-  // === 第三步：为主角和重要配角生成专业视觉提示词（独立 try/catch，失败不影响校准结果）===
+  // === Không.ba\u6b65：chonhân vật chínhvàquan trọngvai phụTạo Lời nhắc trực quan chuyên nghiệp（độc lập try/catch，Thất bại\u4e0d\u5f71\u54cd\u6821\u51c6kết quả）===
   let enrichedCharacters = characters;
   try {
     enrichedCharacters = await enrichCharactersWithVisualPrompts(
@@ -644,43 +644,43 @@ ${batchDialogues.slice(0, 100).join('\n')}
       episodeScripts,
       promptLanguage
     );
-    console.log('[CharacterCalibrator] 视觉提示词生成完成');
+    console.log('[CharacterCalibrator] Lời nhắc trực quanTạoHoàn thành');
   } catch (enrichError) {
     const err = enrichError instanceof Error ? enrichError : new Error(String(enrichError));
-    console.warn('[CharacterCalibrator] 视觉提示词生成失败（不影响角色校准结果）:', err.message);
-    // enrichment 失败不影响主要校准结果，继续使用 characters
+    console.warn('[CharacterCalibrator] Lời nhắc trực quanTạoThất bại（\u4e0d\u5f71\u54cdNhân vậtKết quả hiệu chuẩn）:', err.message);
+    // enrichment Thất bại\u4e0d\u5f71\u54cdchính\u6821\u51c6kết quả，tiếp tụcsử dụng characters
   }
     
-  // === 第四步：合并上次校准结果，防止角色丢失 ===
+  // === Không.bốn\u6b65：\u5408\u5e76\u4e0alần\u6821\u51c6kết quả，\u9632\u6b62Nhân vật\u4e22\u5931 ===
   let finalCharacters = enrichedCharacters;
   if (previousCharacters && previousCharacters.length > 0) {
     const currentNames = new Set(enrichedCharacters.map(c => c.name));
     
-    // 找出上次有但这次没有的角色
+    // \u627e\u51fa\u4e0alầnCó\u4f46\u8fd9lần\u6ca1CóNhân vật
     const missingCharacters = previousCharacters.filter(pc => {
       if (currentNames.has(pc.name)) return false;
-      // loose 模式下保留所有上次的角色
+      // loose chế độ\u4e0bGiữ Tất cả\u4e0alầnNhân vật
       if (strictness === 'loose') return true;
-      // 只保留有具体名字的角色
+      // \u53ea\u4fdd\u7559Có\u5177\u4f53têntừNhân vật
       const isGroupExtra = [
-        '保安', '警察', '员工', '护士', '医生', '记者', 
-        '律师', '路人', '众人', '若干', '群众', '大妈',
+        '\u4fdd\u5b89', 'cảnh sát', '\u5458\u5de5', '\u62a4\u58eb', 'bác sĩ', '\u8bb0\u8005', 
+        'luật sư', '\u8def\u4eba', '\u4f17\u4eba', '\u82e5\u5e72', '\u7fa4\u4f17', '\u5927\u5988',
       ].some(keyword => 
         pc.name === keyword || 
         pc.name === keyword + '1' || 
         pc.name === keyword + '2' ||
-        pc.name.startsWith('几名') ||
-        pc.name.startsWith('两个') ||
-        pc.name.startsWith('若干')
+        pc.name.startsWith('\u51e0tên') ||
+        pc.name.startsWith('\u4e24một') ||
+        pc.name.startsWith('\u82e5\u5e72')
       );
       return !isGroupExtra && pc.importance !== 'extra';
     });
     
     if (missingCharacters.length > 0) {
-      console.log(`[CharacterCalibrator] 合并上次校准丢失的 ${missingCharacters.length} 个角色:`, 
+      console.log(`[CharacterCalibrator] \u5408\u5e76\u4e0alần\u6821\u51c6\u4e22\u5931của ${missingCharacters.length} Nhân vật:`, 
         missingCharacters.map(c => c.name));
       
-      // 为丢失的角色重新分配 ID
+      // cho\u4e22\u5931Nhân vật\u91cd\u65b0\u5206\u914d ID
       const maxId = Math.max(...finalCharacters.map(c => {
         const match = c.id.match(/char_(\d+)/);
         return match ? parseInt(match[1]) : 0;
@@ -695,15 +695,15 @@ ${batchDialogues.slice(0, 100).join('\n')}
     }
   }
   
-  // 合并 filteredWords 和 filteredCharacters，确保 filteredWords 中的也出现在 filteredCharacters
+  // \u5408\u5e76 filteredWords và filteredCharacters，\u786e\u4fdd filteredWords trongcủa\u4e5f\u51fa\u73b0\u5728 filteredCharacters
   const filteredCharacters: FilteredCharacterRecord[] = [
     ...(parsed.filteredCharacters || []),
   ];
-  // 将 filteredWords 中没有在 filteredCharacters 中的也加进去
+  // \u5c06 filteredWords trong\u6ca1Có\u5728 filteredCharacters trongcủa\u4e5f\u52a0\u8fdb\u53bb
   const filteredCharNames = new Set(filteredCharacters.map(fc => fc.name));
   for (const word of (parsed.filteredWords || [])) {
     if (!filteredCharNames.has(word)) {
-      filteredCharacters.push({ name: word, reason: '非角色词' });
+      filteredCharacters.push({ name: word, reason: '\u975eNhân vật\u8bcd' });
     }
   }
   
@@ -717,7 +717,7 @@ ${batchDialogues.slice(0, 100).join('\n')}
 }
 
 /**
- * 收集角色出场上下文（用于AI分析）
+ * Thu thập Nhân vậtxuất hiệnContext（sử dụng\u4e8eAIPhân tích）
  */
 function collectCharacterContexts(
   characters: ScriptCharacter[],
@@ -726,19 +726,19 @@ function collectCharacterContexts(
   const contexts: string[] = [];
   const characterNames = new Set(characters.map(c => c.name));
   
-  // 遍历剧本，收集角色出现的场景和对白
-  for (const ep of episodeScripts.slice(0, 5)) { // 只取前5集作为样本
-    for (const scene of ep.scenes.slice(0, 10)) { // 每集最多10个场景
-      // 检查场景中是否有我们关注的角色
+  // \u904d\u5386Kịch bản，Thu thập Nhân vật\u51fa\u73b0Cảnh và đối thoại
+  for (const ep of episodeScripts.slice(0, 5)) { // \u53ea\u53d6\u524d5đặt\u4f5ccho\u6837\u672c
+    for (const scene of ep.scenes.slice(0, 10)) { // \u6bcfđặtnhất10Cảnh
+      // \u68c0\u67e5Cảnhtrong\u662f\u5426Có\u6211\u4eecTheo dõiNhân vật
       const relevantChars = scene.characters.filter(c => 
         characterNames.has(c) || characters.some(char => c.includes(char.name))
       );
       
       if (relevantChars.length > 0) {
-        contexts.push(`[第${ep.episodeIndex}集-${scene.sceneHeader}]`);
-        contexts.push(`人物: ${relevantChars.join(', ')}`);
+        contexts.push(`[Không.${ep.episodeIndex}đặt-${scene.sceneHeader}]`);
+        contexts.push(`nhân vật: ${relevantChars.join(', ')}`);
         
-        // 收集相关对白（前3条）
+        // \u6536đặt\u76f8\u5173đối thoại（3 mục hàng đầu）
         const relevantDialogues = scene.dialogues
           .filter(d => characterNames.has(d.character) || characters.some(c => d.character.includes(c.name)))
           .slice(0, 3);
@@ -755,8 +755,8 @@ function collectCharacterContexts(
 }
 
 /**
- * 将校准结果转换回 ScriptCharacter 格式
- * 注意：保留原始角色的所有字段，只补充/更新 AI 校准的字段
+ * \u5c06\u6821\u51c6kết quả\u8f6c\u6362\u56de ScriptCharacter Định dạng
+ * Lưu ý：\u4fdd\u7559Nh gốcân vậtTất cảtừ\u6bb5，\u53eabổ sung/Cập nhật AI \u6821\u51c6củatừ\u6bb5
  */
 export function convertToScriptCharacters(
   calibrated: CalibratedCharacter[],
@@ -764,39 +764,39 @@ export function convertToScriptCharacters(
   promptLanguage: PromptLanguage = 'zh+en',
 ): ScriptCharacter[] {
   return calibrated.map(c => {
-    // 查找原始角色数据
+    // \u67e5\u627eNh gốcân vật\u6570\u636e
     const original = originalCharacters?.find(orig => orig.name === c.name);
     
     const nextVisualPromptEn = c.visualPromptEn || original?.visualPromptEn;
     const nextVisualPromptZh = c.visualPromptZh || original?.visualPromptZh;
-    // 合并：保留原始数据，只补充/更新 AI 生成的字段
+    // \u5408\u5e76：\u4fdd\u7559nguyên bảdữ liệu，\u53eabổ sung/Cập nhật AI Tạocủatừ\u6bb5
     return {
-      // 保留原始字段
+      // Giữ các trường gốc
       ...original,
-      // 更新/补充 AI 校准的字段
+      // Cập nhật/Các trường bổ sung để hiệu chỉnh AI
       id: c.id,
       name: c.name,
       role: c.role || original?.role,
       age: c.age || original?.age,
       gender: c.gender || original?.gender,
       relationships: c.relationships || original?.relationships,
-      // === 专业角色设计字段（世界级大师生成）===
+      // === NH chuyên nghiệpân vậlĩnh vực thiết kế t（Bậc thầy đẳng cấp thế giới Tạo）===
       visualPromptEn: promptLanguage === 'zh' ? undefined : nextVisualPromptEn,
       visualPromptZh: promptLanguage === 'en' ? undefined : nextVisualPromptZh,
       appearance: c.facialFeatures || c.uniqueMarks || c.clothingStyle 
         ? [c.facialFeatures, c.uniqueMarks, c.clothingStyle].filter(Boolean).join(', ')
         : original?.appearance,
-      // === 6层身份锚点（角色一致性）===
+      // === Neo nhận dạng lớp 6（Nhân vậtTính nhất quán）===
       identityAnchors: c.identityAnchors || original?.identityAnchors,
       negativePrompt: c.negativePrompt || original?.negativePrompt,
-      // 标记重要性，便于UI展示
-      tags: [c.importance, `出场${c.appearanceCount}次`, ...(original?.tags || [])],
+      // \u6807\u8bb0quan trọng\u6027，\u4fbf\u4e8eUIhiển thị
+      tags: [c.importance, `xuất hiện${c.appearanceCount}lần`, ...(original?.tags || [])],
     };
   });
 }
 
 /**
- * 角色恢复兜底：优先保留带名字的角色，并去重
+ * Nhân vật\u6062\u590dHãy ghi nhớ mọi thứ：Ưu tiên\u4fdd\u7559\u5e26têntừNhân vật，\u5e76\u53bb\u91cd
  */
 function cloneScriptCharactersForRecovery(
   characters: ScriptCharacter[] | undefined,
@@ -871,24 +871,24 @@ export function resolveSafeScriptCharacters(
 }
 
 /**
- * 按重要性排序角色
+ * Theo tầm quan trọngSắp xếpNhân vật
  */
 export function sortByImportance(characters: CalibratedCharacter[]): CalibratedCharacter[] {
   const order = { protagonist: 0, supporting: 1, minor: 2, extra: 3 };
   return [...characters].sort((a, b) => {
-    // 先按重要性
+    // Theo tầm quan trọng đầu tiên
     const importanceOrder = order[a.importance] - order[b.importance];
     if (importanceOrder !== 0) return importanceOrder;
-    // 再按出场次数
+    // Nhấn lại số lần xuất hiện
     return b.appearanceCount - a.appearanceCount;
   });
 }
 
-// ==================== 专业角色设计 ====================
+// ==================== NH chuyên nghiệpân vật\u8bbe\u8ba1 ====================
 
 /**
- * 为主角和重要配角生成专业的视觉提示词
- * 调用世界级角色设计大师 AI
+ * chonhân vật chínhvàquan trọngvai phụTạo Lời nhắc trực quan chuyên nghiệp
+ * \u8c03sử dụng\u4e16\u754c\u7ea7Nhân vật\u8bbe\u8ba1\u5927phép chia AI
  */
 async function enrichCharactersWithVisualPrompts(
   characters: CalibratedCharacter[],
@@ -896,7 +896,7 @@ async function enrichCharactersWithVisualPrompts(
   episodeScripts: EpisodeRawScript[],
   promptLanguage: PromptLanguage = 'zh+en'
 ): Promise<CalibratedCharacter[]> {
-  // 只为主角和重要配角生成详细提示词
+  // \u53eachonhân vật chínhvàquan trọngvai phụTạo Lời nhắc chi tiết
   const keyCharacters = characters.filter(c => 
     c.importance === 'protagonist' || c.importance === 'supporting'
   );
@@ -905,223 +905,223 @@ async function enrichCharactersWithVisualPrompts(
     return characters;
   }
   
-  console.log(`[enrichCharactersWithVisualPrompts] 为 ${keyCharacters.length} 个关键角色生成专业提示词...`);
+  console.log(`[enrichCharactersWithVisualPrompts] cho ${keyCharacters.length} mộtchìa khóaNhân vậtTạoNhắc nhở chuyên nghiệp...`);
   
-  // 构建时代服装指导
+  // \u6784\u5efathời đạiquần áo\u6307\u5bfc
   const getEraFashionGuidance = () => {
     const startYear = background.storyStartYear;
-    const timeline = background.timelineSetting || background.era || '现代';
+    const timeline = background.timelineSetting || background.era || 'hiện đại';
     
     if (startYear) {
       if (startYear >= 2020) {
-        return `【${startYear}年代服装指导】
-- 年轻人：休闲时尚、运动风、潮牌元素，常穿卫衣、牢仔裤、运动鞋
-- 中年人：商务休闲、简约现代，常穿Polo衫、休闲西装、卡其裤
-- 老年人：舒适休闲，常穿开衫、孖子衫、布鞋或运动鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：\u4f11\u95f2\u65f6\u5c1a、các môn thể thaogió、\u6f6e\u724cphần tử，\u5e38\u7a7f\u536b\u8863、\u7262\u4ed4\u88e4、các môn thể thao\u978b
+- tuổi trung niên\u4eba：\u5546\u52a1\u4f11\u95f2、\u7b80khoảnghiện đại，\u5e38\u7a7fPolo\u886b、\u4f11\u95f2\u897f\u88c5、\u5361\u5176\u88e4
+- tuổi già\u4eba：Thoải mái\u4f11\u95f2，\u5e38\u7a7f\u5f00\u886b、\u5b56\u5b50\u886b、\u5e03\u978bhoặccác môn thể thao\u978b`;
       } else if (startYear >= 2010) {
-        return `【${startYear}年代服装指导】
-- 年轻人：韩系时尚、小清新风格，常穿T恤、牢仔裤、帆布鞋
-- 中年人：商务正装或商务休闲，常穿西装、衬衫、皮鞋
-- 老年人：传统休闲，常穿开衫、布鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：\u97e9\u7cfb\u65f6\u5c1a、\u5c0f\u6e05\u65b0Phong cách，\u5e38\u7a7fáo phông、\u7262\u4ed4\u88e4、\u5e06\u5e03\u978b
+- tuổi trung niên\u4eba：\u5546\u52a1trang phục chính thứchoặc\u5546\u52a1\u4f11\u95f2，\u5e38\u7a7f\u897f\u88c5、\u886c\u886b、\u76ae\u978b
+- tuổi già\u4eba：\u4f20\u7edf\u4f11\u95f2，\u5e38\u7a7f\u5f00\u886b、\u5e03\u978b`;
       } else if (startYear >= 2000) {
-        return `【${startYear}年代服装指导】
-- 年轻人：千禅年时尚，常穿紧身裤、宽松外套、板鞋
-- 中年人：正式商务装，常穿西装套装、领带、皮鞋
-- 老年人：中山装或简单开衫、布鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：ngàn\u7985năm\u65f6\u5c1a，\u5e38\u7a7f\u7d27\u8eab\u88e4、lỏng lẻoBên ngoài\u5957、\u677f\u978b
+- tuổi trung niên\u4eba：\u6b63\u5f0f\u5546\u52a1\u88c5，\u5e38\u7a7f\u897f\u88c5\u5957\u88c5、\u9886\u5e26、\u76ae\u978b
+- tuổi già\u4eba：trongnúi\u88c5hoặc\u7b80\u5355\u5f00\u886b、\u5e03\u978b`;
       } else if (startYear >= 1990) {
-        return `【${startYear}年代服装指导】
-- 年轻人：喝叭裤、确良外套、大肩垫西装、特宾球鞋
-- 中年人：中山装或西装，常穿解放鞋或简单皮鞋
-- 老年人：中山装、棉袄、布鞋`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+- năm\u8f7b\u4eba：\u559d\u53ed\u88e4、\u786e\u826fBên ngoài\u5957、\u5927\u80a9\u57ab\u897f\u88c5、\u7279\u5bbe\u7403\u978b
+- tuổi trung niên\u4eba：trongnúi\u88c5hoặc\u897f\u88c5，\u5e38\u7a7fgiải phóng\u978bhoặc\u7b80\u5355\u76ae\u978b
+- tuổi già\u4eba：trongnúi\u88c5、áo khoác đệm bông、\u5e03\u978b`;
       } else {
-        return `【${startYear}年代服装指导】
-请根据该年代的中国实际服装风格设计，避免古装或不符合时代的服装`;
+        return `【${startYear}thời đạiquần áo\u6307\u5bfc】
+\u8bf7\u6839\u636e\u8be5thời đạicủatrong\u56fd\u5b9e\u9645quần áoPhong cách thiết kế，\u907f\u514d\u53e4\u88c5hoặc\u4e0d\u7b26\u5408thời đạtôi làquần áo`;
       }
     }
     
-    // 如果没有精确年份，根据 era 判断
-    if (timeline.includes('现代') || timeline.includes('当代')) {
-      return `【现代服装指导】
-请设计符合当代中国的服装风格，年轻人穿时尚休闲装，中年人穿商务休闲装，老年人穿舒适传统服装。
-绝对不要设计成古装、汉服、或古代服饰。`;
+    // nếu không\u7cbe\u786enăm\u4efd，Phán quyết dựa trên thời đại
+    if (timeline.includes('hiện đại') || timeline.includes('đương đại')) {
+      return `【hiện đạiquần áo\u6307\u5bfc】
+\u8bf7\u8bbe\u8ba1\u7b26\u5408đương đạitrong\u56fdcủaquần áoPhong cách，năm\u8f7b\u4eba\u7a7f\u65f6\u5c1amặc giản dị，tuổi trung niên\u4eba\u7a7f\u5546\u52a1mặc giản dị，tuổi già\u4eba\u7a7fThoải mái\u4f20\u7edfquần áo。
+\u7edd\u5bf9\u4e0d\u8981\u8bbe\u8ba1\u6210\u53e4\u88c5、\u6c49\u670d、hoặcthời cổ đại\u670d\u9970。`;
     }
 
-    // 民国时期
-    if (timeline.includes('民国') || timeline.includes('近代') || timeline.includes('清末')) {
-      return `【${timeline}服装指导】
-- 男性：长衫马褂、中山装、西装礼帽（上层社会）、布衣长衫（平民）
-- 女性：旗袍、女学生装（上衣下裙）、短发或盘发
-- 禁止出现T恤、牛仔裤、运动鞋等现代服饰
-- 禁止出现手机、电脑等现代电子产品`;
+    // Cộng hòa Trung Quốcthời kỳ
+    if (timeline.includes('Cộng hòa Trung Quốc') || timeline.includes('thời hiện đại') || timeline.includes('Cuối nhà Thanh')) {
+      return `【${timeline}quần áo\u6307\u5bfc】
+- Nam\u6027：\u957f\u886bcon ngựa\u8902、trongnúi\u88c5、\u897f\u88c5\u793c\u5e3d（\u4e0a\u5c42\u793e\u4f1a）、\u5e03\u8863\u957f\u886b（\u5e73\u6c11）
+- Nữ\u6027：\u65d7\u888d、Nữ\u5b66\u751f\u88c5（\u4e0a\u8863\u4e0b\u88d9）、\u77ed\u53d1hoặc\u76d8\u53d1
+- \u7981\u6b62\u51fa\u73b0áo phông、\u725b\u4ed4\u88e4、các môn thể thao\u978bĐợi đãhiện đại\u670d\u9970
+- \u7981\u6b62\u51fa\u73b0Điện thoại、máy tínhĐợi đãhiện đạisản phẩm điện tử`;
     }
 
-    // 古代各朝代
-    if (/唐朝|唐代/.test(timeline)) {
-      return `【唐朝服装指导】
-- 男性：圆领袍、幞头、革带；武将可穿铠甲
-- 女性：高腰襟裙、披帛、发髀簪起、花钗装饰
-- 绝对禁止任何现代服装（西装/T恤/牵仔裤/运动鞋）`;
+    // thời cổ đại\u5404\u671d\u4ee3
+    if (/nhà Đường|\u5510\u4ee3/.test(timeline)) {
+      return `【nhà Đườngquần áo\u6307\u5bfc】
+- Nam\u6027：\u5706\u9886\u888d、\u5e5e\u5934、\u9769\u5e26；\u6b66\u5c06\u53ef\u7a7f\u94e0\u7532
+- Nữ\u6027：\u9ad8\u8170\u895f\u88d9、\u62ab\u5e1b、\u53d1\u9ac0\u7c2a\u8d77、\u82b1\u9497\u88c5\u9970
+- \u7edd\u5bf9\u7981\u6b62\u4efb\u4f55hiện đạiquần áo（\u897f\u88c5/áo phông/\u7275\u4ed4\u88e4/các môn thể thao\u978b）`;
     }
-    if (/宋朝|宋代/.test(timeline)) {
-      return `【宋朝服装指导】
-- 男性：直裰、交领袖衫、乌纱帽；文人偏素雅
-- 女性：褒子、裙、披帛，发型简约典雅
-- 绝对禁止任何现代服装`;
+    if (/Nhà Tống|\u5b8b\u4ee3/.test(timeline)) {
+      return `【Nhà Tốngquần áo\u6307\u5bfc】
+- Nam\u6027：\u76f4\u88f0、\u4ea4\u9886áo sơ mi có tay、\u4e4c\u7eb1\u5e3d；\u6587\u4eba\u504f\u7d20\u96c5
+- Nữ\u6027：\u8912\u5b50、\u88d9、\u62ab\u5e1b，kiểu tóc\u7b80khoảng\u5178\u96c5
+- \u7edd\u5bf9\u7981\u6b62\u4efb\u4f55hiện đạiquần áo`;
     }
-    if (/明朝|明代/.test(timeline)) {
-      return `【明朝服装指导】
-- 男性：曳服、直裰、网巾或乌纱帽
-- 女性：交领衫、马面裙、披风，发型丰富多变
-- 绝对禁止任何现代服装`;
+    if (/nhà Minh|\u660e\u4ee3/.test(timeline)) {
+      return `【nhà Minhquần áo\u6307\u5bfc】
+- Nam\u6027：\u66f3\u670d、\u76f4\u88f0、\u7f51\u5dfehoặc\u4e4c\u7eb1\u5e3d
+- Nữ\u6027：\u4ea4\u9886\u886b、con ngựa\u9762\u88d9、\u62abgió，kiểu tóc\u4e30\u5bcc\u591athay đổi
+- \u7edd\u5bf9\u7981\u6b62\u4efb\u4f55hiện đạiquần áo`;
     }
-    if (/清朝|清代/.test(timeline)) {
-      return `【清朝服装指导】
-- 男性：长袍马褂、瓜皮帽、辨子；官员穿补服
-- 女性：旗装（溜肩、立领、宽松）、旗头或两把头
-- 绝对禁止任何现代服装`;
-    }
-
-    // 泛古代/武侠/仙侠/宫斗/玄幻等
-    if (/古代|武侠|仙侠|玄幻|宫斗|宅斗|战国|春秋|汉朝|三国|历史/.test(timeline)) {
-      return `【${timeline}服装指导】
-- 所有角色必须穿着中国古代服饰（长袍、袖衫、披风、带子等）
-- 发型必须是古代式样（簪发、发髀、束发、发笪等）
-- 武侠/仙侠可加入飘逸江湖风格元素（剑、披风、护腕等）
-- 绝对禁止任何现代服装（西装/T恤/牛仔裤/运动鞋/手机/眼镜等）`;
+    if (/nhà Thanh|\u6e05\u4ee3/.test(timeline)) {
+      return `【nhà Thanhquần áo\u6307\u5bfc】
+- Nam\u6027：áo choàngcon ngựa\u8902、\u74dc\u76ae\u5e3d、\u8fa8\u5b50；\u5b98\u5458\u7a7f\u8865\u670d
+- Nữ\u6027：\u65d7\u88c5（Trượt vai、Cổ áo đứng、lỏng lẻo）、\u65d7\u5934hoặc\u4e24\u628a\u5934
+- \u7edd\u5bf9\u7981\u6b62\u4efb\u4f55hiện đạiquần áo`;
     }
 
-    // 科幻/未来
-    if (/科幻|未来|星际|太空/.test(timeline)) {
-      return `【${timeline}服装指导】
-- 可以设计未来感/科技感服装，但需保持内部一致性
-- 禁止出现与世界观不符的服装元素`;
+    // \u6cdbthời cổ đại/võ thuật/Tiên Hạ/Cuộc chiến cung điện/tưởng tượngĐợi đã
+    if (/thời cổ đại|võ thuật|Tiên Hạ|tưởng tượng|Cuộc chiến cung điện|đánh nhau trong nhà|Thời Chiến Quốc|mùa xuân và mùa thu|nhà Hán|Tam Quốc|Lịch sử/.test(timeline)) {
+      return `【${timeline}quần áo\u6307\u5bfc】
+- Tất cảNhân vật\u5fc5\u987b\u7a7f\u7740trong\u56fdthời cổ đại\u670d\u9970（áo choàng、áo sơ mi có tay、\u62abgió、\u5e26\u5b50Đợi đã）
+- kiểu tóc\u5fc5\u987b\u662fthời cổ đại\u5f0f\u6837（\u7c2a\u53d1、\u53d1\u9ac0、\u675f\u53d1、\u53d1\u7b2aĐợi đã）
+- võ thuật/Tiên Hạ\u53ef\u52a0\u5165\u98d8\u9038giang hồPhong cáchphần tử（thanh kiếm、\u62abgió、\u62a4\u8155Đợi đã）
+- \u7edd\u5bf9\u7981\u6b62\u4efb\u4f55hiện đạiquần áo（\u897f\u88c5/áo phông/\u725b\u4ed4\u88e4/các môn thể thao\u978b/Điện thoại/\u773c\u955cĐợi đã）`;
     }
 
-    // 其他未识别的时代 — 用通用约束而非返回空
-    return `【${timeline}服装指导】
-请根据「${timeline}」时代背景设计角色服装，服装、发型、配饰必须严格符合该时代特征。
-绝对禁止出现与该时代不符的服装元素。`;
+    // khoa học viễn tưởng/tương lai
+    if (/khoa học viễn tưởng|tương lai|liên sao|không gian/.test(timeline)) {
+      return `【${timeline}quần áo\u6307\u5bfc】
+- \u53ef\u4ee5\u8bbe\u8ba1tương lai\u611f/\u79d1\u6280\u611fquần áo，\u4f46\u9700giữbên trong\u90e8một\u81f4\u6027
+- \u7981\u6b62\u51fa\u73b0và thế giới quan\u4e0d\u7b26củaquần áophần tử`;
+    }
+
+    // \u5176\u4ed6\u672a\u8bc6\u522bcủathời đại — sử dụngphổ quátkhoảng\u675f\u800c\u975eQuay lại\u7a7a
+    return `【${timeline}quần áo\u6307\u5bfc】
+\u8bf7\u6839\u636e「${timeline}」Thời đại Nền\u8bbe\u8ba1Nhân vậtquần áo，quần áo、kiểu tóc、\u914d\u9970\u5fc5\u987b\u4e25\u683c\u7b26\u5408\u8be5Đặc điểm của thời đại。
+\u7edd\u5bf9\u7981\u6b62\u51fa\u73b0với\u8be5thời đại\u4e0d\u7b26củaquần áophần tử。`;
   };
   
   const eraFashionGuidance = getEraFashionGuidance();
   
-  // 系统提示词：角色设计大师 + 背景信息 + 输出格式（不含具体角色）
-  const systemPrompt = `你是好莱坞顶级角色设计大师，曾为漫威、迪士尼、皮克斯设计过无数经典角色。
+  // Hệ thốngPrompt：Nhân vật\u8bbe\u8ba1\u5927phép chia + Nềthông tin + Đầu raĐịnh dạng（\u4e0d\u542b\u5177\u4f53Nhân vật）
+  const systemPrompt = `\u4f60\u662f\u597d\u83b1\u575e\u9876\u7ea7Nhân vật\u8bbe\u8ba1\u5927phép chia，một lần cho\u6f2b\u5a01、\u8fea\u58eb\u5c3c、\u76ae\u514b\u65af\u8bbe\u8ba1\u8fc7không có\u6570\u7ecf\u5178Nhân vật。
 
-你的专业能力：
-- **角色视觉设计**：能准确捕捉角色的外在形象、服装风格、肢体语言
-- **年代服装专家**：精通不同年代的中国服装潮流，能准确还原历史时期的服装特征
-- **AI图像生成专家**：深谙 Midjourney、DALL-E、Stable Diffusion 等 AI 绘图模型
-- **角色一致性专家**：掌握"6层特征锁定"技术，确保同一角色在不同场景保持一致
+khả năng chuyên môn của bạn：
+- **Nhân vật\u89c6\u89c9\u8bbe\u8ba1**：\u80fd\u51c6\u786e\u6355\u6349Nhân vậtcủaBên ngoài\u5728\u5f62\u8c61、quần áoPhong cách、\u80a2\u4f53ngôn ngữ
+- **thời đạiquần áo\u4e13nhà**：\u7cbe\u901a\u4e0d\u540cthời đạicủatrong\u56fdquần áo\u6f6e\u6d41，\u80fd\u51c6\u786e\u8fd8\u539fLịch sửthời kỳcủaquần áo\u7279\u5f81
+- **Hình ảnh AI TạoChuyên gia**：Biết giữa hành trình、DALL-E、Stable Diffusion Đợi đã AI \u7ed8\u56feMô hình
+- **Nhân vậtTính nhất quán\u4e13nhà**：\u638c\u63e1"6\u5c42\u7279\u5f81\u9501\u5b9a"\u6280\u672f，\u786e\u4fdd\u540cmộtNhân vật ở C khác nhauảnh giữ sự nhất quán
 
-【剧本信息】
-剧名：《${background.title}》
-类型：${background.genre || '未知类型'}
-时代背景：${background.era || '现代'}
-精确时间线：${background.timelineSetting || '未指定'}
-故事年份：${background.storyStartYear ? `${background.storyStartYear}年` : '未指定'}${background.storyEndYear && background.storyEndYear !== background.storyStartYear ? ` - ${background.storyEndYear}年` : ''}
-总集数：${episodeScripts.length}集
+【Kịch bảthông tin】
+Tiêu đề phim truyền hình：《${background.title}》
+Loại：${background.genre || 'Không rõLoại'}
+Thời đại Nền：${background.era || 'hiện đại'}
+Chính xácờtôi gian dòng：${background.timelineSetting || '\u672a\u6307\u5b9a'}
+năm câu chuyện：${background.storyStartYear ? `${background.storyStartYear}năm` : '\u672a\u6307\u5b9a'}${background.storyEndYear && background.storyEndYear !== background.storyStartYear ? ` - ${background.storyEndYear}năm` : ''}
+tổng số tập：${episodeScripts.length}đặt
 
 ${eraFashionGuidance}
 
-【故事大纲】
-${background.outline?.slice(0, 1200) || '无'}
+【Tóm tắt】
+${background.outline?.slice(0, 1200) || 'không có'}
 
-【人物小传】
-${background.characterBios?.slice(0, 1200) || '无'}
+【Tiểu sử】
+${background.characterBios?.slice(0, 1200) || 'không có'}
 
-${promptLanguage === 'zh' ? `【核心输出：6层身份锚点】
-这是AI生图中保持角色一致性的关键技术，必须用中文详细填写：
+${promptLanguage === 'zh' ? `【cốt lõiĐầu ra：Neo nhận dạng lớp 6】
+Đây làAI\u751f\u56fetronggiữNhân vậtTính nhất quáncủachìa khóa\u6280\u672f，Phải bằng tiếng Trung\u8be6\u7ec6\u586b\u5199：
 
-① 骨相层（面部骨骼结构）
-   - faceShape: 脸型（鹅蛋形/方形/心形/圆形/菱形/长圆形）
-   - jawline: 下颌线（棱角分明/柔和圆润/突出方正）
-   - cheekbones: 颧骨（高颧骨/不明显/宽颧骨）
+① \u9aa8\u76f8\u5c42（đối mặt\u9aa8\u9abc\u7ed3\u6784）
+   - faceShape: hình dạng khuôn mặt（\u9e45\u86cb\u5f62/\u65b9\u5f62/\u5fc3\u5f62/\u5706\u5f62/\u83f1\u5f62/\u957f\u5706\u5f62）
+   - jawline: đường viền hàm（\u68f1\u89d2\u5206\u660e/Mềm mại\u5706\u6da6/\u7a81\u51fa\u65b9\u6b63）
+   - cheekbones: xương gò má（\u9ad8xương gò má/Không rõ ràng/\u5bbdxương gò má）
 
-② 五官层（精确描述）
-   - eyeShape: 眼型（杏仁形/圆眼/内双/单眼皮/上挑形）
-   - eyeDetails: 眼部细节（双眼皮、轻微内眦褶、深邃眼窝）
-   - noseShape: 鼻型（高鼻梁、圆鼻头、小巧挺鼻）
-   - lipShape: 唇型（丰唇、薄唇、明显的唇珠）
+② năm\u5b98\u5c42（Chính xác Mô tả）
+   - eyeShape: hình dạng mắt（hình quả hạnh/mắt tròn/bên trong\u53cc/\u5355\u773c\u76ae/\u4e0a\u6311\u5f62）
+   - eyeDetails: Chi tiết mắt（\u53cc\u773c\u76ae、nhẹbên trong\u7726\u8936、\u6df1\u9083\u773c\u7a9d）
+   - noseShape: Hình dáng mũi（\u9ad8\u9f3b\u6881、\u5706\u9f3b\u5934、\u5c0f\u5de7\u633a\u9f3b）
+   - lipShape: hình môi（\u4e30\u5507、\u8584\u5507、\u660e\u663ecủa\u5507\u73e0）
 
-③ 辨识标记层（最强锚点！）
-   - uniqueMarks: 必填数组！至少2-3个独特标记，用中文描述
-   - 示例：["左眼下方2cm处小痣", "右眉尾处淡疤", "左脸颊酒窝"]
-   - 这是最强的角色识别特征，必须精确到位置
+③ \u8fa8\u8bc6\u6807\u8bb0\u5c42（\u6700\u5f3a\u951a\u70b9！）
+   - uniqueMarks: Bắt buộc\u6570\u7ec4！\u81f3\u5c112-3mộtdấu ấn độc đáo，sử dụngTrung Quốc Mô tả
+   - Ví dụ：["\u5de6\u773c\u4e0b\u65b92cm\u5904\u5c0f\u75e3", "\u53f3\u7709\u5c3e\u5904\u6de1\u75a4", "\u5de6\u8138\u988a\u9152\u7a9d"]
+   - Đây là\u6700mạnh Nhân vật\u8bc6\u522b\u7279\u5f81，\u5fc5\u987b\u7cbe\u786eĐếnVị trí
 
-④ 色彩锚点层（Hex色值）
-   - colorAnchors.iris: 虹膜色（如 #3D2314 深棕色）
-   - colorAnchors.hair: 发色（如 #1A1A1A 乌黑）
-   - colorAnchors.skin: 肤色（如 #E8C4A0 暖米色）
-   - colorAnchors.lips: 唇色（如 #C4727E 豆沙粉）
+④ Màu sắc\u951a\u70b9\u5c42（Hex\u8272\u503c）
+   - colorAnchors.iris: màu mống mắt（Chẳng hạn như #3D2314 \u6df1\u68d5\u8272）
+   - colorAnchors.hair: màu tóc（Chẳng hạn như #1A1A1A \u4e4c\u9ed1）
+   - colorAnchors.skin: màu da（Chẳng hạn như #E8C4A0 \u6696\u7c73\u8272）
+   - colorAnchors.lips: màu môi（Chẳng hạn như #C4727E \u8c46\u6c99\u7c89）
 
-⑤ 皮肤纹理层
-   - skinTexture: 皮肤质感，用中文描述（毛孔清晰、淡雀斑、笑纹明显）
+⑤ lớp kết cấu da
+   - skinTexture: \u76ae\u80a4\u8d28\u611f，sử dụngTrung Quốc Mô tả（\u6bdb\u5b54\u6e05\u6670、\u6de1\u96c0\u6591、cười\u7eb9\u660e\u663e）
 
-⑥ 发型锚点层
-   - hairStyle: 发型，用中文描述（齐肩层次剪、寸头、波波头）
-   - hairlineDetails: 发际线，用中文描述（自然发际线、美人尖、额角后退）
+⑥ lớp neo kiểu tóc
+   - hairStyle: kiểu tóc，sử dụngTrung Quốc Mô tả（\u9f50\u80a9\u5c42lần\u526a、\u5bf8\u5934、\u6ce2\u6ce2\u5934）
+   - hairlineDetails: đường chân tóc，sử dụngTrung Quốc Mô tả（tự nhiênđường chân tóc、\u7f8e\u4eba\u5c16、\u989d\u89d2\u540e\u9000）
 
-【负面提示词】
-为角色生成negativePrompt，排除不符合设定的特征，用中文填写：
-- avoid: 要避免的特征（如中国人角色应避免 金色头发、蓝色眼睛）
-- styleExclusions: 风格排除（如 动漫风、卡通风、油画风）` : `【核心输出：6层身份锚点】
-这是AI生图中保持角色一致性的关键技术，必须详细填写：
+【Lời nhắc tiêu cực】
+choNhân vậtTạonegativePrompt，\u6392\u9664\u4e0d\u7b26\u5408cài đặtcủa\u7279\u5f81，sử dụngTiếng Trung\u586b\u5199：
+- avoid: Những đặc điểm cần tránh（Chẳng hạn nhưtrong\u56fd\u4ebaNhân vật\u5e94\u907f\u514d \u91d1\u8272\u5934\u53d1、\u84dd\u8272\u773c\u775b）
+- styleExclusions: Phong cáloại trừ（Chẳng hạn như \u52a8\u6f2bgió、\u5361\u901agió、\u6cb9phong cách vẽ tranh）` : `【cốt lõiĐầu ra：Neo nhận dạng lớp 6】
+Đây làAI\u751f\u56fetronggiữNhân vậtTính nhất quáncủachìa khóa\u6280\u672f，\u5fc5\u987b\u8be6\u7ec6\u586b\u5199：
 
-① 骨相层（面部骨骼结构）
-   - faceShape: 脸型（oval/square/heart/round/diamond/oblong）
-   - jawline: 下颌线（sharp angular/soft rounded/prominent）
-   - cheekbones: 颧骨（high prominent/subtle/wide set）
+① \u9aa8\u76f8\u5c42（đối mặt\u9aa8\u9abc\u7ed3\u6784）
+   - faceShape: hình dạng khuôn mặt（oval/square/heart/round/diamond/oblong）
+   - jawline: đường viền hàm（sharp angular/soft rounded/prominent）
+   - cheekbones: xương gò má（high prominent/subtle/wide set）
 
-② 五官层（精确描述）
-   - eyeShape: 眼型（almond/round/hooded/monolid/upturned）
-   - eyeDetails: 眼部细节（double eyelids, slight epicanthic fold, deep-set）
-   - noseShape: 鼻型（straight bridge, rounded tip, button nose）
-   - lipShape: 唇型（full lips, thin lips, defined cupid's bow）
+② năm\u5b98\u5c42（Chính xác Mô tả）
+   - eyeShape: hình dạng mắt（almond/round/hooded/monolid/upturned）
+   - eyeDetails: Chi tiết mắt（double eyelids, slight epicanthic fold, deep-set）
+   - noseShape: Hình dáng mũi（straight bridge, rounded tip, button nose）
+   - lipShape: hình môi（full lips, thin lips, defined cupid's bow）
 
-③ 辨识标记层（最强锚点！）
-   - uniqueMarks: 必填数组！至少2-3个独特标记
-   - 示例：["small mole 2cm below left eye", "faint scar on right eyebrow", "dimple on left cheek"]
-   - 这是最强的角色识别特征，必须精确到位置
+③ \u8fa8\u8bc6\u6807\u8bb0\u5c42（\u6700\u5f3a\u951a\u70b9！）
+   - uniqueMarks: Bắt buộc\u6570\u7ec4！\u81f3\u5c112-3mộtdấu ấn độc đáo
+   - Ví dụ：["small mole 2cm below left eye", "faint scar on right eyebrow", "dimple on left cheek"]
+   - Đây là\u6700mạnh Nhân vật\u8bc6\u522b\u7279\u5f81，\u5fc5\u987b\u7cbe\u786eĐếnVị trí
 
-④ 色彩锚点层（Hex色值）
-   - colorAnchors.iris: 虹膜色（如 #3D2314 dark brown）
-   - colorAnchors.hair: 发色（如 #1A1A1A jet black）
-   - colorAnchors.skin: 肤色（如 #E8C4A0 warm beige）
-   - colorAnchors.lips: 唇色（如 #C4727E dusty rose）
+④ Màu sắc\u951a\u70b9\u5c42（Hex\u8272\u503c）
+   - colorAnchors.iris: màu mống mắt（Chẳng hạn như #3D2314 dark brown）
+   - colorAnchors.hair: màu tóc（Chẳng hạn như #1A1A1A jet black）
+   - colorAnchors.skin: màu da（Chẳng hạn như #E8C4A0 warm beige）
+   - colorAnchors.lips: màu môi（Chẳng hạn như #C4727E dusty rose）
 
-⑤ 皮肤纹理层
-   - skinTexture: 皮肤质感（visible pores, light freckles, smile lines）
+⑤ lớp kết cấu da
+   - skinTexture: \u76ae\u80a4\u8d28\u611f（visible pores, light freckles, smile lines）
 
-⑥ 发型锚点层
-   - hairStyle: 发型（shoulder-length layered, buzz cut, bob）
-   - hairlineDetails: 发际线（natural, widow's peak, receding）
+⑥ lớp neo kiểu tóc
+   - hairStyle: kiểu tóc（shoulder-length layered, buzz cut, bob）
+   - hairlineDetails: đường chân tóc（natural, widow's peak, receding）
 
-【负面提示词】
-为角色生成negativePrompt，排除不符合设定的特征：
-- avoid: 要避免的特征（如中国人角色应避免 blonde hair, blue eyes）
-- styleExclusions: 风格排除（如 anime style, cartoon, painting）`}
+【Lời nhắc tiêu cực】
+choNhân vậtTạonegativePrompt，\u6392\u9664\u4e0d\u7b26\u5408cài đặtcủa\u7279\u5f81：
+- avoid: Những đặc điểm cần tránh（Chẳng hạn nhưtrong\u56fd\u4ebaNhân vật\u5e94\u907f\u514d blonde hair, blue eyes）
+- styleExclusions: Phong cáloại trừ（Chẳng hạn như anime style, cartoon, painting）`}
 
-【服装要求】
-- 服装必须严格符合故事设定的时代背景（${background.era || '现代'}）
-- 根据角色年龄和身份设计合适的服装
-- 绝对不要设计与剧本时代不符的服饰（如古装剧禁止现代服装，现代剧禁止古代服饰）
+【quần áoyêu cầu】
+- quần áo\u5fc5\u987b\u4e25\u683c\u7b26\u5408câu chuyệncài đặtThời đại Nền（${background.era || 'hiện đại'}）
+- TheoNhân vậtuổi tácvàdanh tính thiết kế\u5408\u9002củaquần áo
+- \u7edd\u5bf9\u4e0d\u8981\u8bbe\u8ba1vớiKịch bảnthời đại\u4e0d\u7b26của\u670d\u9970（Chẳng hạn như\u53e4\u88c5\u5267\u7981\u6b62hiện đạiquần áo，hiện đại\u5267\u7981\u6b62thời cổ đại\u670d\u9970）
 
-请返回JSON格式（注意：只返回单个角色对象，不要数组包裹）：
+Xin hãy quay lạiạiJSONĐịnh dạng（Lưu ý：Quay tôi chỉại\u5355Nhân vật\u5bf9\u8c61，\u4e0d\u8981\u6570\u7ec4gói）：
 {
-  "name": "角色名",
-  "detailedDescription": "详细的中文角色描述（100-200字）",
-${promptLanguage === 'zh' ? '  "visualPromptZh": "中文视觉提示词",' : promptLanguage === 'en' ? '  "visualPromptEn": "English visual prompt, 40-60 words",' : '  "visualPromptEn": "English visual prompt, 40-60 words",\n  "visualPromptZh": "中文视觉提示词",'}
-  "clothingStyle": "符合年代的服装风格",
+  "name": "Nhân vậtên t",
+  "detailedDescription": "\u8be6\u7ec6Tiếng TrungNhân vậtMô tả（100-200 từ）",
+${promptLanguage === 'zh' ? '  "visualPromptZh": "Lời nhắc trực quan của Trung Quốc",' : promptLanguage === 'en' ? '  "visualPromptEn": "English visual prompt, 40-60 words",' : '  "visualPromptEn": "English visual prompt, 40-60 words",\n  "visualPromptZh": "Lời nhắc trực quan của Trung Quốc",'}
+  "clothingStyle": "\u7b26\u5408thời đạicủaquần áoPhong cách",
   "identityAnchors": {
-${promptLanguage === 'zh' ? `    "faceShape": "长圆形",
-    "jawline": "柔和圆润，略带宽度",
-    "cheekbones": "不明显",
-    "eyeShape": "杏仁形，略下垂",
-    "eyeDetails": "双眼皮，眼神温和",
-    "noseShape": "高鼻梁，圆鼻头",
-    "lipShape": "丰唇",
-    "uniqueMarks": ["左眼下方小痣", "右脸颊酒窝"],` : `    "faceShape": "oval",
+${promptLanguage === 'zh' ? `    "faceShape": "\u957f\u5706\u5f62",
+    "jawline": "Mềm mại\u5706\u6da6，\u7565\u5e26\u5bbd\u5ea6",
+    "cheekbones": "Không rõ ràng",
+    "eyeShape": "hình quả hạnh，\u7565\u4e0b\u5782",
+    "eyeDetails": "\u53cc\u773c\u76ae，\u773c\u795e\u6e29và",
+    "noseShape": "\u9ad8\u9f3b\u6881，\u5706\u9f3b\u5934",
+    "lipShape": "\u4e30\u5507",
+    "uniqueMarks": ["\u5de6\u773c\u4e0b\u65b9\u5c0f\u75e3", "\u53f3\u8138\u988a\u9152\u7a9d"],` : `    "faceShape": "oval",
     "jawline": "soft rounded",
     "cheekbones": "subtle",
     "eyeShape": "almond",
@@ -1135,41 +1135,41 @@ ${promptLanguage === 'zh' ? `    "faceShape": "长圆形",
       "skin": "#E8C4A0",
       "lips": "#C4727E"
     },
-${promptLanguage === 'zh' ? `    "skinTexture": "皮肤光滑，有轻微笑纹",
-    "hairStyle": "短发整齐商务剪",
-    "hairlineDetails": "自然发际线"` : `    "skinTexture": "smooth with light smile lines",
+${promptLanguage === 'zh' ? `    "skinTexture": "\u76ae\u80a4\u5149\u6ed1，Cónhẹcười\u7eb9",
+    "hairStyle": "\u77ed\u53d1\u6574\u9f50\u5546\u52a1\u526a",
+    "hairlineDetails": "tự nhiênđường chân tóc"` : `    "skinTexture": "smooth with light smile lines",
     "hairStyle": "short neat business cut",
     "hairlineDetails": "natural hairline"`}
   },
   "negativePrompt": {
-${promptLanguage === 'zh' ? `    "avoid": ["金色头发", "蓝色眼睛", "胡须", "纹身"],
-    "styleExclusions": ["动漫风", "卡通风", "油画风", "素描风"]` : `    "avoid": ["blonde hair", "blue eyes", "beard", "tattoos"],
+${promptLanguage === 'zh' ? `    "avoid": ["\u91d1\u8272\u5934\u53d1", "\u84dd\u8272\u773c\u775b", "\u80e1\u987b", "\u7eb9\u8eab"],
+    "styleExclusions": ["\u52a8\u6f2bgió", "\u5361\u901agió", "\u6cb9phong cách vẽ tranh", "\u7d20\u63cfgió"]` : `    "avoid": ["blonde hair", "blue eyes", "beard", "tattoos"],
     "styleExclusions": ["anime", "cartoon", "painting", "sketch"]`}
   }
 }`;
 
-  // 逐个角色调用 AI，避免一次性输出过多 JSON 导致推理模型 token 耗尽
+  // \u9010Nhân vật\u8c03sử dụng AI，\u907f\u514dmộtlần\u6027Đầu ra\u8fc7\u591a JSON \u5bfc\u81f4Lý luậnMô hình token đã hết
   const designMap = new Map<string, any>();
   
   for (let i = 0; i < keyCharacters.length; i++) {
     const c = keyCharacters[i];
-    const charLabel = `${c.name}（${c.importance === 'protagonist' ? '主角' : '重要配角'}）`;
-    console.log(`[enrichCharactersWithVisualPrompts] [${i + 1}/${keyCharacters.length}] 生成: ${charLabel}`);
+    const charLabel = `${c.name}（${c.importance === 'protagonist' ? 'nhân vật chính' : 'quan trọngvai phụ'}）`;
+    console.log(`[enrichCharactersWithVisualPrompts] [${i + 1}/${keyCharacters.length}] Tạo: ${charLabel}`);
     
-    const userPrompt = `请为以下角色生成专业视觉提示词和6层身份锚点：
+    const userPrompt = `\u8bf7cho\u4ee5\u4e0bNhân vậtTạo Lời nhắc trực quan chuyên nghiệpvàNeo nhận dạng lớp 6：
 
-${c.name}（${c.importance === 'protagonist' ? '主角' : '重要配角'}）
-- 身份：${c.role || '未知'}
-- 年龄：${c.age || '未知'}
-- 性别：${c.gender || '未知'}
-- 出场：${c.appearanceCount}次`;
+${c.name}（${c.importance === 'protagonist' ? 'nhân vật chính' : 'quan trọngvai phụ'}）
+- Danh tính：${c.role || 'Không rõ'}
+- tuổi：${c.age || 'Không rõ'}
+- Giới tính：${c.gender || 'Không rõ'}
+- xuất hiện：${c.appearanceCount}lần`;
     
     try {
       const result = await callFeatureAPI('script_analysis', systemPrompt, userPrompt, {
-        maxTokens: 4096, // 单角色输出 4096 足够
+        maxTokens: 4096, // \u5355Nhân vậtĐầu ra 4096 \u8db3\u591f
       });
       
-      // 解析单角色 JSON
+      // phân tích cú pháp\u5355Nhân vật JSON
       let cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       const jsonStart = cleaned.indexOf('{');
       const jsonEnd = cleaned.lastIndexOf('}');
@@ -1178,39 +1178,39 @@ ${c.name}（${c.importance === 'protagonist' ? '主角' : '重要配角'}）
       }
       
       const parsed = JSON.parse(cleaned);
-      // 兼容：AI 可能返回 { characters: [...] } 或直接返回单角色对象
+      // \u517c\u5bb9：AI \u53ef\u80fdQuay lại { characters: [...] } hoặcQuay trực tiếp lại\u5355Nhân vật\u5bf9\u8c61
       const design = parsed.characters ? parsed.characters[0] : parsed;
       if (design) {
         designMap.set(design.name || c.name, design);
-        console.log(`[enrichCharactersWithVisualPrompts] ✅ ${c.name} 生成成功`);
+        console.log(`[enrichCharactersWithVisualPrompts] ✅ ${c.name} TạoThành công`);
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      console.warn(`[enrichCharactersWithVisualPrompts] ⚠️ ${c.name} 生成失败（不影响其他角色）:`, err.message);
-      // 单个角色失败不影响整体，继续处理下一个
+      console.warn(`[enrichCharactersWithVisualPrompts] ⚠️ ${c.name} TạoThất bại（\u4e0d\u5f71\u54cd\u5176\u4ed6Nhân vật）:`, err.message);
+      // \u5355Nhân vậtThất bại\u4e0d\u5f71\u54cd\u6574\u4f53，tiếp tục\u5904\u7406\u4e0bmộtmột
     }
   }
   
-  console.log(`[enrichCharactersWithVisualPrompts] 完成: ${designMap.size}/${keyCharacters.length} 个角色生成成功`);
+  console.log(`[enrichCharactersWithVisualPrompts] Hoàn thành: ${designMap.size}/${keyCharacters.length} Nhân vậtTạoThành công`);
   
-  // 合并到角色数据
+  // \u5408\u5e76ĐếnNhân vật\u6570\u636e
   return characters.map(c => {
     const design = designMap.get(c.name);
     if (design) {
-      // 提取 identityAnchors
+      // Trích xuất identityAnchors
       const anchors = design.identityAnchors;
       
-      // 从新的 identityAnchors 中提取兼容字段（根据锚点值语言自动适配标签）
+      // từ\u65b0của identityAnchors trongTrích xuấtCác trường tương thích（\u6839\u636e\u951a\u70b9\u503cngôn ngữ\u81ea\u52a8\u9002\u914dnhãn）
       const isChinese = /[\u4e00-\u9fff]/.test(anchors?.faceShape || anchors?.eyeShape || '');
       const facialFeatures = anchors ? [
-        anchors.faceShape && (isChinese ? `脸型：${anchors.faceShape}` : `Face: ${anchors.faceShape}`),
-        anchors.eyeShape && (isChinese ? `眼型：${anchors.eyeShape}` : `Eyes: ${anchors.eyeShape}`),
+        anchors.faceShape && (isChinese ? `hình dạng khuôn mặt：${anchors.faceShape}` : `Face: ${anchors.faceShape}`),
+        anchors.eyeShape && (isChinese ? `hình dạng mắt：${anchors.eyeShape}` : `Eyes: ${anchors.eyeShape}`),
         anchors.eyeDetails,
-        anchors.noseShape && (isChinese ? `鼻型：${anchors.noseShape}` : `Nose: ${anchors.noseShape}`),
-        anchors.lipShape && (isChinese ? `唇型：${anchors.lipShape}` : `Lips: ${anchors.lipShape}`),
+        anchors.noseShape && (isChinese ? `Hình dáng mũi：${anchors.noseShape}` : `Nose: ${anchors.noseShape}`),
+        anchors.lipShape && (isChinese ? `hình môi：${anchors.lipShape}` : `Lips: ${anchors.lipShape}`),
       ].filter(Boolean).join(', ') : design.facialFeatures;
       
-      // uniqueMarks 从 anchors.uniqueMarks 数组转换为字符串（向后兼容）
+      // uniqueMarks từ anchors.uniqueMarks \u6570\u7ec4\u8f6c\u6362chochuỗi（\u5411\u540e\u517c\u5bb9）
       const uniqueMarks = anchors?.uniqueMarks 
         ? (Array.isArray(anchors.uniqueMarks) ? anchors.uniqueMarks.join('; ') : anchors.uniqueMarks)
         : design.uniqueMarks;
@@ -1223,9 +1223,9 @@ ${c.name}（${c.importance === 'protagonist' ? '主角' : '重要配角'}）
         facialFeatures,
         uniqueMarks,
         clothingStyle: design.clothingStyle,
-        // 新增：6层身份锚点
+        // Mới：Neo nhận dạng lớp 6
         identityAnchors: anchors,
-        // 新增：负面提示词
+        // Mới：Lời nhắc tiêu cực
         negativePrompt: design.negativePrompt,
       };
     }

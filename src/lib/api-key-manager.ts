@@ -31,16 +31,16 @@ export interface IProvider {
 
 /**
  * Default provider templates
- * 默认供应商模板
+ * Mặc địnhNhà cung cấp\u6a21\u677f
  * 
- * 核心供应商：
- * 1. 魔因API (memefast) - 全功能 AI 中转（推荐），支持文本/图片/视频/识图
- * 2. RunningHub - 视角切换/多角度生成
+ * cốt lõiNhà cung cấp：
+ * 1. API ma thuật (memefast) - Chuyển AI đầy đủ tính năng（Đề xuất），Hỗ trợ\u6587\u672c/Hình ảnh/Video/\u8bc6\u56fe
+ * 2. RunningHub - Góc nhìnChuyển đổi/Đa góc Tạo
  */
 export const DEFAULT_PROVIDERS: Omit<IProvider, 'id' | 'apiKey'>[] = [
   {
     platform: 'memefast',
-    name: '魔因API',
+    name: 'API ma thuật',
     baseUrl: 'https://memefast.top',
     model: [
       'deepseek-v3.2',
@@ -69,116 +69,116 @@ export const DEFAULT_PROVIDERS: Omit<IProvider, 'id' | 'apiKey'>[] = [
 // ==================== Model Classification ====================
 
 /**
- * 根据模型名称模式推断模型能力
- * 用于动态同步的 552+ 模型自动分类
+ * \u6839\u636eMô hìnhTênchế độsuy luậnMô hìnhkhả năng
+ * sử dụng\u4e8e\u52a8\u6001\u540c\u6b65của 552+ Mô hình\u81ea\u52a8\u5206\u7c7b
  */
 export function classifyModelByName(modelName: string): ModelCapability[] {
   const name = modelName.toLowerCase();
 
-  // ---- 视频生成模型 ----
+  // ---- VideoTạoMô hình ----
   const videoPatterns = [
     'veo', 'sora', 'wan', 'kling', 'runway', 'luma', 'seedance',
     'cogvideo', 'hunyuan-video', 'minimax-video', 'hailuo', 'pika',
     'gen-3', 'gen3', 'mochi', 'ltx',
   ];
-  // 精确匹配：grok-video 类
+  // \u7cbe\u786etrận đấu：grok-video \u7c7b
   if (/grok[- ]?video/.test(name)) return ['video_generation'];
   if (videoPatterns.some(p => name.includes(p))) return ['video_generation'];
 
-  // ---- 图片生成模型 ----
+  // ---- Hình ảnhTạoMô hình ----
   const imageGenPatterns = [
     'dall-e', 'dalle', 'flux', 'midjourney', 'niji', 'imagen', 'cogview',
     'gpt-image', 'ideogram', 'sd3', 'stable-diffusion', 'sdxl',
     'playground', 'recraft', 'kolors', 'seedream',
   ];
   if (imageGenPatterns.some(p => name.includes(p))) return ['image_generation'];
-  // "xxx-image-preview" 类（如 gemini-3-pro-image-preview）
+  // "xxx-image-preview" \u7c7b（Chẳng hạn như gemini-3-pro-image-preview）
   if (/image[- ]?preview/.test(name)) return ['image_generation'];
 
-  // ---- 视觉/识图模型 ----
+  // ---- \u89c6\u89c9/\u8bc6\u56feMô hình ----
   if (/vision/.test(name)) return ['text', 'vision'];
 
-  // ---- TTS / Audio 模型（不归入任何主分类）----
+  // ---- TTS / Audio Mô hình（\u4e0d\u5f52\u5165\u4efb\u4f55Chúa ơi\u5206\u7c7b）----
   if (/tts|whisper|audio/.test(name)) return ['text'];
 
-  // ---- Embedding 模型 ----
+  // ---- Embedding Mô hình ----
   if (/embed/.test(name)) return ['embedding'];
 
-  // ---- 推理/思考模型（仍归入 text）----
+  // ---- lý luận/nghĩMô hình（\u4ecd\u5f52\u5165 text）----
   if (/[- ](r1|thinking|reasoner|reason)/.test(name) || /^o[1-9]/.test(name)) return ['text', 'reasoning'];
 
-  // ---- 默认：对话模型 ----
+  // ---- Mặc định：\u5bf9\u8bddMô hình ----
   return ['text'];
 }
 
 // ==================== Endpoint Routing ====================
 
 /**
- * 模型 API 调用格式
- * 基于 MemeFast 等平台 /v1/models 返回的 supported_endpoint_types 字段
+ * Mô hình API \u8c03sử dụngĐịnh dạng
+ * Dựa trên MemeFast Đợi đã\u5e73\u53f0 /v1/models Quay lạtôi là supported_endpoint_types từ\u6bb5
  */
 export type ModelApiFormat =
-  | 'openai_chat'        // /v1/chat/completions （文本/对话，也用于 Gemini 图片生成）
-  | 'openai_images'      // /v1/images/generations （标准图片生成）
-  | 'openai_video'       // /v1/videos/generations （标准视频生成）
-  | 'kling_image'        // /kling/v1/images/generations 或 /kling/v1/images/omni-image
-  | 'unsupported';       // 不支持的端点格式
+  | 'openai_chat'        // /v1/chat/completions （\u6587\u672c/\u5bf9\u8bdd，\u4e5fsử dụng\u4e8e Gemini Hình ảnhTạo）
+  | 'openai_images'      // /v1/images/generations （Tiêu chuẩnHình ảnhTạo）
+  | 'openai_video'       // /v1/videos/generations （Tiêu chuẩnVideoTạo）
+  | 'kling_image'        // /kling/v1/images/generations hoặc /kling/v1/images/omni-image
+  | 'unsupported';       // \u4e0dHỗ trợcủa\u7aef\u70b9Định dạng
 
-// MemeFast supported_endpoint_types 值 → 我们的图片 API 格式
+// MemeFast supported_endpoint_types \u503c → \u6211\u4eecHình ảnh API Định dạng
 const IMAGE_ENDPOINT_MAP: Record<string, ModelApiFormat> = {
   'image-generation': 'openai_images',
-  'dall-e-3': 'openai_images',  // z-image-turbo, qwen-image-max 等走 /v1/images/generations
+  'dall-e-3': 'openai_images',  // z-image-turbo, qwen-image-max Đợi đãđi /v1/images/generations
   'aigc-image': 'openai_images', // aigc-image-gem, aigc-image-qwen
-  'openai': 'openai_chat',  // 如 gpt-image-1-all 通过 chat completions 生图
+  'openai': 'openai_chat',  // Chẳng hạn như gpt-image-1-all Chấp nhận chat completions \u751f\u56fe
 };
 
-// MemeFast supported_endpoint_types 值 → 我们的视频 API 格式能力分类
-// 注意：这里统一映射为 'openai_video' 仅表示「视频生成能力」，实际 API 路由由 use-video-generation.ts 中的 VIDEO_FORMAT_MAP 决定
+// MemeFast supported_endpoint_types \u503c → \u6211\u4eeccủaVideo API Định dạngkhả năng\u5206\u7c7b
+// Lưu ý：\u8fd9\u91cc\u7edfmột\u6620\u5c04cho 'openai_video' \u4ec5thể hiện「VideoTạoKhả năng」，\u5b9e\u9645 API \u8def\u7531\u7531 use-video-generation.ts trongcủa VIDEO_FORMAT_MAP \u51b3\u5b9a
 const VIDEO_ENDPOINT_MAP: Record<string, ModelApiFormat> = {
-  '视频统一格式': 'openai_video',
-  'openAI视频格式': 'openai_video',
-  'openAI官方视频格式': 'openai_video',
-  '异步': 'openai_video',            // wan 系列
-  '豆包视频异步': 'openai_video',    // doubao-seedance 系列
-  'grok视频': 'openai_video',          // grok-video
-  '文生视频': 'openai_video',          // kling 文生视频
-  '图生视频': 'openai_video',          // kling 图生视频
-  '视频延长': 'openai_video',          // kling 视频延长
-  '海螺视频生成': 'openai_video',    // MiniMax-Hailuo
-  'luma视频生成': 'openai_video',     // luma_video_api
-  'luma视频扩展': 'openai_video',     // luma_video_extend
-  'runway图生视频': 'openai_video',   // runwayml
+  'Video\u7edfmộtĐịnh dạng': 'openai_video',
+  'openAIVideoĐịnh dạng': 'openai_video',
+  'openAI\u5b98\u65b9VideoĐịnh dạng': 'openai_video',
+  '\u5f02\u6b65': 'openai_video',            // wan \u7cfbCột
+  '\u8c46\u5305Video\u5f02\u6b65': 'openai_video',    // doubao-seedance \u7cfbCột
+  'grokVideo': 'openai_video',          // grok-video
+  '\u6587\u751fVideo': 'openai_video',          // kling \u6587\u751fVideo
+  '\u56fe\u751fVideo': 'openai_video',          // kling \u56fe\u751fVideo
+  'Videomở rộng': 'openai_video',          // kling Videomở rộng
+  'biển\u87baVideoTạo': 'openai_video',    // MiniMax-Hailuo
+  'lumaVideoTạo': 'openai_video',     // luma_video_api
+  'lumaVideo\u6269\u5c55': 'openai_video',     // luma_video_extend
+  'runway\u56fe\u751fVideo': 'openai_video',   // runwayml
   'aigc-video': 'openai_video',       // aigc-video-hailuo/kling/vidu
-  'minimax/video-01异步': 'openai_video', // minimax/video-01
-  'openai-response': 'openai_video',  // veo3-pro 等
+  'minimax/video-01\u5f02\u6b65': 'openai_video', // minimax/video-01
+  'openai-response': 'openai_video',  // veo3-pro Đợi đã
 };
 
 /**
- * 根据模型的 supported_endpoint_types 确定图片生成应用的 API 格式
- * 当端点元数据不可用时，根据模型名称推断
+ * \u6839\u636eMô hình supported_endpoint_types \u786e\u5b9aHình ảnhTạoÁp dụngcủa API Định dạng
+ * \u5f53\u7aef\u70b9\u5143\u6570\u636e\u4e0dCó sẵn\u65f6，\u6839\u636eMô hìnhTênsuy luận
  */
 export function resolveImageApiFormat(endpointTypes: string[] | undefined, modelName?: string): ModelApiFormat {
-  // 1. 使用 API 返回的端点元数据
+  // 1. sử dụng API Quay lạtôi là\u7aef\u70b9\u5143\u6570\u636e
   if (endpointTypes && endpointTypes.length > 0) {
-    // 优先使用 image-generation 端点
+    // Ưu tiênsử dụng image-generation \u7aef\u70b9
     for (const t of endpointTypes) {
       if (IMAGE_ENDPOINT_MAP[t] === 'openai_images') return 'openai_images';
     }
-    // 其次尝试 chat completions （Gemini 多模态图片）
+    // \u5176lần\u5c1d\u8bd5 chat completions （Gemini \u591a\u6a21\u6001Hình ảnh）
     for (const t of endpointTypes) {
       if (IMAGE_ENDPOINT_MAP[t] === 'openai_chat') return 'openai_chat';
     }
     return 'unsupported';
   }
 
-  // 2. Fallback: 根据模型名称推断 API 格式
+  // 2. Fallback: \u6839\u636eMô hìnhTênsuy luận API Định dạng
   if (modelName) {
     const name = modelName.toLowerCase();
     // Kling image models → native /kling/v1/images/* endpoint
     if (/^kling-(image|omni-image)$/i.test(name)) {
       return 'kling_image';
     }
-    // Gemini image models → chat completions 多模态
+    // Gemini image models → chat completions \u591a\u6a21\u6001
     if (name.includes('gemini') && (name.includes('image') || name.includes('imagen'))) {
       return 'openai_chat';
     }
@@ -196,7 +196,7 @@ export function resolveImageApiFormat(endpointTypes: string[] | undefined, model
 }
 
 /**
- * 根据模型的 supported_endpoint_types 确定视频生成应用的 API 格式
+ * \u6839\u636eMô hình supported_endpoint_types \u786e\u5b9aVideoTạoÁp dụngcủa API Định dạng
  */
 export function resolveVideoApiFormat(endpointTypes: string[] | undefined): ModelApiFormat {
   if (!endpointTypes || endpointTypes.length === 0) return 'openai_video'; // fallback
@@ -204,7 +204,7 @@ export function resolveVideoApiFormat(endpointTypes: string[] | undefined): Mode
     const mapped = VIDEO_ENDPOINT_MAP[t];
     if (mapped) return mapped;
   }
-  // 如果有 openai 类型，也试用视频端点
+  // nếu có openai Loại，\u4e5f\u8bd5sử dụngVideo\u7aef\u70b9
   if (endpointTypes.includes('openai')) return 'openai_video';
   return 'unsupported';
 }
@@ -240,7 +240,7 @@ export function getApiKeyCount(apiKey: string): number {
  * Mask an API key for display
  */
 export function maskApiKey(key: string): string {
-  if (!key || key.length === 0) return '未设置';
+  if (!key || key.length === 0) return '\u672aCài đặt';
   if (key.length <= 10) return `${key.substring(0, 4)}***`;
   return `${key.substring(0, 8)}...${key.substring(key.length - 4)}`;
 }
@@ -270,18 +270,18 @@ function isModelIncompatibleError(errorText?: string): boolean {
 }
 
 /**
- * 检测 HTTP 500 响应体中是否包含上游负载饱和相关关键词。
- * MemeFast 有时用 500 而非 503/529 返回负载饱和错误。
+ * Phát hiện HTTP 500 phản ứng\u4f53trong\u662f\u5426chứatải ngược dòngbão hòa\u76f8\u5173chìa khóa\u8bcd。
+ * MemeFast Có\u65f6sử dụng 500 \u800c\u975e 503/529 Quay lại\u8d1f\u8f7dbão hòaLỗi。
  */
 function isUpstreamOverloadError(errorText?: string): boolean {
   if (!errorText) return false;
   const text = errorText.toLowerCase();
   return (
-    text.includes('上游负载') ||
-    text.includes('负载已饱和') ||
-    text.includes('负载饱和') ||
+    text.includes('tải ngược dòng') ||
+    text.includes('\u8d1f\u8f7dĐã rồibão hòa') ||
+    text.includes('\u8d1f\u8f7dbão hòa') ||
     text.includes('overloaded') ||
-    text.includes('无可用渠道') ||
+    text.includes('Không có kênh nào') ||
     text.includes('no available channel')
   );
 }
@@ -378,7 +378,7 @@ export class ApiKeyManager {
       this.markCurrentKeyFailed('auth');
       return true;
     }
-    // 所有 5xx 服务端错误均触发 key 轮转（memefast 等中转站 500 多为临时性故障）
+    // Tất cả 5xx \u670d\u52a1\u7aefLỗi\u5747Kích hoạt key \u8f6e\u8f6c（memefast Đợi đãtrong\u8f6c\u7ad9 500 \u591acho\u4e34\u65f6\u6027\u6545\u969c）
     if (statusCode >= 500) {
       this.markCurrentKeyFailed('service_unavailable');
       return true;

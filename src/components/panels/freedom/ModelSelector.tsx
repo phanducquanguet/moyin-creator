@@ -24,9 +24,9 @@ interface ModelSelectorProps {
 }
 
 interface SelectorModel {
-  id: string;       // 供应商原始模型 ID（直接用于 API 调用）
-  name: string;     // 显示名
-  brandId: string;  // 品牌 ID
+  id: string;       // Nhà cung cấpnguyên bảnMô hình ID（\u76f4\u63a5sử dụng\u4e8e API \u8c03sử dụng）
+  name: string;     // \u663e\u793atên
+  brandId: string;  // Thương hiệu ID
 }
 
 const KLING_VIDEO_VARIANTS = [
@@ -38,7 +38,7 @@ const KLING_VIDEO_VARIANTS = [
   'kling-avatar-image2video',
   'kling-advanced-lip-sync',
   'kling-effects',
-  // kling-video 模型版本 (MemeFast model_version)
+  // kling-video Mô hìnhPhiên bản (MemeFast model_version)
   'kling-v1',
   'kling-v1-5',
   'kling-v1-6',
@@ -178,7 +178,7 @@ const SEEDREAM_IMAGE_VARIANTS = [
 const KLING_IMAGE_VARIANTS = [
   'kling-image',
   'kling-omni-image',
-  // kling-image 模型版本 (MemeFast model_version)
+  // kling-image Mô hìnhPhiên bản (MemeFast model_version)
   'kling-image-v1',
   'kling-image-v1-5',
   'kling-image-v2',
@@ -217,7 +217,7 @@ const VIDEO_FAMILY_VARIANTS: Record<string, string[]> = {
   'kling-advanced-lip-sync': KLING_VIDEO_VARIANTS,
   'kling-effects': KLING_VIDEO_VARIANTS,
   'aigc-video-kling': KLING_VIDEO_VARIANTS,
-  // kling-video 模型版本 (MemeFast model_version)
+  // kling-video Mô hìnhPhiên bản (MemeFast model_version)
   'kling-v1': KLING_VIDEO_VARIANTS,
   'kling-v1-5': KLING_VIDEO_VARIANTS,
   'kling-v1-6': KLING_VIDEO_VARIANTS,
@@ -324,7 +324,7 @@ const IMAGE_FAMILY_VARIANTS: Record<string, string[]> = {
   // Kling image
   'kling-image': KLING_IMAGE_VARIANTS,
   'kling-omni-image': KLING_IMAGE_VARIANTS,
-  // kling-image 模型版本 (MemeFast model_version)
+  // kling-image Mô hìnhPhiên bản (MemeFast model_version)
   'kling-image-v1': KLING_IMAGE_VARIANTS,
   'kling-image-v1-5': KLING_IMAGE_VARIANTS,
   'kling-image-v2': KLING_IMAGE_VARIANTS,
@@ -356,14 +356,14 @@ function expandBoundModel(type: 'image' | 'video', model: string): string[] {
 
 function shouldHideModel(type: 'image' | 'video', model: string): boolean {
   if (type === 'video') {
-    // 类目入口不展示
+    // \u7c7b\u76eelối vào\u4e0dhiển thị
     if (model === 'kling-video') return true;
     if (model === 'sora-2-characters') return true;
 
     return false;
   }
 
-  // 图片面板：隐藏当前 UI 不支持的任务型模型（编辑/重绘/识图/放大等）
+  // Hình ảnh\u9762\u677f：\u9690\u85cfhiện tại UI \u4e0dHỗ trợcủaNhiệm vụ\u578bMô hình（Chỉnh sửa/\u91cd\u7ed8/\u8bc6\u56fe/\u653e\u5927Đợi đã）
   if (/^mj_/i.test(model) && model !== 'mj_imagine') return true;
   if (/^ideogram_(edit|reframe|remix|replace_background|upscale|describe)/i.test(model)) return true;
   if (/^(kling-image-recognize|deepseek-ocr)$/i.test(model)) return true;
@@ -383,20 +383,20 @@ function isModelAllowedByPanelType(
   const endpointTypes = modelEndpointTypes[modelId] || [];
   const modelType = modelTypes[modelId];
   if (type === 'image') {
-    // 未同步到 model_type 时先放行，避免误伤可用模型
+    // \u672a\u540c\u6b65Đến model_type \u65f6đầu tiên\u653eđược rồi，\u907f\u514d\u8bef\u4f24Có sẵnMô hình
     if (!modelType) return true;
-    return modelType === '图像';
+    return modelType === '\u56fe\u50cf';
   }
 
-  // 视频面板：先按 model_type 粗过滤
-  if (modelType && modelType !== '音视频') return false;
+  // Video\u9762\u677f：đầu tiên\u6309 model_type \u7c97Lọc
+  if (modelType && modelType !== 'Âm thanhVideo') return false;
 
-  // 再按 endpoint type 细过滤，排除纯音频类模型
+  // Một lần nữa\u6309 endpoint type \u7ec6Lọc，\u6392\u9664\u7eafÂm thanh\u7c7bMô hình
   if (endpointTypes.length > 0) {
-    return endpointTypes.some((t) => /视频|video|文生视频|图生视频|首尾帧|参考生视频|延长|动作控制|数字人|omni-video/i.test(t));
+    return endpointTypes.some((t) => /Video|video|\u6587\u751fVideo|\u56fe\u751fVideo|\u9996\u5c3e\u5e27|Tài liệu tham khảo\u751fVideo|mở rộng|Hành động\u63a7\u5236|con số\u4eba|omni-video/i.test(t));
   }
 
-  // endpoint 缺失时用模型名兜底判定（避免自定义展开型号被误过滤）
+  // endpoint thiếu\u5931\u65f6sử dụngMô hình tênHãy ghi nhớ mọi thứ\u5224\u5b9a（\u907f\u514dTuỳ chỉnhMở rộng\u578b\u53f7\u88ab\u8befLọc）
   return /kling|veo|sora|runway|vidu|hailuo|minimax\/video|wan|luma|grok-video|seedance|aigc-video/i.test(modelId);
 }
 
@@ -408,8 +408,8 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
   const modelTypes = useAPIConfigStore((s) => s.modelTypes);
   const modelEndpointTypes = useAPIConfigStore((s) => s.modelEndpointTypes);
 
-  // 直接从 featureBindings 读取已绑定的模型列表
-  // 格式: ["memefast:gemini-3-pro-image-preview", "memefast:flux-dev", ...]
+  // \u76f4\u63a5từ featureBindings \u8bfb\u53d6Đã Liên kếtcủaMô hình danh sách
+  // Định dạng: ["memefast:gemini-3-pro-image-preview", "memefast:flux-dev", ...]
   const models = useMemo((): SelectorModel[] => {
     const feature = type === 'image' ? 'freedom_image' : 'freedom_video';
     const bindings = getFeatureBindings(feature);
@@ -457,7 +457,7 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
     return counts;
   }, [models]);
 
-  // 按品牌分组
+  // \u6309Thương hiệu\u5206\u7ec4
   const grouped = useMemo(() => {
     const groups: Record<string, { brand: ReturnType<typeof getBrandInfo>; models: SelectorModel[] }> = {};
     for (const model of filteredModels) {
@@ -486,7 +486,7 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
             className={cn('w-full justify-between h-10', className)}
           >
             <span className="truncate">
-              {selectedModel ? selectedModel.name : value ? getModelDisplayName(value) : '选择模型...'}
+              {selectedModel ? selectedModel.name : value ? getModelDisplayName(value) : '\u9009\u62e9Mô hình...'}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -495,7 +495,7 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
           <div className="flex items-center border-b px-3 py-2">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
             <Input
-              placeholder="搜索模型..."
+              placeholder="Tìm kiếmMô hình..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-0 focus-visible:ring-0 h-8 px-0"
@@ -514,7 +514,7 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
                       {brand.displayName}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
-                      可用 {brandAvailableCounts[brandId] ?? brandModels.length}
+                      Có sẵn {brandAvailableCounts[brandId] ?? brandModels.length}
                     </span>
                   </div>
                   {brandModels.map((model) => (
@@ -544,9 +544,9 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
               {Object.keys(grouped).length === 0 && (
                 <div className="p-4 text-center text-sm text-muted-foreground space-y-2">
                   <Settings className="h-5 w-5 mx-auto mb-1 opacity-50" />
-                  <p>暂无可用模型</p>
+                  <p>\u6682Không Có sẵnMô hình</p>
                   <p className="text-xs">
-                    请先在设置 → 服务映射 → {type === 'image' ? '自由板块-图片' : '自由板块-视频'} 中勾选模型
+                    \u8bf7đầu tiên\u5728Cài đặt → \u670d\u52a1\u6620\u5c04 → {type === 'image' ? 'Tấm miễn phí-Hình ảnh' : 'Phần video miễn phí'} trong\u52fe\u9009Mô hình
                   </p>
                 </div>
               )}
@@ -558,7 +558,7 @@ export function ModelSelector({ type, value, onChange, className }: ModelSelecto
         <div className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-700 dark:text-amber-300">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
-            当前已选模型不可用（可能已下线或被当前面板过滤），请重新选择可用模型。
+            hiện tạiĐã rồi\u9009Mô hình\u4e0dCó sẵn（\u53ef\u80fdĐã rồiGỡ xuốnghoặc\u88abhiện tại\u9762\u677fLọc），\u8bf7\u91cd\u65b0\u9009\u62e9Có sẵnMô hình。
           </span>
         </div>
       )}

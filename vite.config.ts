@@ -4,12 +4,12 @@ import electron from 'vite-plugin-electron/simple'
 import react from '@vitejs/plugin-react'
 
 /**
- * Vite 插件：API CORS 代理
+ * Plugin Vite：API CORS proxy
  *
- * 在开发服务器上注册 /__api_proxy 中间件，
- * 将浏览器端的外部 API 请求由服务端转发，绕过 CORS 限制。
+ * trên máy chủ phát triểnĐăng ký /__api_proxy phần mềm trung gian，
+ * Chuyển tiếp yêu cầu API bên ngoài từ trình duyệt đến máy chủ，Bỏ qua các hạn chế CORS。
  *
- * 用法（前端）：
+ * Cách sử dụng（giao diện người dùng）：
  *   fetch('/__api_proxy?url=' + encodeURIComponent('https://example.com/api'))
  */
 function apiCorsProxyPlugin(): Plugin {
@@ -17,7 +17,7 @@ function apiCorsProxyPlugin(): Plugin {
     name: 'api-cors-proxy',
     configureServer(server) {
       server.middlewares.use('/__api_proxy', async (req, res) => {
-        // 处理 OPTIONS 预检请求
+        // Xử lý các yêu cầu chiếu trước TÙY CHỌN
         if (req.method === 'OPTIONS') {
           res.writeHead(204, {
             'Access-Control-Allow-Origin': '*',
@@ -28,7 +28,7 @@ function apiCorsProxyPlugin(): Plugin {
           return;
         }
 
-        // 解析目标 URL
+        // phân tích cú phápĐích URL
         const urlParam = new URL(req.url || '', 'http://localhost').searchParams.get('url');
         if (!urlParam) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -37,14 +37,14 @@ function apiCorsProxyPlugin(): Plugin {
         }
 
         try {
-          // 读取请求体
+          // Đọc nội dung yêu cầu
           const bodyChunks: Buffer[] = [];
           for await (const chunk of req) {
             bodyChunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
           }
           const body = bodyChunks.length > 0 ? Buffer.concat(bodyChunks) : undefined;
 
-          // 解包 x-proxy-headers 中的原始请求头
+          // Giải nén các tiêu đề yêu cầu ban đầu trong tiêu đề x-proxy
           const proxyHeadersRaw = req.headers['x-proxy-headers'];
           let forwardHeaders: Record<string, string> = {};
           if (typeof proxyHeadersRaw === 'string') {
@@ -53,19 +53,19 @@ function apiCorsProxyPlugin(): Plugin {
             } catch { /* ignore parse errors */ }
           }
 
-          // 服务端转发请求
+          // Máy chủ chuyển tiếp yêu cầu
           const response = await fetch(urlParam, {
             method: req.method || 'GET',
             headers: forwardHeaders,
             body: req.method !== 'GET' && req.method !== 'HEAD' ? body : undefined,
           });
 
-          // 将远程响应转发回浏览器
+          // Chuyển tiếp phản hồi từ xa trở lại trình duyệt
           const respBody = await response.arrayBuffer();
           const headers: Record<string, string> = {
             'Access-Control-Allow-Origin': '*',
           };
-          // 转发 content-type
+          // Chuyển tiếp loại nội dung
           const ct = response.headers.get('content-type');
           if (ct) headers['Content-Type'] = ct;
 

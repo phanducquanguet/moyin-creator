@@ -4,8 +4,8 @@
 /**
  * AI Viewpoint Analyzer
  * 
- * 使用 AI 分析场景和分镜内容，智能生成合适的视角列表
- * 替代原有的硬编码关键词匹配
+ * Sử dụng AI Ph.ân tíchCảnh và phân cảnh nội dung，thông minh TạoG thích hợpóc nhìnDanh sách
+ * Thay thế kết hợp từ khóa được mã hóa cứng ban đầu
  */
 
 import type { Shot, ScriptScene } from '@/types/script';
@@ -19,7 +19,7 @@ export interface AnalyzedViewpoint {
   descriptionEn: string;
   keyProps: string[];
   keyPropsEn: string[];
-  shotIndexes: number[];  // 关联的分镜序号
+  shotIndexes: number[];  // liên kết tiến sĩân cảsố sê-ri
 }
 
 export interface ViewpointAnalysisResult {
@@ -28,23 +28,23 @@ export interface ViewpointAnalysisResult {
 }
 
 export interface ViewpointAnalysisOptions {
-  /** 本集大纲/剧情摘要 */
+  /** Tóm tắt tập phim/Tóm tắt cốt truyện */
   episodeSynopsis?: string;
-  /** 本集关键事件 */
+  /** Chìa khóa của tập này là Sự kiện */
   keyEvents?: string[];
-  /** 剧名 */
+  /** Tiêu đề phim truyền hình */
   title?: string;
-  /** 类型（商战/武侠/爱情等） */
+  /** Loại（chiến tranh kinh doanh/võ thuật/tình yêu v.v.） */
   genre?: string;
-  /** 时代背景 */
+  /** Thời đại Nền */
   era?: string;
-  /** 世界观/风格设定 */
+  /** thế giới quan/Phong cácài đặt ch */
   worldSetting?: string;
 }
 
 /**
- * AI 分析场景视角
- * 根据场景信息和分镜内容，智能生成该场景需要的视角列表
+ * AI Phân tíchCảnhGóc nhìn
+ * Theo C.ảnh thông tin và phân cảnh nội dung，thông minh Tạo CảG theo yêu cầu của nhóc nhìnDanh sách
  */
 export async function analyzeSceneViewpoints(
   scene: ScriptScene,
@@ -52,111 +52,111 @@ export async function analyzeSceneViewpoints(
   options?: ViewpointAnalysisOptions
 ): Promise<ViewpointAnalysisResult> {
   
-  // 如果没有分镜，返回默认视角
+  // Nếu không có Phân cảnh，Quay lạiMặc địnhGóc nhìn
   if (shots.length === 0) {
     return {
       viewpoints: [
-        { id: 'overview', name: '全景', nameEn: 'Overview', description: '整体空间', descriptionEn: 'Overall space', keyProps: [], keyPropsEn: [], shotIndexes: [] },
-        { id: 'detail', name: '细节', nameEn: 'Detail', description: '细节特写', descriptionEn: 'Detail close-up', keyProps: [], keyPropsEn: [], shotIndexes: [] },
+        { id: 'overview', name: 'Toàn cảnh', nameEn: 'Overview', description: 'không gian tổng thể', descriptionEn: 'Overall space', keyProps: [], keyPropsEn: [], shotIndexes: [] },
+        { id: 'detail', name: 'Chi tiết', nameEn: 'Detail', description: 'Chi tiếtĐặc tả', descriptionEn: 'Detail close-up', keyProps: [], keyPropsEn: [], shotIndexes: [] },
       ],
-      analysisNote: '无分镜，使用默认视角',
+      analysisNote: 'Không có Phân cảnh，sử dụng Mặc địnhGóc nhìn',
     };
   }
   
-  // 构建分镜内容摘要（使用更多详细字段）
+  // xây dựng tiến sĩân cảnh tóm tắt nội dung（Sử dụng ThêmTrường chi tiết）
   const shotSummaries = shots.map((shot, idx) => {
     const parts = [
-      `【分镜${idx + 1}】`,
-      shot.actionSummary && `动作描述: ${shot.actionSummary}`,
-      shot.visualDescription && `画面描述: ${shot.visualDescription}`,
-      shot.visualFocus && `视觉焦点: ${shot.visualFocus}`,
-      shot.dialogue && `对白: ${shot.dialogue.slice(0, 80)}`,
-      shot.ambientSound && `环境声: ${shot.ambientSound}`,
-      shot.characterBlocking && `人物布局: ${shot.characterBlocking}`,
-      shot.shotSize && `景别: ${shot.shotSize}`,
-      shot.cameraMovement && `镜头运动: ${shot.cameraMovement}`,
+      `【Phân cảnh${idx + 1}】`,
+      shot.actionSummary && `Hành độngMô tả: ${shot.actionSummary}`,
+      shot.visualDescription && `Màn hình Mô tả: ${shot.visualDescription}`,
+      shot.visualFocus && `Tập trung thị giác: ${shot.visualFocus}`,
+      shot.dialogue && `Đối thoại: ${shot.dialogue.slice(0, 80)}`,
+      shot.ambientSound && `Âm thanh xung quanh: ${shot.ambientSound}`,
+      shot.characterBlocking && `Bố cục nhân vật: ${shot.characterBlocking}`,
+      shot.shotSize && `Cỡ cảnh: ${shot.shotSize}`,
+      shot.cameraMovement && `Cảnh quay thể thao: ${shot.cameraMovement}`,
     ].filter(Boolean);
     return parts.join('\n  ');
   }).join('\n\n');
   
-  // 统一处理可选参数
+  // Xử lý thống nhất Tham s tùy chọnố
   const opts = options || {};
 
-  // 构建本集大纲部分
+  // Xây dựng phần phác thảo tập
   const synopsisPart = opts.episodeSynopsis 
-    ? `【本集大纲】\n${opts.episodeSynopsis}\n`
+    ? `【Tóm tắt tập phim】\n${opts.episodeSynopsis}\n`
     : '';
   const keyEventsPart = opts.keyEvents && opts.keyEvents.length > 0
-    ? `【本集关键事件】\n${opts.keyEvents.map((e, i) => `${i + 1}. ${e}`).join('\n')}\n`
+    ? `【Chìa khóa của tập này là Sự kiện】\n${opts.keyEvents.map((e, i) => `${i + 1}. ${e}`).join('\n')}\n`
     : '';
 
-  // 构建全局故事上下文
+  // Xây dựng bối cảnh câu chuyện toàn cầu
   const globalContextParts = [
-    opts.title ? `剧名：《${opts.title}》` : '',
-    opts.genre ? `类型：${opts.genre}` : '',
-    opts.era ? `时代背景：${opts.era}` : '',
-    opts.worldSetting ? `世界观：${opts.worldSetting.slice(0, 200)}` : '',
+    opts.title ? `Tiêu đề phim truyền hình：《${opts.title}》` : '',
+    opts.genre ? `Loại：${opts.genre}` : '',
+    opts.era ? `Thời đại Nền：${opts.era}` : '',
+    opts.worldSetting ? `thế giới quan：${opts.worldSetting.slice(0, 200)}` : '',
   ].filter(Boolean);
   const globalContextSection = globalContextParts.length > 0
-    ? `【剧本信息】\n${globalContextParts.join('\n')}\n\n`
+    ? `【Kịch bảthông tin】\n${globalContextParts.join('\n')}\n\n`
     : '';
 
-  const systemPrompt = `你是专业的影视美术指导，擅长分析场景并确定需要的拍摄视角。
+  const systemPrompt = `Bạn là một đạo diễn nghệ thuật điện ảnh và truyền hình chuyên nghiệp，giỏi tiến sĩân tíchCảnh và xác định cú đánh cần thiết Góc nhìn。
 
-${globalContextSection}【任务】
-根据本集大纲、场景信息和分镜内容，分析该场景需要哪些不同的视角/机位来生成场景背景图。
+${globalContextSection}【Nhiệm vụ】
+Theo dàn ý của tập này、Cảnh thông tin và phân cảnh nội dung，Phân tíchtheCảNhững G khác nhau nào cần thiết cho nh?óc nhìn/Góc máyTạoCảnhNềđồ thị n。
 
-【重要原则】
-1. 视角必须与场景类型匹配：
-   - 大巴车/汽车场景：车窗、座位区、过道、驾驶位等
-   - 室内家居：客厅、卧室、厨房、窗边等
-   - 户外场景：全景、近景、特定地标等
-   - 古代场景：堂屋、庭院、案几等
-2. 从分镜动作和画面描述中提取实际需要的视角
-3. 结合本集大纲理解场景的叙事功能，确定哪些视角是核心的
-4. 每个视角要有关键道具（从分镜的视觉焦点和环境声中提取）
-5. 输出4-6个视角
+【nguyên tắc quan trọng】
+1. Góc nhìn phải giống với CảnhLoạimmatch：
+   - xe buýt/Xe Cảnh：cửa sổ xe hơi、khu vực chỗ ngồi、lối đi、Ghế lái vv.
+   - Nội thất nhà：phòng khách、phòng ngủ、nhà bếp、Chờ bên cửa sổ
+   - Ngoài trời Cảnh：Toàn cảnh、Cận cảnh、Các mốc cụ thể, v.v.
+   - Cổ Cảnh：Sảnh chính、sân、Mức độ vụ việc là gì?
+2. Từ Phân cảnhHành động và hình ảnh Mô tảTrích xuất G yêu cầu thực tế từóc nhìn
+3. Hiểu C dựa vào dàn ý của tập nàyảchức năng tường thuật của nh，Xác định G nàoóc nhìn là cốt lõi
+4. Mỗi Góc nhìn phải có đạo cụ chính（Từ Phân cảNH tập trung hình ảnh và trích xuất âm thanh xung quanh）
+5. Đầbạn ra4-6Góc nhìn
 
-【输出格式】
-返回 JSON:
+【Đầu raĐịnh dạng】
+Quay lại JSON:
 {
   "viewpoints": [
     {
-      "id": "唯一ID如window/seat/overview",
-      "name": "中文名称",
+      "id": "ID duy nhất như cửa sổ/seat/overview",
+      "name": "Tiếng Trungên",
       "nameEn": "English Name",
-      "description": "中文描述（20字内）",
+      "description": "Trung Quốc Mô tả（Trong vòng 20 từ）",
       "descriptionEn": "English description",
-      "keyProps": ["道具1", "道具2"],
+      "keyProps": ["Đạo cụ 1", "Đạo cụ 2"],
       "keyPropsEn": ["prop1", "prop2"],
-      "shotIndexes": [1, 2]  // 哪些分镜需要这个视角
+      "shotIndexes": [1, 2]  // Ph nàoân cảnh cần G nàyóc nhìn
     }
   ],
-  "analysisNote": "分析说明"
+  "analysisNote": "Phân tíchGiải thích"
 }`;
 
-  const userPrompt = `${synopsisPart}${keyEventsPart}【场景信息】
-地点: ${scene.location || scene.name}
-时间: ${scene.time || '日'}
-氛围: ${scene.atmosphere || '平静'}
+  const userPrompt = `${synopsisPart}${keyEventsPart}【Cảnh thông tin】
+Vị trí: ${scene.location || scene.name}
+Thời gian: ${scene.time || 'ngày'}
+Bầu không khí: ${scene.atmosphere || 'bình tĩnh'}
 
-【分镜内容（共 ${shots.length} 个分镜）】
+【Phân cảnh nội dung（tổng cộng ${shots.length} Phân cảnh）】
 ${shotSummaries}
 
-请根据以上本集大纲和分镜内容，分析该场景需要的视角，返回 JSON。`;
+Hãy làm theo dàn ý ở trên của tập này và Ph.ân cảnh nội dung，Phân tíchtheCảG theo yêu cầu của nhóc nhìn，Quay lại JSON。`;
 
   try {
-    console.log('[analyzeSceneViewpoints] 🚀 开始调用 AI API...');
-    console.log('[analyzeSceneViewpoints] 场景:', scene.location || scene.name);
-    console.log('[analyzeSceneViewpoints] 分镜数量:', shots.length);
+    console.log('[analyzeSceneViewpoints] 🚀 Bắt đầAPI AI của uCall...');
+    console.log('[analyzeSceneViewpoints] Cảnh:', scene.location || scene.name);
+    console.log('[analyzeSceneViewpoints] Phân cảsố lượng nh:', shots.length);
     
-    // 统一从服务映射获取配置
+    // Thống nhất có được cấu hình từ ánh xạ dịch vụ
     const result = await callFeatureAPI('script_analysis', systemPrompt, userPrompt);
     
-    console.log('[analyzeSceneViewpoints] ✅ AI API 调用成功，返回内容长度:', result.length);
-    console.log('[analyzeSceneViewpoints] 原始响应前 200 字符:', result.slice(0, 200));
+    console.log('[analyzeSceneViewpoints] ✅ Lệnh gọi API AI Thành công，Quay lạĐộ dài nội dung:', result.length);
+    console.log('[analyzeSceneViewpoints] 200 ký tự đầu tiên của phản hồi thô:', result.slice(0, 200));
     
-    // 解析 JSON
+    // Phân tích cú pháp JSON
     let cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const jsonStart = cleaned.indexOf('{');
     const jsonEnd = cleaned.lastIndexOf('}');
@@ -166,11 +166,11 @@ ${shotSummaries}
     
     const parsed = JSON.parse(cleaned);
     
-    console.log('[analyzeSceneViewpoints] 🎯 JSON 解析成功，视角数量:', parsed.viewpoints?.length || 0);
+    console.log('[analyzeSceneViewpoints] 🎯 Phân tích cú pháp JSON Thành công，Góc nhìnSố lượng:', parsed.viewpoints?.length || 0);
     
     const viewpoints = (parsed.viewpoints || []).map((v: any, idx: number) => ({
       id: v.id || `viewpoint_${idx}`,
-      name: v.name || '未命名视角',
+      name: v.name || 'Chưa đặt tênGóc nhìn',
       nameEn: v.nameEn || 'Unnamed Viewpoint',
       description: v.description || '',
       descriptionEn: v.descriptionEn || '',
@@ -179,7 +179,7 @@ ${shotSummaries}
       shotIndexes: v.shotIndexes || [],
     }));
     
-    console.log('[analyzeSceneViewpoints] 📦 返回视角:', viewpoints.map((v: any) => v.name).join(', '));
+    console.log('[analyzeSceneViewpoints] 📦 Quay lạiGóc nhìn:', viewpoints.map((v: any) => v.name).join(', '));
     
     return {
       viewpoints,
@@ -187,25 +187,25 @@ ${shotSummaries}
     };
   } catch (error) {
     const err = error as Error;
-    console.error('[analyzeSceneViewpoints] ❌ AI 分析失败:');
+    console.error('[analyzeSceneViewpoints] ❌ AI Phân tíchThất bại:');
     console.error('[analyzeSceneViewpoints] Error name:', err.name);
     console.error('[analyzeSceneViewpoints] Error message:', err.message);
     console.error('[analyzeSceneViewpoints] Error stack:', err.stack);
     
-    // 降级：返回基础视角
+    // Hạ cấp：Quay lạiCơ bảnGóc nhìn
     return {
       viewpoints: [
-        { id: 'overview', name: '全景', nameEn: 'Overview', description: '整体空间布局', descriptionEn: 'Overall spatial layout', keyProps: [], keyPropsEn: [], shotIndexes: [] },
-        { id: 'medium', name: '中景', nameEn: 'Medium Shot', description: '中景视角', descriptionEn: 'Medium view', keyProps: [], keyPropsEn: [], shotIndexes: [] },
-        { id: 'detail', name: '细节', nameEn: 'Detail', description: '细节特写', descriptionEn: 'Detail close-up', keyProps: [], keyPropsEn: [], shotIndexes: [] },
+        { id: 'overview', name: 'Toàn cảnh', nameEn: 'Overview', description: 'bố trí không gian tổng thể', descriptionEn: 'Overall spatial layout', keyProps: [], keyPropsEn: [], shotIndexes: [] },
+        { id: 'medium', name: 'Trung cảnh', nameEn: 'Medium Shot', description: 'Trung cảnhGóc nhìn', descriptionEn: 'Medium view', keyProps: [], keyPropsEn: [], shotIndexes: [] },
+        { id: 'detail', name: 'Chi tiết', nameEn: 'Detail', description: 'Chi tiếtĐặc tả', descriptionEn: 'Detail close-up', keyProps: [], keyPropsEn: [], shotIndexes: [] },
       ],
-      analysisNote: 'AI 分析失败，使用默认视角',
+      analysisNote: 'AI Phân tíchThất bại，sử dụng Mặc địnhGóc nhìn',
     };
   }
 }
 
 /**
- * 批量分析多个场景的视角
+ * Lô Phân tích bội CảG của nhóc nhìn
  */
 export async function analyzeMultipleScenesViewpoints(
   scenesWithShots: Array<{ scene: ScriptScene; shots: Shot[] }>,
@@ -217,12 +217,12 @@ export async function analyzeMultipleScenesViewpoints(
   for (let i = 0; i < scenesWithShots.length; i++) {
     const { scene, shots } = scenesWithShots[i];
     
-    onProgress?.(i + 1, scenesWithShots.length, scene.name || scene.location || '未知场景');
+    onProgress?.(i + 1, scenesWithShots.length, scene.name || scene.location || 'Không rõCảnh');
     
     const result = await analyzeSceneViewpoints(scene, shots, options);
     results.set(scene.id, result);
     
-    // 避免 API 频率限制
+    // Tránh giới hạn tần suất API
     if (i < scenesWithShots.length - 1) {
       await new Promise(resolve => setTimeout(resolve, 500));
     }

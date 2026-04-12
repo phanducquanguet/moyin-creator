@@ -4,8 +4,8 @@
 "use client";
 
 /**
- * 景别选择器组件 (Shot Size Selector)
- * 用于选择镜头的景别类型：远景、中景、近景、特写等
+ * \u666f\u522b\u9009\u62e9\u5668\u7ec4\u4ef6 (Shot Size Selector)
+ * sử dụng\u4e8e\u9009\u62e9\u955c\u5934của\u666f\u522b\u7c7b\u578b：xa\u666f、trong\u666f、\u8fd1\u666f、\u7279\u5199Đợi đã
  */
 
 import {
@@ -40,12 +40,12 @@ export function ShotSizeSelector({
       <SelectTrigger className={`h-7 text-xs ${className || ""}`}>
         <div className="flex items-center gap-1.5">
           <Camera className="h-3 w-3 text-muted-foreground" />
-          <SelectValue placeholder="景别" />
+          <SelectValue placeholder="\u666f\u522b" />
         </div>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="none">
-          <span className="text-muted-foreground">未设置</span>
+          <span className="text-muted-foreground">\u672a\u8bbe\u7f6e</span>
         </SelectItem>
         {SHOT_SIZE_PRESETS.map((preset) => (
           <SelectItem key={preset.id} value={preset.id}>
@@ -63,7 +63,7 @@ export function ShotSizeSelector({
 }
 
 /**
- * 景别标签显示组件（只读）
+ * \u666f\u522bnhãn\u663e\u793a\u7ec4\u4ef6（\u53ea\u8bfb）
  */
 export function ShotSizeLabel({ shotSize }: { shotSize: ShotSizeType | null }) {
   if (!shotSize) return null;

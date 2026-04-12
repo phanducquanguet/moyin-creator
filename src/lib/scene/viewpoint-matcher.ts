@@ -4,14 +4,14 @@
 /**
  * Viewpoint Matcher Service
  * 
- * 根据分镜动作描述智能匹配场景库中的视角变体
- * 策略：先用关键词快速匹配，匹配不到才调用 AI
+ * Theo Ph.ân cảnhHành độngMô tả\u667a\u80fdtrận đấuThư viện cảnhtrongcủaGóc nhìcác biến thể
+ * Chiến lược：đầu tiênsử dụngchìa khóa\u8bcdNhanh\u901ftrận đấu，trận đấu\u4e0dĐến\u624d\u8c03sử dụng AI
  */
 
 import { getFeatureConfig } from '@/lib/ai/feature-router';
 import type { Scene } from '@/stores/scene-store';
 
-// ==================== 类型定义 ====================
+// ==================== LoạiĐịnh nghĩa ====================
 
 export interface ViewpointMatchResult {
   sceneLibraryId: string;
@@ -22,60 +22,60 @@ export interface ViewpointMatchResult {
   confidence: number; // 0-1
 }
 
-// ==================== 关键词映射 ====================
+// ==================== chìa khóa\u8bcd\u6620\u5c04 ====================
 
-// 视角关键词映射（用于快速匹配）
+// Góc nhìnÁnh xạ từ khóa（sử dụng\u4e8eNhanh\u901ftrận đấu）
 const VIEWPOINT_KEYWORDS: Record<string, string[]> = {
-  // 餐桌/用餐相关
+  // bàn ăn/Liên quan đến bữa ăn
   'dining': [
-    '吃饭', '饭桌', '餐桌', '用餐', '端菜', '夹菜', '喝酒', '碰杯', '举杯',
-    '用膳', '进餐', '就餐', '饭菜', '餐具', '筷子', '碗', '盘子',
+    'ăn', 'bàn ăn', 'bàn ăn', 'bữa ăn', 'Phục vụ đồ ăn', 'Nhặt rau', 'uống', 'Kính kêu leng keng', 'bánh mì nướng',
+    'sử dụng\u81b3', '\u8fdb\u9910', '\u5c31\u9910', 'cơm\u83dc', '\u9910\u5177', '\u7b77\u5b50', '\u7897', '\u76d8\u5b50',
   ],
-  // 沙发/客厅休息区相关
+  // Sofa/phòng khách\u4f11\u606fQuận\u76f8\u5173
   'sofa': [
-    '沙发', '看电视', '茶几', '倒茶', '喝茶', '坐下', '落座', '起身',
-    '沙发上', '坐着', '躺在沙发', '电视机', '遥控器',
+    'Sofa', 'xem tivi', 'bàn cà phê', 'rót trà', 'uống trà', 'ngồi xuống', 'Ngồi xuống đi', 'đứng dậy',
+    'Sofa\u4e0a', 'ngồi', '\u8eba\u5728Sofa', 'truyền hình\u673a', '\u9065\u63a7\u5668',
   ],
-  // 窗边相关
+  // cửa sổ\u76f8\u5173
   'window': [
-    '窗', '窗外', '窗边', '阳台', '望向', '眺望', '窗帘', '窗户',
-    '倚窗', '窗前', '凭窗', '透过窗', '窗台',
+    'cửa sổ', 'bên ngoài cửa sổ', 'cửa sổ', 'ban công', 'nhìn về phía', '\u773a\u671b', 'Rèm cửa', 'các cửa sổ',
+    '\u501acửa sổ', 'cửa sổ\u524d', '\u51edcửa sổ', '\u900f\u8fc7cửa sổ', 'cửa sổ\u53f0',
   ],
-  // 入口/门相关
+  // lối vào/cửa\u76f8\u5173
   'entrance': [
-    '门口', '门', '进门', '出门', '回家', '进来', '走进', '离开',
-    '玄关', '换鞋', '开门', '关门', '门铃', '敲门', '门外',
+    'ngưỡng cửa', 'cửa', 'Vào đi', 'đi ra ngoài', 'về nhà', 'Vào đi', 'bước vào', 'rời đi',
+    'Lối vào', 'Thay giày', '\u5f00cửa', '\u5173cửa', 'cửa\u94c3', '\u6572cửa', 'cửaBên ngoài',
   ],
-  // 厨房相关
+  // nhà bếp\u76f8\u5173
   'kitchen': [
-    '厨房', '做饭', '烧菜', '炒菜', '洗碗', '切菜', '冰箱',
-    '锅', '灶台', '橱柜', '水槽', '料理', '下厨',
+    'nhà bếp', 'nấu ăn', 'nấu ăn', 'xào', 'rửa bát', 'Cắt rau', 'tủ lạnh',
+    '\u9505', 'bếp lò', 'tủ', 'bồn rửa', '\u6599\u7406', '\u4e0b\u53a8',
   ],
-  // 书房/工作相关
+  // phòng học/\u5de5\u4f5c\u76f8\u5173
   'study': [
-    '书桌', '电脑', '看书', '写字', '办公', '文件', '书架',
-    '书房', '工作', '台灯', '笔记本', '键盘',
+    'bàn', 'máy tính', 'đọc một cuốn sách', 'viết', 'văn phòng', 'Tệp', 'giá sách',
+    'phòng học', '\u5de5\u4f5c', 'đèn bàn', '\u7b14\u8bb0\u672c', '\u952e\u76d8',
   ],
-  // 卧室相关
+  // phòng ngủ\u76f8\u5173
   'bedroom': [
-    '床', '睡觉', '躺', '起床', '入睡', '床头', '卧室',
-    '被子', '枕头', '床上', '躺下', '睡着', '醒来',
+    'giường', '\u7761\u89c9', '\u8eba', 'thức dậy', '\u5165\u7761', 'đầu giường', 'phòng ngủ',
+    'chăn bông', '\u6795\u5934', 'giường', '\u8eba\u4e0b', '\u7761\u7740', '\u9192\u6765',
   ],
-  // 阳台/户外相关
+  // ban công/ngoài trời\u76f8\u5173
   'balcony': [
-    '阳台', '露台', '晾衣', '晒太阳', '花盆', '栏杆',
+    'ban công', '\u9732\u53f0', '\u667e\u8863', '\u6652\u592a\u9633', '\u82b1\u76c6', 'lan can',
   ],
-  // 走廊/过道相关
+  // đi\u5eca/lối đi\u76f8\u5173
   'corridor': [
-    '走廊', '过道', '楼梯', '上楼', '下楼', '台阶',
+    'đi\u5eca', 'lối đi', '\u697c\u68af', '\u4e0a\u697c', '\u4e0b\u697c', 'bước',
   ],
-  // 浴室相关
+  // phòng tắm\u76f8\u5173
   'bathroom': [
-    '浴室', '卫生间', '洗手', '洗脸', '刷牙', '淋浴', '马桶', '镜子',
+    'phòng tắm', 'phòng tắm', '\u6d17tay', '\u6d17\u8138', '\u5237\u7259', '\u6dcb\u6d74', 'con ngựa\u6876', '\u955c\u5b50',
   ],
 };
 
-// 反向索引：关键词 -> 视角ID
+// \u53cd\u5411\u7d22\u5f15：chìa khóa\u8bcd -> Góc nhìnID
 const KEYWORD_TO_VIEWPOINT: Record<string, string> = {};
 for (const [viewpointId, keywords] of Object.entries(VIEWPOINT_KEYWORDS)) {
   for (const keyword of keywords) {
@@ -83,16 +83,16 @@ for (const [viewpointId, keywords] of Object.entries(VIEWPOINT_KEYWORDS)) {
   }
 }
 
-// ==================== 缓存 ====================
+// ==================== bộ nhớ đệm ====================
 
-// AI 匹配结果缓存（避免重复调用）
+// AI trận đấukết quảbộ nhớ đệm（\u907f\u514d\u91cd\u590d\u8c03sử dụng）
 const aiMatchCache = new Map<string, { viewpointId: string | null; timestamp: number }>();
-const CACHE_TTL = 1000 * 60 * 30; // 30分钟缓存
+const CACHE_TTL = 1000 * 60 * 30; // 30\u5206\u949fbộ nhớ đệm
 
-// ==================== 核心函数 ====================
+// ==================== chức năng cốt lõi ====================
 
 /**
- * 使用关键词快速匹配视角
+ * sử dụngchìa khóa\u8bcdNhanh\u901ftrận đấuGóc nhìn
  */
 function matchByKeyword(actionSummary: string): string | null {
   for (const [keyword, viewpointId] of Object.entries(KEYWORD_TO_VIEWPOINT)) {
@@ -104,20 +104,20 @@ function matchByKeyword(actionSummary: string): string | null {
 }
 
 /**
- * 使用 AI 匹配视角
+ * sử dụng AI trận đấuGóc nhìn
  */
 async function matchByAI(
   actionSummary: string,
   availableViewpoints: Array<{ id: string; name: string }>
 ): Promise<string | null> {
-  // 检查缓存
+  // \u68c0\u67e5bộ nhớ đệm
   const cacheKey = `${actionSummary}:${availableViewpoints.map(v => v.id).join(',')}`;
   const cached = aiMatchCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.viewpointId;
   }
 
-  // 获取 AI 配置
+  // \u83b7\u53d6 AI Cấu hình
   const config = getFeatureConfig('chat');
   if (!config) {
     console.warn('[ViewpointMatcher] No chat API configured for AI matching');
@@ -139,16 +139,16 @@ async function matchByAI(
       .map(v => `- ${v.id}: ${v.name}`)
       .join('\n');
 
-    const prompt = `根据以下动作描述，判断最匹配的场景视角。
+    const prompt = `\u6839\u636e\u4ee5\u4e0bHành độngMô tả，\u5224\u65ad\u6700trận đấuCảnhGóc nhìn。
 
-【动作描述】
+【Hành độngMô tả】
 ${actionSummary}
 
-【可选视角】
+【Tùy chọnGóc nhìn】
 ${viewpointList}
 
-请只返回最匹配的视角ID（如 dining、sofa、window 等），不要任何解释。
-如果没有合适的视角，返回 null。`;
+\u8bf7Quay tôi chỉại\u6700trận đấucủaGóc nhìnID（Chẳng hạn như dining、sofa、window Đợi đã），\u4e0d\u8981\u4efb\u4f55\u89e3\u91ca。
+nếu không\u5408\u9002củaGóc nhìn，Quay lại null。`;
 
     const response = await fetch('/api/ai/chat', {
       method: 'POST',
@@ -158,7 +158,7 @@ ${viewpointList}
         provider: config.platform,
         apiKey,
         model,
-        temperature: 0.1, // 低温度，更确定性的输出
+        temperature: 0.1, // \u4f4e\u6e29\u5ea6，\u66f4\u786e\u5b9a\u6027củaĐầu ra
         maxTokens: 50,
       }),
     });
@@ -170,10 +170,10 @@ ${viewpointList}
     const data = await response.json();
     const result = data.content?.trim().toLowerCase();
     
-    // 验证返回的是有效的视角ID
+    // \u9a8c\u8bc1Quay lạtôi là\u662fCó\u6548củaGóc nhìnID
     const viewpointId = availableViewpoints.find(v => v.id === result)?.id || null;
     
-    // 缓存结果
+    // bộ nhớ đệmkết quả
     aiMatchCache.set(cacheKey, { viewpointId, timestamp: Date.now() });
     
     return viewpointId;
@@ -184,18 +184,18 @@ ${viewpointList}
 }
 
 /**
- * 查找匹配的场景库场景（父场景）
+ * \u67e5\u627etrận đấuThư viện cảnhCảnh（Phụ huynh Cảnh）
  */
 function findMatchingParentScenes(
   sceneName: string,
   sceneLibraryScenes: Scene[]
 ): Scene[] {
-  // 只看父场景（非视角变体）
+  // \u53ea\u770bPhụ huynh Cảnh（\u975eGóc nhìcác biến thể）
   const parentScenes = sceneLibraryScenes.filter(s => 
     !s.parentSceneId && !s.isViewpointVariant
   );
 
-  // 双向匹配
+  // \u53cc\u5411trận đấu
   const matches = parentScenes.filter(s => 
     s.name.includes(sceneName) || sceneName.includes(s.name)
   );
@@ -204,7 +204,7 @@ function findMatchingParentScenes(
 }
 
 /**
- * 获取父场景的所有视角变体
+ * Nhận Phụ huynh CảnhTất cảGóc nhìcác biến thể
  */
 function getViewpointVariants(
   parentSceneId: string,
@@ -214,8 +214,8 @@ function getViewpointVariants(
 }
 
 /**
- * 使用视角名称的关键词模糊匹配动作描述
- * 用于自定义视角名称（如"大巴车窗视角"）与动作描述的匹配
+ * sử dụngGóc nhìnTêncủachìa khóa\u8bcd\u6a21\u7ccatrận đấuHành độngMô tả
+ * cho Tuỳ chỉnhGóc nhìnTên（Chẳng hạn như"xe buýtcửa sổ xe Góc nhìn"）vớiHành độngMô tảcủatrận đấu
  */
 function matchByViewpointNameKeywords(
   actionSummary: string,
@@ -223,21 +223,21 @@ function matchByViewpointNameKeywords(
 ): Scene | null {
   if (!actionSummary || viewpointVariants.length === 0) return null;
   
-  // 对每个视角变体，提取名称中的关键词并检查是否出现在动作描述中
+  // \u5bf9\u6bcfGóc nhìcác biến thể，Trích xuất Têntrongcủachìa khóa\u8bcd\u5e76\u68c0\u67e5\u662f\u5426\u51fa\u73b0\u5728Hành độngMô tảtrong
   for (const variant of viewpointVariants) {
     const viewpointName = variant.viewpointName || variant.name || '';
     
-    // 提取视角名称中的关键词（去除通用词如"视角""角度"等）
+    // Trích xuấtGóc nhìnTêntrongcủachìa khóa\u8bcd（\u53bb\u9664phổ quát\u8bcdChẳng hạn như"Góc nhìn""góc"Đợi đã）
     const cleanedName = viewpointName
-      .replace(/视角|角度|镜头|画面|场景/g, '')
+      .replace(/Góc nhìn|góc|Cảnh quay|bức tranh|Cảnh/g, '')
       .trim();
     
     if (!cleanedName) continue;
     
-    // 将名称分词（按常见分隔符和中文单字拆分）
+    // \u5c06Tên\u5206\u8bcd（\u6309\u5e38\u89c1\u5206\u9694\u7b26vàTiếng Trung\u5355từ\u62c6\u5206）
     const keywords = extractKeywords(cleanedName);
     
-    // 检查动作描述是否包含这些关键词
+    // \u68c0\u67e5Hành độngMô tả\u662f\u5426chứa\u8fd9\u4e9bchìa khóa\u8bcd
     for (const keyword of keywords) {
       if (keyword.length >= 2 && actionSummary.includes(keyword)) {
         console.log(`[ViewpointMatcher] Matched viewpoint "${viewpointName}" by keyword "${keyword}"`);
@@ -250,17 +250,17 @@ function matchByViewpointNameKeywords(
 }
 
 /**
- * 从名称中提取关键词
+ * từTêntrongTrích xuấtchìa khóa\u8bcd
  */
 function extractKeywords(name: string): string[] {
   const keywords: string[] = [];
   
-  // 1. 整体名称作为关键词
+  // 1. \u6574\u4f53Tên\u4f5cchochìa khóa\u8bcd
   if (name.length >= 2) {
     keywords.push(name);
   }
   
-  // 2. 按空格/斜杠/破折号分割
+  // 2. \u6309\u7a7a\u683c/\u659c\u6760/\u7834\u6298\u53f7\u5206\u5272
   const parts = name.split(/[\s\/\-\—\|]+/);
   for (const part of parts) {
     if (part.length >= 2) {
@@ -268,16 +268,16 @@ function extractKeywords(name: string): string[] {
     }
   }
   
-  // 3. 提取常见的位置词组（2-4字的名词短语）
+  // 3. Trích xuất\u5e38\u89c1củaVị trí\u8bcd\u7ec4（2-4từcủatên\u8bcd\u77ed\u8bed）
   const locationPatterns = [
-    /车窗/, /座位/, /过道/, /乘客/, /目的地/, /车厢/, /车门/,
-    /窗户/, /窗边/, /窗外/, /窗台/,
-    /门口/, /门边/, /玄关/,
-    /沙发/, /茶几/, /餐桌/, /饭桌/, /书桌/, /床边/, /床头/,
-    /厨房/, /卧室/, /客厅/, /书房/, /阳台/, /浴室/,
-    /楼梯/, /走廊/, /过道/, /庭院/, /花园/,
-    /前排/, /后排/, /中间/, /左边/, /右边/, /中央/,
-    /入口/, /出口/, /通道/, /角落/, /中心/,
+    /cửa sổ xe hơi/, /chỗ ngồi/, /lối đi/, /\u4e58\u5ba2/, /mục đích\u5730/, /vận chuyển/, /cửa xe/,
+    /các cửa sổ/, /cửa sổ/, /bên ngoài cửa sổ/, /cửa sổ\u53f0/,
+    /ngưỡng cửa/, /cửa\u8fb9/, /Lối vào/,
+    /Sofa/, /bàn cà phê/, /bàn ăn/, /bàn ăn/, /bàn/, /giường\u8fb9/, /đầu giường/,
+    /nhà bếp/, /phòng ngủ/, /phòng khách/, /phòng học/, /ban công/, /phòng tắm/,
+    /\u697c\u68af/, /đi\u5eca/, /lối đi/, /sân/, /vườn/,
+    /\u524d\u6392/, /\u540e\u6392/, /trong\u95f4/, /\u5de6\u8fb9/, /\u53f3\u8fb9/, /trong\u592e/,
+    /lối vào/, /\u51fa\u53e3/, /\u901a\u9053/, /\u89d2\u843d/, /trong\u5fc3/,
   ];
   
   for (const pattern of locationPatterns) {
@@ -287,18 +287,18 @@ function extractKeywords(name: string): string[] {
     }
   }
   
-  return [...new Set(keywords)]; // 去重
+  return [...new Set(keywords)]; // \u53bb\u91cd
 }
 
-// ==================== 主入口 ====================
+// ==================== Chúa ơilối vào ====================
 
 /**
- * 智能匹配场景库中的场景和视角
+ * \u667a\u80fdtrận đấuThư viện cảnhtrongCảnhvàGóc nhìn
  * 
- * @param sceneName 剧本场景名（如"张家客厅"）
- * @param actionSummary 分镜动作描述（如"饭桌上，张明与父母吃饭"）
- * @param sceneLibraryScenes 场景库中的所有场景
- * @param useAI 是否启用 AI 兜底（默认 true）
+ * @param sceneName Kịch bảnCảnh tên（Chẳng hạn như"Phòng khách của Trương"）
+ * @param actionSummary Phân cảnhHành độngMô tả（Chẳng hạn như"bàn ăn\u4e0a，Trương Minhvớibố mẹăn"）
+ * @param sceneLibraryScenes Thư viện cảnhtrongTất cảCảnh
+ * @param useAI \u662f\u5426\u542fsử dụng AI Hãy ghi nhớ mọi thứ（Mặc định true）
  */
 export async function matchSceneAndViewpoint(
   sceneName: string,
@@ -306,17 +306,17 @@ export async function matchSceneAndViewpoint(
   sceneLibraryScenes: Scene[],
   useAI: boolean = true
 ): Promise<ViewpointMatchResult | null> {
-  // 1. 找匹配的父场景
+  // 1. \u627etrận đấucủaPhụ huynh Cảnh
   const parentScenes = findMatchingParentScenes(sceneName, sceneLibraryScenes);
   if (parentScenes.length === 0) {
     return null;
   }
 
-  // 2. 先用预定义关键词匹配视角（如 dining, sofa, window 等）
+  // 2. đầu tiênsử dụng\u9884\u5b9a\u4e49kết hợp từ khóaGóc nhìn（Chẳng hạn như dining, sofa, window Đợi đã）
   const keywordViewpointId = matchByKeyword(actionSummary);
   
   if (keywordViewpointId) {
-    // 在父场景中找对应的视角变体
+    // \u5728Phụ huynh Cảnhtrong\u627e\u5bf9\u5e94củaGóc nhìcác biến thể
     for (const parent of parentScenes) {
       const variants = getViewpointVariants(parent.id, sceneLibraryScenes);
       const matchedVariant = variants.find(v => v.viewpointId === keywordViewpointId);
@@ -334,7 +334,7 @@ export async function matchSceneAndViewpoint(
     }
   }
 
-  // 2.5 尝试用自定义视角名称的关键词匹配
+  // 2.5 \u5c1d\u8bd5sử dụngTuỳ chỉnhGóc nhìnTêncủakết hợp từ khóa
   for (const parent of parentScenes) {
     const variants = getViewpointVariants(parent.id, sceneLibraryScenes);
     if (variants.length > 0) {
@@ -352,7 +352,7 @@ export async function matchSceneAndViewpoint(
     }
   }
 
-  // 3. 关键词匹配失败，尝试 AI 匹配
+  // 3. kết hợp từ khóaThất bại，\u5c1d\u8bd5 AI trận đấu
   if (useAI) {
     for (const parent of parentScenes) {
       const variants = getViewpointVariants(parent.id, sceneLibraryScenes);
@@ -383,7 +383,7 @@ export async function matchSceneAndViewpoint(
     }
   }
 
-  // 4. 都匹配不到，返回第一个父场景作为 fallback
+  // 4. \u90fdtrận đấu\u4e0dĐến，Quay lạiKhông.mộtmộtPhụ huynh Cảnh\u4f5ccho fallback
   const bestParent = parentScenes[0];
   return {
     sceneLibraryId: bestParent.id,
@@ -396,21 +396,21 @@ export async function matchSceneAndViewpoint(
 }
 
 /**
- * 同步版本（仅关键词匹配，不调用 AI）
- * 用于需要即时响应的场景
+ * \u540c\u6b65Phiên bản（\u4ec5kết hợp từ khóa，\u4e0d\u8c03sử dụng AI）
+ * sử dụng\u4e8e\u9700\u8981\u5373\u65f6phản ứngCảnh
  */
 export function matchSceneAndViewpointSync(
   sceneName: string,
   actionSummary: string,
   sceneLibraryScenes: Scene[]
 ): ViewpointMatchResult | null {
-  // 1. 找匹配的父场景
+  // 1. \u627etrận đấucủaPhụ huynh Cảnh
   const parentScenes = findMatchingParentScenes(sceneName, sceneLibraryScenes);
   if (parentScenes.length === 0) {
     return null;
   }
 
-  // 2. 用预定义关键词匹配视角
+  // 2. sử dụng\u9884\u5b9a\u4e49kết hợp từ khóaGóc nhìn
   const keywordViewpointId = matchByKeyword(actionSummary);
   
   if (keywordViewpointId) {
@@ -431,7 +431,7 @@ export function matchSceneAndViewpointSync(
     }
   }
 
-  // 2.5 尝试用自定义视角名称的关键词匹配
+  // 2.5 \u5c1d\u8bd5sử dụngTuỳ chỉnhGóc nhìnTêncủakết hợp từ khóa
   for (const parent of parentScenes) {
     const variants = getViewpointVariants(parent.id, sceneLibraryScenes);
     if (variants.length > 0) {
@@ -449,7 +449,7 @@ export function matchSceneAndViewpointSync(
     }
   }
 
-  // 3. 关键词匹配失败，返回父场景
+  // 3. kết hợp từ khóaThất bại，Quay lạiPhụ huynh Cảnh
   const bestParent = parentScenes[0];
   return {
     sceneLibraryId: bestParent.id,
@@ -462,7 +462,7 @@ export function matchSceneAndViewpointSync(
 }
 
 /**
- * 清除 AI 匹配缓存
+ * \u6e05\u9664 AI trận đấubộ nhớ đệm
  */
 export function clearAIMatchCache(): void {
   aiMatchCache.clear();

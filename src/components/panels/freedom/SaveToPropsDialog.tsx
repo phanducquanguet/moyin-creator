@@ -3,8 +3,8 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 
 /**
- * SaveToPropsDialog - 保存图片到道具库弹窗
- * 在图片工作室生成图片后，用户可以选择目录并保存
+ * SaveToPropsDialog - LưuHình ảnhĐếnThư viện đạo cụ\u5f39cửa sổ
+ * \u5728Hình ảnh\u5de5\u4f5c\u5ba4Tạo hình ảnh\u540e，Người dùng\u53ef\u4ee5\u9009\u62e9Thư mục\u5e76Lưu
  */
 
 import { useState } from 'react';
@@ -28,9 +28,9 @@ import { toast } from 'sonner';
 interface SaveToPropsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** 待保存的图片URL（可能是远程URL） */
+  /** \u5f85LưuHình ảnhURL（\u53ef\u80fd\u662fxa\u7a0bURL） */
   imageUrl: string;
-  /** 生成时的提示词，可选 */
+  /** TạNhắc tại o，Tùy chọn */
   prompt?: string;
 }
 
@@ -56,14 +56,14 @@ export function SaveToPropsDialog({
     setLocalFolderId(folder.id);
     setNewFolderName('');
     setNewFolderMode(false);
-    toast.success(`目录「${trimmed}」已创建`);
+    toast.success(`Thư mục「${trimmed}」Đã Tạo`);
   };
 
   const handleSave = async () => {
-    const name = propName.trim() || `道具_${Date.now()}`;
+    const name = propName.trim() || `đạo cụ_${Date.now()}`;
     setSaving(true);
     try {
-      // 尝试持久化到本地存储（Electron），浏览器端回退为原始URL
+      // \u5c1d\u8bd5\u6301\u4e45\u5316Đến\u672c\u5730\u5b58\u50a8（Electron），\u6d4f\u89c8\u5668\u7aef\u56de\u9000chonguyên bảnURL
       const localPath = await saveImageToLocal(
         imageUrl,
         'props',
@@ -75,15 +75,15 @@ export function SaveToPropsDialog({
         prompt,
         folderId: selectedFolderId,
       });
-      // 同步道具库侧边栏选中状态（跳转到目标目录）
+      // \u540c\u6b65Thư viện đạo cụ\u4fa7\u8fb9\u680f\u9009trongTrạng thái（\u8df3\u8f6cĐếnĐíchThư mục）
       setSelectedFolderId(selectedFolderId ?? 'all');
-      toast.success(`「${name}」已保存到道具库`);
+      toast.success(`「${name}」Đã LưuĐếnThư viện đạo cụ`);
       onOpenChange(false);
-      // 重置表单
+      // Đặt lại\u8868\u5355
       setPropName('');
       setLocalFolderId(null);
     } catch (err: any) {
-      toast.error(`保存失败：${err.message}`);
+      toast.error(`LưuThất bại：${err.message}`);
     } finally {
       setSaving(false);
     }
@@ -104,30 +104,30 @@ export function SaveToPropsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" />
-            保存到道具库
+            LưuĐếnThư viện đạo cụ
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* 图片预览 */}
+          {/* Hình ảnhXem trước */}
           <div className="flex justify-center">
             <div className="w-32 h-32 rounded-lg border border-border bg-muted overflow-hidden">
               <img
                 src={imageUrl}
-                alt="预览"
+                alt="Xem trước"
                 className="w-full h-full object-cover"
               />
             </div>
           </div>
 
-          {/* 道具名称 */}
+          {/* Dự luật Tên */}
           <div className="space-y-1.5">
             <Label htmlFor="prop-name" className="text-xs">
-              道具名称
+              Dự luật Tên
             </Label>
             <Input
               id="prop-name"
-              placeholder="输入道具名称（可留空自动命名）"
+              placeholder="Đầu vàoDự luật Tên（\u53efĐể trống\u81ea\u52a8\u547dtên）"
               value={propName}
               onChange={(e) => setPropName(e.target.value)}
               onKeyDown={(e) => {
@@ -136,12 +136,12 @@ export function SaveToPropsDialog({
             />
           </div>
 
-          {/* 选择目录 */}
+          {/* \u9009\u62e9Thư mục */}
           <div className="space-y-1.5">
-            <Label className="text-xs">保存到目录</Label>
+            <Label className="text-xs">LưuĐếnThư mục</Label>
             <ScrollArea className="max-h-40 rounded-md border border-border">
               <div className="p-1.5 space-y-0.5">
-                {/* 根目录 */}
+                {/* gốc thư mục */}
                 <button
                   className={cn(
                     'flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md text-xs transition-colors',
@@ -152,10 +152,10 @@ export function SaveToPropsDialog({
                   onClick={() => setLocalFolderId(null)}
                 >
                   <Package className="h-3.5 w-3.5 shrink-0" />
-                  根目录（不分类）
+                  gốc thư mục（\u4e0d\u5206\u7c7b）
                 </button>
 
-                {/* 用户目录 */}
+                {/* Người dùngThư mục */}
                 {folders.map((folder) => (
                   <button
                     key={folder.id}
@@ -172,13 +172,13 @@ export function SaveToPropsDialog({
                   </button>
                 ))}
 
-                {/* 新建目录行内输入 */}
+                {/* Tạo mớiThư mụcđược rồibên trongĐầu vào */}
                 {newFolderMode ? (
                   <div className="flex items-center gap-1.5 px-2 py-1">
                     <FolderPlus className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <Input
                       autoFocus
-                      placeholder="目录名称..."
+                      placeholder="Thư mụcTên..."
                       value={newFolderName}
                       onChange={(e) => setNewFolderName(e.target.value)}
                       onKeyDown={(e) => {
@@ -196,7 +196,7 @@ export function SaveToPropsDialog({
                       onClick={handleCreateFolder}
                       disabled={!newFolderName.trim()}
                     >
-                      确认
+                      Xác nhận
                     </Button>
                     <Button
                       size="sm"
@@ -207,7 +207,7 @@ export function SaveToPropsDialog({
                         setNewFolderName('');
                       }}
                     >
-                      取消
+                      Huỷ
                     </Button>
                   </div>
                 ) : (
@@ -216,7 +216,7 @@ export function SaveToPropsDialog({
                     onClick={() => setNewFolderMode(true)}
                   >
                     <FolderPlus className="h-3.5 w-3.5 shrink-0" />
-                    + 新建目录
+                    + Tạo mớiThư mục
                   </button>
                 )}
               </div>
@@ -226,18 +226,18 @@ export function SaveToPropsDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={saving}>
-            取消
+            Huỷ
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                保存中...
+                Lưutrong...
               </>
             ) : (
               <>
                 <Package className="mr-2 h-4 w-4" />
-                保存
+                Lưu
               </>
             )}
           </Button>

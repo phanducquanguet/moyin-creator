@@ -92,14 +92,14 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
   const { pendingSceneData, setPendingSceneData } = useMediaPanelStore();
   const { addMediaFromUrl, getOrCreateCategoryFolder } = useMediaStore();
   
-  // 获取当前项目的分镜数据，用于提取场景道具
+  // Lấy D hiện tạiự áncủaPhân cảnh dữ liệu，sử dụng\u4e8eTrích xuấtCảnh đạo cụ
   const { activeProjectId: scriptProjectId, projects } = useScriptStore();
   const { activeProjectId: resourceProjectId } = useProjectStore();
   const scriptProject = useActiveScriptProject();
   const currentProject = scriptProjectId ? projects[scriptProjectId] : null;
   const allShots = currentProject?.shots || [];
 
-  // 提示词语言偏好（从剧本设置同步）
+  // Tùy chọn ngôn ngữ nhắc nhở（từKịch bảnCài đặt\u540c\u6b65）
   const [promptLanguage, setPromptLanguage] = useState<PromptLanguage>('zh');
 
   // Form state
@@ -107,9 +107,9 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
   const [location, setLocation] = useState("");
   const [time, setTime] = useState("day");
   const [atmosphere, setAtmosphere] = useState("peaceful");
-  const [visualPrompt, setVisualPrompt] = useState(""); // 场景视觉描述
-  const [tags, setTags] = useState<string[]>([]);       // 场景标签
-  const [notes, setNotes] = useState("");               // 场景备注
+  const [visualPrompt, setVisualPrompt] = useState(""); // Cảnh tầm nhìn Mô tả
+  const [tags, setTags] = useState<string[]>([]);       // Cảthẻ nh
+  const [notes, setNotes] = useState("");               // CảnhNhận xét
   const [styleId, setStyleId] = useState<string>(DEFAULT_STYLE_ID);
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
@@ -117,7 +117,7 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewSceneId, setPreviewSceneId] = useState<string | null>(null);
 
-  // Generation mode: single (单图), contact-sheet (联合图/多视角), orthographic (四视图)
+  // Generation mode: single (\u5355\u56fe), contact-sheet (\u8054\u5408\u56fe/Nhiều Góc nhìn), orthographic (bốn\u89c6\u56fe)
   type GenerationMode = 'single' | 'contact-sheet' | 'orthographic';
   const [generationMode, setGenerationMode] = useState<GenerationMode>(generationPrefs.generationMode);
 
@@ -130,19 +130,19 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
   const [isSplitting, setIsSplitting] = useState(false);
   const [isGeneratingContactSheet, setIsGeneratingContactSheet] = useState(false);
   const [contactSheetProgress, setContactSheetProgress] = useState(0);
-  // 联合图布局选项: 2x2(4格), 3x3(9格)
+  // \u8054\u5408\u56feBố cục\u9009\u9879: 2x2(4\u683c), 3x3(9\u683c)
   type ContactSheetLayout = '2x2' | '3x3';
   const [contactSheetLayout, setContactSheetLayout] = useState<ContactSheetLayout>(generationPrefs.contactSheetLayout);
 
-  // Orthographic (四视图) state
+  // Orthographic (bốn\u89c6\u56fe) state
   const [orthographicPrompt, setOrthographicPrompt] = useState<string | null>(null);
   const [orthographicPromptZh, setOrthographicPromptZh] = useState<string | null>(null);
   const [orthographicImage, setOrthographicImage] = useState<string | null>(null);
   const [isGeneratingOrthographic, setIsGeneratingOrthographic] = useState(false);
   const [orthographicProgress, setOrthographicProgress] = useState(0);
-  // 四视图宽高比选择
+  // bốn\u89c6\u56fe\u5bbd\u9ad8\u6bd4\u9009\u62e9
   const [orthographicAspectRatio, setOrthographicAspectRatio] = useState<'16:9' | '9:16'>(generationPrefs.orthographicAspectRatio);
-  // 四视图切割结果
+  // bốn\u89c6\u56fe\u5207\u5272kết quả
   const [orthographicViews, setOrthographicViews] = useState<{
     front: string | null;
     back: string | null;
@@ -150,13 +150,13 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
     right: string | null;
   }>({ front: null, back: null, left: null, right: null });
   
-  // 从剧本传递过来的多视角数据
+  // từKịch bản\u4f20\u9012\u8fc7\u6765củaNhiều Góc nhìdữ liệu
   const [pendingViewpoints, setPendingViewpoints] = useState<PendingViewpointData[]>([]);
   const [pendingContactSheetPrompts, setPendingContactSheetPrompts] = useState<ContactSheetPromptSet[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [contactSheetAspectRatio, setContactSheetAspectRatio] = useState<'16:9' | '9:16'>(generationPrefs.contactSheetAspectRatio);
-  // 批量四视图状态
-  const [savedChildSceneIds, setSavedChildSceneIds] = useState<string[]>([]); // 刚保存的子场景 ID
+  // lô\u91cfbốn\u89c6\u56feTrạng thái
+  const [savedChildSceneIds, setSavedChildSceneIds] = useState<string[]>([]); // \u521aLưucủa\u5b50Cảnh ID
 
   const isGenerating = generationStatus === 'generating';
 
@@ -230,24 +230,24 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
   }, [selectedScene]);
 
   // Handle pending data from script panel
-  // 当从剧本跳转过来时，自动创建场景并进入联合图生成模式
+  // \u5f53từKịch bản\u8df3\u8f6c\u8fc7\u6765\u65f6，Tự động TạoCảnh\u5e76nhậpđồ thị chung Tạomode
   useEffect(() => {
     if (!pendingSceneData) return;
     
-    // 立即捕获数据并清除，防止 React 严格模式下重复执行
+    // \u7acb\u5373\u6355\u83b7\u6570\u636e\u5e76\u6e05\u9664，\u9632\u6b62 React \u4e25\u683cchế độ\u4e0b\u91cd\u590d\u6267được rồi
     const data = pendingSceneData;
     setPendingSceneData(null);
     
-    // 同步提示词语言偏好
+    // \u540c\u6b65Tùy chọn ngôn ngữ nhắc nhở
     if (data.promptLanguage) {
       setPromptLanguage(data.promptLanguage);
     } else if (scriptProject?.promptLanguage) {
       setPromptLanguage(scriptProject.promptLanguage);
     }
     
-    // 如果有名称和地点，自动创建新场景
+    // nếu cóTênvàvị trí，Tự động Tạo\u65b0Cảnh
     if (data.name && data.location) {
-      // 解析时间和氛围
+      // phân tích cú phápThời gianvàbầu không khí
       let timeId = "day";
       if (data.time) {
         const timePreset = TIME_PRESETS.find(
@@ -272,10 +272,10 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
         }
       }
       
-      // 同步表单状态，确保 UI 显示正确的风格
+      // \u540c\u6b65\u8868\u5355Trạng thái，\u786e\u4fdd UI \u663e\u793a\u6b63\u786ecủaPhong cách
       setStyleId(parsedStyleId);
 
-      // 自动创建场景（包含专业设计字段）
+      // Tự động TạoCảnh（chứa\u4e13\u4e1a\u8bbe\u8ba1từ\u6bb5）
       const newId = addScene({
         name: data.name.trim(),
         location: data.location.trim(),
@@ -287,46 +287,46 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
         styleId: parsedStyleId,
         folderId: currentFolderId,
         projectId: resourceProjectId || undefined,
-      // 专业场景设计字段
+      // C chuyên nghiệpảlĩnh vực thiết kế
         architectureStyle: data.architectureStyle,
         lightingDesign: data.lightingDesign,
         colorPalette: data.colorPalette,
         eraDetails: data.eraDetails,
         keyProps: data.keyProps,
         spatialLayout: data.spatialLayout,
-        // 集作用域
+        // đặt\u4f5csử dụng\u57df
         linkedEpisodeId: data.sourceEpisodeId,
       } as any);
 
-      // 选中新创建的场景
+      // \u9009trong\u65b0Tạo'Cảnh
       selectScene(newId);
       onSceneCreated?.(newId);
       
-      // 如果有多视角数据，直接进入联合图生成模式
+      // nếu cóNhiều Góc nhìdữ liệu，\u76f4\u63a5nhậpđồ thị chung Tạomode
       if (data.viewpoints && data.viewpoints.length > 0 &&
           data.contactSheetPrompts && data.contactSheetPrompts.length > 0) {
         setPendingViewpoints(data.viewpoints);
         setPendingContactSheetPrompts(data.contactSheetPrompts);
         setCurrentPageIndex(0);
         
-        // 设置第一页的提示词
+        // Cài đặtKhông.một\u9875củaPrompt
         const firstPage = data.contactSheetPrompts[0];
         setContactSheetPrompt(firstPage.prompt);
         setContactSheetPromptZh(firstPage.promptZh);
         
-        // 同步布局设置，确保切割时使用正确的行列数
+        // \u540c\u6b65Bố cụcCài đặt，\u786e\u4fdd\u5207\u5272\u65f6sử dụng\u6b63\u786ecủađược rồiCột\u6570
         if (firstPage.gridLayout) {
           const { rows, cols } = firstPage.gridLayout;
           const totalCells = rows * cols;
           
-          // 根据总格数判断是 2x2 还是 3x3
+          // \u6839\u636e\u603b\u683c\u6570\u5224\u65ad\u662f 2x2 \u8fd8\u662f 3x3
           if (totalCells <= 4) {
             setContactSheetLayout('2x2');
           } else {
             setContactSheetLayout('3x3');
           }
           
-          // 根据宽高比设置方向：正方形网格（3x3, 2x2）默认横屏
+          // \u6839\u636e\u5bbd\u9ad8\u6bd4Cài đặt\u65b9\u5411：\u6b63\u65b9\u5f62\u7f51\u683c（3x3, 2x2）Mặc định\u6a2a\u5c4f
           if (cols >= rows) {
              setContactSheetAspectRatio('16:9');
           } else {
@@ -334,7 +334,7 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
           }
         }
         
-        // 转换视角数据格式
+        // \u8f6c\u6362Góc nhìdữ liệuĐịnh dạng
         const firstPageViewpoints = data.viewpoints
           .filter(v => v.pageIndex === 0)
           .map(v => ({
@@ -352,14 +352,14 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
         
         const pageCount = data.contactSheetPrompts.length;
         toast.success(
-          `场景「${data.name}」已创建\n` +
-          `✔ ${data.viewpoints.length} 个视角已加载${pageCount > 1 ? `（${pageCount}张联合图）` : ''}`
+          `Cảnh「${data.name}」Đã Tạo\n` +
+          `✔ ${data.viewpoints.length} Góc nhìnĐã rồi\u52a0\u8f7d${pageCount > 1 ? `（${pageCount}\u5f20\u8054\u5408\u56fe）` : ''}`
         );
       } else {
-        toast.success(`场景「${data.name}」已自动创建`);
+        toast.success(`Cảnh「${data.name}」Đã Tự động Tạo`);
       }
     } else {
-      // 只有部分数据，仅填充表单
+      // Chỉ Cómột phầdữ liệu，\u4ec5\u586b\u5145\u8868\u5355
       setName(data.name || "");
       setLocation(data.location || "");
       
@@ -396,67 +396,67 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
     }
   }, [pendingSceneData, setPendingSceneData, addScene, selectScene, onSceneCreated, currentFolderId]);
 
-  // 当用户更改宽高比时，根据视角数量重新计算最优布局
-  // 注意：不重新提取视角，只更新布局和提示词
+  // Khi Người dùng\u66f4\u6539\u5bbd\u9ad8\u6bd4\u65f6，Theo G.óc nhìn\u6570\u91cf\u91cd\u65b0Tính toántối ưuBố cục
+  // Lưu ý：\u4e0d\u91cd\u65b0Trích xuấtGóc nhìn，Chỉ Cập nhậtBố cụcvàPrompt
   useEffect(() => {
-    // 只在有 pendingViewpoints 时处理
+    // \u53ea\u5728Có pendingViewpoints \u65f6\u5904\u7406
     if (pendingViewpoints.length === 0) return;
-    // 避免首次加载时重复处理
+    // \u907f\u514d\u9996lần\u52a0\u8f7d\u65f6\u91cd\u590d\u5904\u7406
     if (pendingContactSheetPrompts.length === 0) return;
     
     const vpCount = pendingViewpoints.length;
     const isLandscape = contactSheetAspectRatio === '16:9';
     
-    // 根据视角数量和宽高比计算最优布局
-    // 强制使用 N x N 布局以保证宽高比一致性
+    // Theo G.óc nhìn\u6570\u91cfvà\u5bbd\u9ad8\u6bd4Tính toántối ưuBố cục
+    // lực lượngsử dụng N x N Bố cục\u4ee5\u4fdd\u8bc1\u5bbd\u9ad8\u6bd4một\u81f4\u6027
     let newLayout: { rows: number; cols: number };
     
-    // 如果视角数量 <= 4，使用 2x2
-    // 如果视角数量 > 4，使用 3x3
+    // Nếu Góc nhìn\u6570\u91cf <= 4，Sử dụng 2x2
+    // Nếu Góc nhìn\u6570\u91cf > 4，Sử dụng 3x3
     if (vpCount <= 4) {
       newLayout = { rows: 2, cols: 2 };
     } else {
       newLayout = { rows: 3, cols: 3 };
     }
     
-    // 更新布局选择器
+    // Cập nhậtBố cục\u9009\u62e9\u5668
     const layoutKey = `${newLayout.rows}x${newLayout.cols}` as ContactSheetLayout;
-    // 更新 UI 状态
+    // Cập nhật UI Trạng thái
     if (['2x2', '3x3'].includes(layoutKey)) {
       setContactSheetLayout(layoutKey);
     }
     
-    // 更新 pendingContactSheetPrompts 中的 gridLayout
+    // Cập nhật pendingContactSheetPrompts trongcủa gridLayout
     const updatedPrompts = pendingContactSheetPrompts.map(p => ({
       ...p,
       gridLayout: newLayout,
     }));
     setPendingContactSheetPrompts(updatedPrompts);
     
-    // 重新生成当前页的提示词（替换行列数）
+    // \u91cd\u65b0Tạohiện tại\u9875củaPrompt（\u66ffdòng mớiCột\u6570）
     const currentPage = updatedPrompts[currentPageIndex] || updatedPrompts[0];
     if (currentPage && contactSheetPrompt) {
       const totalCells = newLayout.rows * newLayout.cols;
       const paddedCount = totalCells;
       const sceneName = selectedScene?.name || selectedScene?.location || 'scene';
       
-      // 获取风格信息
+      // Nhận Phong cáchthông tin
       const stylePreset = getStyleById(styleId);
       const styleStr = stylePreset?.prompt || 'anime style, soft colors';
       
-      // 获取视角描述
+      // \u83b7\u53d6Góc nhìnMô tả
       const currentPageVps = pendingViewpoints.filter(v => v.pageIndex === currentPageIndex);
       const actualCount = currentPageVps.length;
       
-      // 构建增强版提示词 (Structured Prompt)
+      // Xây dựng phiên bản nâng cao của Lời nhắc (Structured Prompt)
       const promptParts: string[] = [];
       
-      // 1. 核心指令区 (Instruction Block)
+      // 1. Khối lệnh lõi (Instruction Block)
       promptParts.push('<instruction>');
       promptParts.push(`Generate a clean ${newLayout.rows}x${newLayout.cols} architectural concept grid with exactly ${paddedCount} equal-sized panels.`);
       promptParts.push(`Overall Image Aspect Ratio: ${isLandscape ? '16:9' : '9:16'}.`);
       
-      // 明确指定单个格子的宽高比，防止 AI 混淆
+      // Chỉ định rõ ràng tỷ lệ khung hình của một lưới riêng lẻ，Ngăn chặn sự nhầm lẫn của AI
       const panelAspect = isLandscape ? '16:9 (horizontal landscape)' : '9:16 (vertical portrait)';
       promptParts.push(`Each individual panel must have a ${panelAspect} aspect ratio.`);
       
@@ -465,10 +465,10 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
       promptParts.push('Subject: Interior design and architectural details only, NO people.');
       promptParts.push('</instruction>');
       
-      // 2. 布局描述
+      // 2. Bố cục Mô tả
       promptParts.push(`Layout: ${newLayout.rows} rows, ${newLayout.cols} columns, reading order left-to-right, top-to-bottom.`);
       
-      // 2.5 从原始英文提示词中提取 Scene Context 和 Visual Description
+      // 2.5 từT gốciếng AnhNhắctrongTrích xuất Scene Context và Visual Description
       const originalPromptEn = currentPage.prompt || '';
       const sceneContextMatch = originalPromptEn.match(/Scene Context: ([^\n]+)/);
       if (sceneContextMatch && sceneContextMatch[1]) {
@@ -479,7 +479,7 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
         promptParts.push(`Visual Description: ${visualDescMatch[1]}`);
       }
       
-      // 3. 每个格子的内容描述
+      // 3. Nội dung của mỗi lưới Mô tả
       currentPageVps.forEach((vp, idx) => {
         const row = Math.floor(idx / newLayout.cols) + 1;
         const col = (idx % newLayout.cols) + 1;
@@ -491,101 +491,101 @@ export function GenerationPanel({ selectedScene, onSceneCreated }: GenerationPan
         promptParts.push(`Panel [row ${row}, col ${col}] (no people): ${content}`);
       });
       
-      // 4. 空白占位格描述
+      // 4. phần giữ chỗ trốngMô tả
       for (let i = actualCount; i < paddedCount; i++) {
         const row = Math.floor(i / newLayout.cols) + 1;
         const col = (i % newLayout.cols) + 1;
         promptParts.push(`Panel [row ${row}, col ${col}]: empty placeholder, solid gray background`);
       }
       
-      // 5. 风格与负面提示
+      // 5. Phong cáchvới\u8d1f\u9762Gợi ý
       promptParts.push(`Style: ${styleStr}`);
       promptParts.push('Negative constraints: text, watermark, split screen borders, speech bubbles, blur, distortion, bad anatomy, people, characters.');
       
       const newPrompt = promptParts.join('\n');
       
-      // 重新生成中文提示词
+      // \u91cd\u65b0TạoLời nhắc tiếng Trung
       const gridItemsZh = currentPageVps.map((vp, idx) => {
         const content = vp.keyProps && vp.keyProps.length > 0 
-          ? `展示${vp.keyProps.join('、')}` 
-          : (vp.name === '全景' ? '展示整个房间布局的宽角度全景' : `${vp.name}视角`);
+          ? `hiển thị${vp.keyProps.join('、')}` 
+          : (vp.name === 'Toàn cảnh' ? 'hiển thị\u6574mộtphòngBố cụccủa\u5bbdgócToàn cảnh' : `${vp.name}Góc nhìn`);
         return `[${idx + 1}] ${vp.name}：${content}`;
       }).join('\n');
       
-      // 从原始中文提示词中提取场景描述（建筑风格、色彩基调、时代特征、光影设计）
-      // 这样即使 selectedScene 还没更新，也能保留正确的场景描述
+      // từnguyên bảnLời nhắc tiếng TrungtrongTrích xuấtCảnhMô tả（Kiến trúcPhong cách、Màu sắgiai điệu c、Đặc điểm của thời đại、Ánh sáthiết kế）
+      // \u8fd9\u6837\u5373\u4f7f selectedScene \u8fd8\u6ca1Cập nhật，\u4e5f\u80fd\u4fdd\u7559\u6b63\u786eCảnhMô tả
       let sceneDescZh = '';
       let visualPromptZh = '';
       const originalPromptZh = currentPage.promptZh || '';
       
-      // 场景描述在第一行和"场景氛围"或"X 个格子分别展示"之间
-      const sceneDescMatch = originalPromptZh.match(/不同视角。\n([^\n]*(?:建筑风格|色彩基调|时代特征|光影设计)[^\n]*)/);
+      // CảnhMô tảở Không.mộtđược rồivà"Cảbầu không khí nh"hoặc"X Mỗi lưới được hiển thị riêng biệt"\u4e4b\u95f4
+      const sceneDescMatch = originalPromptZh.match(/\u4e0d\u540cGóc nhìn。\n([^\n]*(?:Kiến trúcPhong cách|Màu sắgiai điệu c|Đặc điểm của thời đại|Ánh sáthiết kế)[^\n]*)/);
       if (sceneDescMatch && sceneDescMatch[1]) {
         sceneDescZh = sceneDescMatch[1].trim();
       } else {
-        // 回退到从 selectedScene 构建（用于非跳转场景）
+        // \u56de\u9000Đếntừ selectedScene \u6784\u5efa（sử dụng\u4e8e\u975e\u8df3\u8f6cCảnh）
         const sceneDescParts: string[] = [];
         if (selectedScene?.architectureStyle) {
-          sceneDescParts.push(`建筑风格：${selectedScene.architectureStyle}`);
+          sceneDescParts.push(`Kiến trúcPhong cách：${selectedScene.architectureStyle}`);
         }
         if (selectedScene?.colorPalette) {
-          sceneDescParts.push(`色彩基调：${selectedScene.colorPalette}`);
+          sceneDescParts.push(`Màu sắgiai điệu c：${selectedScene.colorPalette}`);
         }
         if (selectedScene?.eraDetails) {
-          sceneDescParts.push(`时代特征：${selectedScene.eraDetails}`);
+          sceneDescParts.push(`Đặc điểm của thời đại：${selectedScene.eraDetails}`);
         }
         if (selectedScene?.lightingDesign) {
-          sceneDescParts.push(`光影设计：${selectedScene.lightingDesign}`);
+          sceneDescParts.push(`Ánh sáthiết kế：${selectedScene.lightingDesign}`);
         }
         sceneDescZh = sceneDescParts.length > 0 ? sceneDescParts.join('，') : '';
       }
       
-      // 提取视觉提示词（场景氛围）
-      const visualPromptMatch = originalPromptZh.match(/场景氛围：([^\n]+)/);
+      // Trích xuấtLời nhắc trực quan（Cảbầu không khí nh）
+      const visualPromptMatch = originalPromptZh.match(/Cảbầu không khí nh：([^\n]+)/);
       if (visualPromptMatch && visualPromptMatch[1]) {
         visualPromptZh = visualPromptMatch[1].trim();
       } else if (selectedScene?.visualPrompt) {
         visualPromptZh = selectedScene.visualPrompt;
       }
       
-      const newPromptZh = `一张精确的 ${newLayout.rows}行${newLayout.cols}列 网格图（共 ${totalCells} 个格子），展示同一个「${sceneName}」场景的不同视角。
-${sceneDescZh}${visualPromptZh ? `\n场景氛围：${visualPromptZh}` : ''}
+      const newPromptZh = `chính xác ${newLayout.rows}được rồi${newLayout.cols}biểu đồ lưới cột（tổng cộng ${totalCells} lưới），hiển thị tương tự「${sceneName}」CảDifferent G of nhóc nhìn。
+${sceneDescZh}${visualPromptZh ? `\nCảbầu không khí nh：${visualPromptZh}` : ''}
 
-${totalCells} 个格子分别展示：
+${totalCells} Mỗi lưới được hiển thị riêng biệt：
 ${gridItemsZh}
 
-重要：
-- 必须精确生成 ${newLayout.rows} 行 ${newLayout.cols} 列，不能多也不能少。
-- 这是一张干净的参考图，图片上不要添加任何文字覆盖。
-- 不要添加标签、标题、说明文字、水印或任何类型的文字。
+quan trọng：
+- Phải chính xácạo ${newLayout.rows} được rồi ${newLayout.cols} Cột，Không hơn, không kém。
+- Đây là hình ảnh tham khảo rõ ràng，Hình ảKhông Th trên nhêghi đè văn bản mAny。
+- Đừng màêthẻ m、Tiêu đề、Giải thívăn bản ch、Hình mờ hoặc bất kỳ Loạvăn bản của tôi。
 
-风格：${stylePreset?.name || '动画风格'}，所有格子光照一致，格子之间用细白边框分隔，只有背景，没有人物。`;
+Phong cách：${stylePreset?.name || 'Hoạt ảnhPhong cách'}，Tất cảLưới chiếu sáng nhất quán，Sử dụng Vi trắng mịn giữa các lướiền tách ra，Chỉ có Nền，không có ký tự。`;
       
       setContactSheetPrompt(newPrompt);
       setContactSheetPromptZh(newPromptZh);
     }
     
-    console.log('[ContactSheet] 宽高比变化，更新布局:', {
+    console.log('[ContactSheet] \u5bbd\u9ad8\u6bd4thay đổi，Cập nhậtBố cục:', {
       aspectRatio: contactSheetAspectRatio,
       vpCount,
       newLayout,
-      sceneDescExtracted: currentPage ? (currentPage.promptZh?.includes('建筑风格') || currentPage.promptZh?.includes('光影设计')) : false,
+      sceneDescExtracted: currentPage ? (currentPage.promptZh?.includes('Kiến trúcPhong cách') || currentPage.promptZh?.includes('Ánh sáthiết kế')) : false,
       selectedSceneId: selectedScene?.id,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contactSheetAspectRatio]); // 只监听宽高比变化
+  }, [contactSheetAspectRatio]); // \u53ea\u76d1\u542c\u5bbd\u9ad8\u6bd4thay đổi
 
   const handleCreateScene = () => {
     if (!name.trim()) {
-      toast.error("请输入场景名称");
+      toast.error("Vui lòng nhậpCảnhTên");
       return;
     }
     if (!location.trim()) {
-      toast.error("请输入地点描述");
+      toast.error("Vui lòng nhậpVị trí Mô tả");
       return;
     }
 
-    // 获取当前集作用域
+    // \u83b7\u53d6hiện tạiđặt\u4f5csử dụng\u57df
     const { activeEpisodeIndex } = useMediaPanelStore.getState();
     const scriptState = useScriptStore.getState();
     const activeScriptProject = scriptState.activeProjectId ? scriptState.projects[scriptState.activeProjectId] : null;
@@ -607,7 +607,7 @@ ${gridItemsZh}
       linkedEpisodeId: manualEpisodeId,
     });
 
-    toast.success("场景已创建");
+    toast.success("CảnhĐã Tạo");
     selectScene(id);
     onSceneCreated?.(id);
   };
@@ -615,11 +615,11 @@ ${gridItemsZh}
   const handleGenerate = async () => {
     const targetId = selectedScene?.id;
     if (!targetId) {
-      toast.error("请先选择或创建场景");
+      toast.error("\u8bf7đầu tiên\u9009\u62e9hoặcTạoCảnh");
       return;
     }
     if (!location.trim()) {
-      toast.error("请输入地点描述");
+      toast.error("Vui lòng nhậpVị trí Mô tả");
       return;
     }
 
@@ -649,7 +649,7 @@ ${gridItemsZh}
     setGeneratingScene(targetId);
 
     try {
-      // 获取该场景下所有分镜的动作描写，提取关键道具
+      // \u83b7\u53d6\u8be5CảnhHạ Tất cảPhân cảH của nhành động mô tả，Trích xuấtđạo cụ chính
       const sceneShots = allShots.filter(shot => 
         shot.sceneRefId === selectedScene?.id ||
         shot.sceneId === selectedScene?.id
@@ -657,10 +657,10 @@ ${gridItemsZh}
       const actionDescriptions = sceneShots
         .map(shot => shot.actionSummary)
         .filter(Boolean)
-        .slice(0, 10); // 最多取 10 个分镜
+        .slice(0, 10); // nhất\u53d6 10 Phân cảnh
       
-      console.log('[SceneGeneration] 找到', sceneShots.length, '个分镜用于场景:', selectedScene?.name);
-      console.log('[SceneGeneration] 动作描写:', actionDescriptions);
+      console.log('[SceneGeneration] tìm thấy', sceneShots.length, 'Phân cảnhcho Cảnh:', selectedScene?.name);
+      console.log('[SceneGeneration] Hành độmô tả ng:', actionDescriptions);
       
       const prompt = buildScenePrompt({ ...selectedScene, location, time, atmosphere, styleId }, actionDescriptions);
       const stylePreset = styleId ? getStyleById(styleId) : null;
@@ -680,11 +680,11 @@ ${gridItemsZh}
       setPreviewUrl(result.imageUrl);
       setPreviewSceneId(targetId);
       setGenerationStatus('completed');
-      toast.success("场景概念图生成完成，请预览确认");
+      toast.success("Cảnh bản đồ khái niệm TạoHoàn thành，\u8bf7Xem trướcXác nhận");
     } catch (error) {
       const err = error as Error;
       setGenerationStatus('error', err.message);
-      toast.error(`生成失败: ${err.message}`);
+      toast.error(`TạoThất bại: ${err.message}`);
     } finally {
       setGeneratingScene(null);
     }
@@ -693,7 +693,7 @@ ${gridItemsZh}
   const handleSavePreview = async () => {
     if (!previewUrl || !previewSceneId) return;
 
-    toast.loading("正在保存图片到本地...", { id: 'saving-scene-preview' });
+    toast.loading("\u6b63\u5728LưuHình ảnhĐến\u672c\u5730...", { id: 'saving-scene-preview' });
 
     try {
       const sceneName = (name || selectedScene?.name || 'scene').replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
@@ -714,11 +714,11 @@ ${gridItemsZh}
         }),
       });
 
-      // 同步归档到素材库 AI图片 文件夹
+      // \u540c\u6b65\u5f52\u6863ĐếnChất liệu\u5e93 AIHình ảnh Thư mục
       const aiFolderId = getOrCreateCategoryFolder('ai-image');
       addMediaFromUrl({
         url: localPath,
-        name: `场景-${name || selectedScene?.name || '未命名'}`,
+        name: `Cảnh-${name || selectedScene?.name || 'Chưa đặt tên'}`,
         type: 'image',
         source: 'ai-image',
         folderId: aiFolderId,
@@ -727,10 +727,10 @@ ${gridItemsZh}
 
       setPreviewUrl(null);
       setPreviewSceneId(null);
-      toast.success("场景概念图已保存到本地！", { id: 'saving-scene-preview' });
+      toast.success("Cảbản đồ khái niệm nhĐã LưuĐến\u672c\u5730！", { id: 'saving-scene-preview' });
     } catch (error) {
       console.error('Failed to save scene preview:', error);
-      toast.error("保存失败", { id: 'saving-scene-preview' });
+      toast.error("LưuThất bại", { id: 'saving-scene-preview' });
     }
   };
 
@@ -740,39 +740,39 @@ ${gridItemsZh}
     setGenerationStatus('idle');
   };
 
-  // ========== 多视角联合图功能 ==========
+  // ========== Nhiều Góc nhìđồ thị chungchức năng ==========
 
   /**
-   * 生成多视角联合图提示词
+   * TạoNhiều Góc nhìđồ thị njointPrompt
    */
   const handleGenerateContactSheetPrompt = () => {
     if (!selectedScene) {
-      toast.error("请先选择场景");
+      toast.error("\u8bf7đầu tiên\u9009\u62e9Cảnh");
       return;
     }
 
-    // 获取该场景的分镜
+    // \u83b7\u53d6\u8be5CảPh của nhân cảnh
     const sceneShots = allShots.filter(shot => 
       shot.sceneRefId === selectedScene.id ||
       shot.sceneId === selectedScene.id
     );
 
     if (sceneShots.length === 0) {
-      toast.warning("该场景没有关联的分镜，将使用默认视角");
+      toast.warning("\u8be5Cảnh\u6ca1Cóliên kết tiến sĩân cảnh，\u5c06sử dụng Mặc địnhGóc nhìn");
     }
 
-    // 获取当前选中的风格
+    // \u83b7\u53d6hiện tại\u9009trongcủaPhong cách
     const stylePreset = getStyleById(styleId);
     const styleTokens = stylePreset?.prompt ? [stylePreset.prompt] : ['anime style', 'soft colors'];
 
-    // 构建场景数据（合并当前表单内容）
+    // \u6784\u5efaCảnh dữ liệu（\u5408\u5e76hiện tại\u8868\u5355bên trong\u5bb9）
     const sceneData = {
       ...selectedScene,
       name: name || selectedScene.name,
       location: location || selectedScene.location,
     };
 
-    // 生成提示词
+    // TạoPrompt
     const result = generateContactSheetPrompt({
       scene: sceneData as any,
       shots: sceneShots,
@@ -784,32 +784,32 @@ ${gridItemsZh}
     setContactSheetPromptZh(result.promptZh);
     setExtractedViewpoints(result.viewpoints);
 
-    // 检查是否使用了 AI 分析的视角
-    // viewpoints 属性可能来自剧本的 scriptData.scenes，通过 pendingSceneData 传递
+    // \u68c0\u67e5\u662f\u5426sử dụng\u4e86 AI Phân tíG của chóc nhìn
+    // viewpoints \u5c5e\u6027\u53ef\u80fd\u6765\u81eaKịch bảncủa scriptData.scenes，Chấp nhận pendingSceneData \u4f20\u9012
     const sceneViewpoints = (selectedScene as any)?.viewpoints || (sceneData as any)?.viewpoints;
     const hasAIViewpoints = sceneViewpoints && sceneViewpoints.length > 0;
-    const sourceText = hasAIViewpoints ? 'AI 分析' : '关键词提取';
-    toast.success(`${sourceText} ${result.viewpoints.length} 个视角，提示词已生成`);
+    const sourceText = hasAIViewpoints ? 'AI Phân tích' : 'Trích xuất từ khóa';
+    toast.success(`${sourceText} ${result.viewpoints.length} Góc nhìn，PromptĐã Tạo`);
   };
 
   /**
-   * 复制提示词（包含视觉风格和宽高比信息）
+   * \u590d\u5236Prompt（chứaTầm nhìn Phong cáchvà\u5bbd\u9ad8\u6bd4thông tin）
    */
   const handleCopyPrompt = (isEnglish: boolean) => {
     const prompt = isEnglish ? contactSheetPrompt : contactSheetPromptZh;
     if (!prompt) return;
     
-    // 获取视觉风格信息
+    // \u83b7\u53d6Tầm nhìn Phong cáchthông tin
     const stylePreset = getStyleById(styleId);
     const styleName = stylePreset?.name || styleId;
     const styleTokens = stylePreset?.prompt || '';
     
-    // 根据宽高比确定布局描述
+    // \u6839\u636e\u5bbd\u9ad8\u6bd4\u786e\u5b9aBố cụcMô tả
     const isLandscape = contactSheetAspectRatio === '16:9';
-      const layoutDesc = `${contactSheetLayout} (${contactSheetLayout === '2x2' ? '4格' : '9格'})`;
+      const layoutDesc = `${contactSheetLayout} (${contactSheetLayout === '2x2' ? '4\u683c' : '9\u683c'})`;
     const layoutDescEn = `${contactSheetLayout === '2x2' ? '2 rows x 2 cols' : '3 rows x 3 cols'} (${contactSheetLayout})`;
     
-    // 组合完整提示词
+    // \u7ec4\u5408\u5b8c\u6574Prompt
     let fullPrompt: string;
     if (isEnglish) {
       fullPrompt = [
@@ -824,28 +824,28 @@ ${gridItemsZh}
       ].join('\n');
     } else {
       fullPrompt = [
-        `=== 联合图设置 ===${`\n`}`,
-        `视觉风格: ${styleName}`,
-        `风格关键词: ${styleTokens}`,
-        `宽高比: ${contactSheetAspectRatio}`,
-        `网格布局: ${layoutDesc}`,
+        `=== \u8054\u5408\u56feCài đặt ===${`\n`}`,
+        `Tầm nhìn Phong cách: ${styleName}`,
+        `Phong cáchkeywords: ${styleTokens}`,
+        `\u5bbd\u9ad8\u6bd4: ${contactSheetAspectRatio}`,
+        `bố trí lưới: ${layoutDesc}`,
         ``,
-        `=== 提示词 ===${`\n`}`,
+        `=== Prompt ===${`\n`}`,
         prompt,
       ].join('\n');
     }
     
     navigator.clipboard.writeText(fullPrompt);
-    toast.success(isEnglish ? "英文提示词已复制（含风格和宽高比）" : "中文提示词已复制（含风格和宽高比）");
+    toast.success(isEnglish ? "Tiếng AnhNhắcĐã rồi\u590d\u5236（\u542bPhong cáchvà\u5bbd\u9ad8\u6bd4）" : "Lời nhắc tiếng TrungĐã rồi\u590d\u5236（\u542bPhong cáchvà\u5bbd\u9ad8\u6bd4）");
   };
 
   /**
-   * 直接生成联合图（调用内部 AI 图片生成 API）
-   * 使用 submitGridImageRequest 对齐导演面板，确保网格格式正确
+   * \u76f4\u63a5Tạo\u8054\u5408\u56fe（\u8c03sử dụngbên trong\u90e8 AI Hình ảnhTạo API）
+   * sử dụng submitGridImageRequest Căn chỉnhgiám đốc\u9762\u677f，\u786e\u4fdd\u7f51\u683cĐịnh dạng\u6b63\u786e
    */
   const handleGenerateContactSheetImage = async () => {
     if (!contactSheetPrompt) {
-      toast.error("请先生成提示词");
+      toast.error("\u8bf7đầu tiênTạoPrompt");
       return;
     }
 
@@ -861,7 +861,7 @@ ${gridItemsZh}
     const keyManager = featureConfig.keyManager;
 
     if (!apiKey || !baseUrl || !model) {
-      toast.error('图片生成 API 未配置');
+      toast.error('Hình ảnhTạo API Chưa được định cấu hình');
       return;
     }
 
@@ -875,7 +875,7 @@ ${gridItemsZh}
         ? 'blurry, low quality, watermark, text, labels, titles, captions, words, letters, numbers, annotations, subtitles, typography, font, writing, people, characters, anime, cartoon, distorted grid, uneven panels'
         : 'blurry, low quality, watermark, text, labels, titles, captions, words, letters, numbers, annotations, subtitles, typography, font, writing, people, characters, distorted grid, uneven panels';
 
-      // 增强提示词：如果用户编辑的是中文提示词，在前面包裹英文结构化网格指令
+      // \u589e\u5f3aPrompt：Chẳng hạn như\u679cNgười dùngChỉnh sửcủa một\u662fLời nhắc tiếng Trung，\u5728\u524d\u9762góiTiếng Anhcó cấu trúc\u7f51\u683c\u6307\u4ee4
       let finalPrompt = contactSheetPrompt;
       const isChinese = /[\u4e00-\u9fa5]/.test(finalPrompt) && !finalPrompt.includes('<instruction>');
       if (isChinese) {
@@ -922,10 +922,10 @@ ${gridItemsZh}
 
       setContactSheetProgress(100);
       if (!result.imageUrl) {
-        throw new Error('图片生成失败：未返回图片 URL');
+        throw new Error('Hình ảnhTạoThất bại：\u672aQuay lạiHình ảnh URL');
       }
       
-      // 如果返回的是 HTTP URL，转为 base64 — 避免后续切割时 CORS 问题
+      // Chẳng hạn như\u679cQuay lạtôi là\u662f HTTP URL，\u8f6ccho base64 — \u907f\u514d\u540e\u7eed\u5207\u5272\u65f6 CORS \u95ee\u9898
       let finalImageUrl = result.imageUrl;
       if (finalImageUrl.startsWith('http://') || finalImageUrl.startsWith('https://')) {
         try {
@@ -937,18 +937,18 @@ ${gridItemsZh}
             reader.onerror = reject;
             reader.readAsDataURL(blob);
           });
-          console.log('[ContactSheet] HTTP→base64 转换成功');
+          console.log('[ContactSheet] HTTP→base64 \u8f6c\u6362Thành công');
         } catch (e) {
-          console.warn('[ContactSheet] HTTP→base64 转换失败，使用原URL');
+          console.warn('[ContactSheet] HTTP→base64 \u8f6c\u6362Thất bại，sử dụng\u539fURL');
         }
       }
       
       setContactSheetImage(finalImageUrl);
-      toast.success("联合图生成成功，可以进行切割");
+      toast.success("đồ thị chung TạoThành công，\u53ef\u4ee5\u8fdbđược rồi\u5207\u5272");
     } catch (error) {
       const err = error as Error;
-      console.error('[ContactSheet] 生成失败:', err);
-      toast.error(`生成失败: ${err.message}`);
+      console.error('[ContactSheet] TạoThất bại:', err);
+      toast.error(`TạoThất bại: ${err.message}`);
     } finally {
       setIsGeneratingContactSheet(false);
       setContactSheetProgress(0);
@@ -956,9 +956,9 @@ ${gridItemsZh}
   };
 
   /**
-   * 根据布局获取行列数
-   * - 3x3: 固定 3行3列
-   * - 2x2: 固定 2行2列
+   * \u6839\u636eBố cục\u83b7\u53d6được rồiCột\u6570
+   * - 3x3: \u56fa\u5b9a 3được rồi3Cột
+   * - 2x2: \u56fa\u5b9a 2được rồi2Cột
    */
   const getLayoutDimensions = (layout: ContactSheetLayout, aspectRatio: '16:9' | '9:16') => {
     switch (layout) {
@@ -967,13 +967,13 @@ ${gridItemsZh}
       case '3x3':
         return { rows: 3, cols: 3 };
       default:
-        // 后备：默认 3x3
+        // \u540e\u5907：Mặc định 3x3
         return { rows: 3, cols: 3 };
     }
   };
 
   /**
-   * 上传联合图（备用，用于手动上传外部生成的图片）
+   * Tải lêđồ thị chung（dự phòng，sử dụng\u4e8etay\u52a8Tải lênBên ngoài\u90e8Tạo Hình ảnh）
    */
   const handleUploadContactSheet = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -983,44 +983,44 @@ ${gridItemsZh}
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setContactSheetImage(dataUrl);
-      toast.success("联合图已上传，可以进行切割");
+      toast.success("\u8054\u5408\u56feĐã Tải lên，\u53ef\u4ee5\u8fdbđược rồi\u5207\u5272");
     };
     reader.readAsDataURL(file);
   };
 
   /**
-   * 独立上传联合图入口（不需要先生成提示词）
-   * 根据用户选择的网格布局自动创建默认视角
-   * 重要：取消当前选中的场景，确保保存时创建新场景
+   * độc lậpTải lêđồ thị chunglối vào（\u4e0d\u9700\u8981đầu tiênTạoPrompt）
+   * Theo Người dùng\u9009\u62e9củabố trí lướiTự động TạoMặc địnhGóc nhìn
+   * quan trọng：Huỷhiện tại\u9009trongCảnh，\u786e\u4fddLưu\u65f6Tạo\u65b0Cảnh
    */
   const handleDirectUploadContactSheet = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 重要：取消当前选中的场景，确保保存时会创建新场景
+    // quan trọng：Huỷhiện tại\u9009trongCảnh，\u786e\u4fddLưu\u65f6\u4f1aTạo\u65b0Cảnh
     selectScene(null);
     
-    // 清空表单，准备自动命名
+    // \u6e05\u7a7a\u8868\u5355，\u51c6\u5907\u81ea\u52a8\u547dtên
     const timestamp = new Date().toLocaleString('zh-CN', { 
       month: '2-digit', 
       day: '2-digit', 
       hour: '2-digit', 
       minute: '2-digit' 
     }).replace(/[\/:]/g, '-');
-    const autoSceneName = `联合图场景-${timestamp}`;
+    const autoSceneName = `\u8054\u5408\u56feCảnh-${timestamp}`;
     setName(autoSceneName);
     setLocation(autoSceneName);
 
-    // 获取用户选择的布局
+    // GetNgười dùng\u9009\u62e9củaBố cục
     const dims = getLayoutDimensions(contactSheetLayout, contactSheetAspectRatio);
     const totalCells = dims.rows * dims.cols;
 
-    // 自动创建默认视角（视角1, 视角2, ..., 视角N）
+    // Tự động TạoMặc địnhGóc nhìn（Góc nhìn1, Góc nhìn2, ..., Góc nhìnN）
     const defaultViewpoints: SceneViewpoint[] = [];
     for (let i = 0; i < totalCells; i++) {
       defaultViewpoints.push({
         id: `viewpoint-${i + 1}`,
-        name: `视角${i + 1}`,
+        name: `Góc nhìn${i + 1}`,
         nameEn: `Viewpoint ${i + 1}`,
         shotIds: [],
         keyProps: [],
@@ -1031,10 +1031,10 @@ ${gridItemsZh}
       });
     }
 
-    // 设置视角数据
+    // Cài đặtGóc nhìdữ liệu
     setExtractedViewpoints(defaultViewpoints);
     
-    // 创建默认的提示词页面数据（用于切割时获取布局信息）
+    // TạoMặc địnhPrompt\u9875\u9762\u6570\u636e（sử dụng\u4e8e\u5207\u5272\u65f6\u83b7\u53d6Bố cụcthông tin）
     const defaultPromptPage: ContactSheetPromptSet = {
       pageIndex: 0,
       prompt: '',
@@ -1050,38 +1050,38 @@ ${gridItemsZh}
     })));
     setCurrentPageIndex(0);
     
-    // 设置一个占位提示词，触发进入联合图界面
-    setContactSheetPrompt('[直接上传 - 无提示词]');
-    setContactSheetPromptZh('[直接上传 - 无提示词]');
+    // Cài đặtmộtmột\u5360\u4f4dPrompt，Kích hoạtnhập\u8054\u5408\u56fe\u754c\u9762
+    setContactSheetPrompt('[\u76f4\u63a5Tải lên - không cóPrompt]');
+    setContactSheetPromptZh('[\u76f4\u63a5Tải lên - không cóPrompt]');
 
-    // 读取并显示上传的图片
+    // \u8bfb\u53d6\u5e76\u663e\u793aTải lênHình ảnh
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setContactSheetImage(dataUrl);
-      toast.success(`联合图已上传（${dims.rows}×${dims.cols} = ${totalCells}格），切割后将自动创建新场景`);
+      toast.success(`\u8054\u5408\u56feĐã Tải lên（${dims.rows}×${dims.cols} = ${totalCells}\u683c），\u5207\u5272\u540e\u5c06Tự động Tạo\u65b0Cảnh`);
     };
     reader.readAsDataURL(file);
   };
 
   /**
-   * 在联合图界面中处理布局变化（仅对直接上传模式生效）
-   * 更新视角数量以匹配新布局
+   * \u5728\u8054\u5408\u56fe\u754c\u9762trong\u5904\u7406Bố cụcthay đổi（\u4ec5\u5bf9\u76f4\u63a5Tải lênchế độ\u751f\u6548）
+   * Cập nhậtGóc nhìn\u6570\u91cf\u4ee5trận đấu\u65b0Bố cục
    */
   const handleContactSheetLayoutChange = (newLayout: ContactSheetLayout) => {
     setContactSheetLayout(newLayout);
     
-    // 如果是直接上传模式（没有真正的提示词），需要更新视角数据
-    if (contactSheetPrompt === '[直接上传 - 无提示词]') {
+    // Chẳng hạn như\u679c\u662f\u76f4\u63a5Tải lênchế độ（\u6ca1Có\u771f\u6b63củaPrompt），\u9700\u8981Cập nhậtGóc nhìdữ liệu
+    if (contactSheetPrompt === '[\u76f4\u63a5Tải lên - không cóPrompt]') {
       const dims = getLayoutDimensions(newLayout, contactSheetAspectRatio);
       const totalCells = dims.rows * dims.cols;
       
-      // 重新创建默认视角
+      // \u91cd\u65b0TạoMặc địnhGóc nhìn
       const newDefaultViewpoints: SceneViewpoint[] = [];
       for (let i = 0; i < totalCells; i++) {
         newDefaultViewpoints.push({
           id: `viewpoint-${i + 1}`,
-          name: `视角${i + 1}`,
+          name: `Góc nhìn${i + 1}`,
           nameEn: `Viewpoint ${i + 1}`,
           shotIds: [],
           keyProps: [],
@@ -1099,7 +1099,7 @@ ${gridItemsZh}
         shotIndexes: [],
       })));
       
-      // 更新布局信息
+      // Cập nhậtBố cụcthông tin
       const updatedPromptPage: ContactSheetPromptSet = {
         pageIndex: 0,
         prompt: '',
@@ -1109,51 +1109,51 @@ ${gridItemsZh}
       };
       setPendingContactSheetPrompts([updatedPromptPage]);
       
-      // 清除已有的切割结果
+      // \u6e05\u9664Đã rồiCócủa\u5207\u5272kết quả
       setSplitViewpointImages({});
     }
   };
 
   /**
-   * 切割联合图
+   * \u5207\u5272\u8054\u5408\u56fe
    */
   const handleSplitContactSheet = async () => {
-    // 优先使用 pendingViewpoints（从剧本传来的），否则用 extractedViewpoints
+    // Ưu tiênsử dụng pendingViewpoints（từKịch bản\u4f20\u6765của），\u5426\u5219sử dụng extractedViewpoints
     const currentPageVps = pendingViewpoints.filter(v => v.pageIndex === currentPageIndex);
     const viewpointsToUse = currentPageVps.length > 0 ? currentPageVps : extractedViewpoints;
     
     if (!contactSheetImage || viewpointsToUse.length === 0) {
-      toast.error("请先上传联合图并生成提示词");
+      toast.error("\u8bf7đầu tiênTải lêđồ thị chung\u5e76TạoPrompt");
       return;
     }
 
     setIsSplitting(true);
     try {
-      // 优先从 pendingContactSheetPrompts 获取布局（这是生成提示词时确定的真实布局）
-      // 如果没有，才使用用户选择的 contactSheetLayout
+      // Ưu tiêntừ pendingContactSheetPrompts \u83b7\u53d6Bố cục（Đây làTạoPrompt\u65f6\u786e\u5b9acủa\u771f\u5b9eBố cục）
+      // nếu không，\u624dsử dụngNgười dùng\u9009\u62e9của contactSheetLayout
       let expectedRows: number;
       let expectedCols: number;
       
       const currentPagePrompt = pendingContactSheetPrompts[currentPageIndex];
       if (currentPagePrompt?.gridLayout) {
-        // 使用生成提示词时确定的布局
+        // sử dụngTạoPrompt\u65f6\u786e\u5b9acủaBố cục
         expectedRows = currentPagePrompt.gridLayout.rows;
         expectedCols = currentPagePrompt.gridLayout.cols;
-        console.log('[Split] 使用 pendingContactSheetPrompts 中的布局:', { expectedRows, expectedCols });
+        console.log('[Split] sử dụng pendingContactSheetPrompts trongcủaBố cục:', { expectedRows, expectedCols });
       } else {
-        // 后备：使用用户选择的布局
+        // \u540e\u5907：sử dụngNgười dùng\u9009\u62e9củaBố cục
         const dims = getLayoutDimensions(contactSheetLayout, contactSheetAspectRatio);
         expectedRows = dims.rows;
         expectedCols = dims.cols;
-        console.log('[Split] 使用用户选择的布局:', { expectedRows, expectedCols, contactSheetLayout });
+        console.log('[Split] sử dụngNgười dùng\u9009\u62e9củaBố cục:', { expectedRows, expectedCols, contactSheetLayout });
       }
       
       const expectedCount = expectedRows * expectedCols;
       
-      // 如果图片是 HTTP URL，先转为 base64 避免 CORS 导致 canvas 被污染
+      // Chẳng hạn như\u679cHình ảnh là HTTP URL，đầu tiên\u8f6ccho base64 \u907f\u514d CORS \u5bfc\u81f4 canvas \u88ab\u6c61\u67d3
       let imageForSplit = contactSheetImage;
       if (contactSheetImage.startsWith('http://') || contactSheetImage.startsWith('https://')) {
-        console.log('[Split] HTTP URL 检测到，转换为 base64...');
+        console.log('[Split] HTTP URL Phát hiệnĐến，\u8f6c\u6362cho base64...');
         try {
           const resp = await fetch(contactSheetImage);
           const blob = await resp.blob();
@@ -1163,9 +1163,9 @@ ${gridItemsZh}
             reader.onerror = reject;
             reader.readAsDataURL(blob);
           });
-          console.log('[Split] HTTP→base64 转换成功');
+          console.log('[Split] HTTP→base64 \u8f6c\u6362Thành công');
         } catch (convertErr) {
-          console.warn('[Split] HTTP→base64 转换失败，使用原URL:', convertErr);
+          console.warn('[Split] HTTP→base64 \u8f6c\u6362Thất bại，sử dụng\u539fURL:', convertErr);
         }
       }
       
@@ -1176,21 +1176,21 @@ ${gridItemsZh}
         options: {
           expectedRows,
           expectedCols,
-          filterEmpty: false, // 保留所有格子
-          edgeMarginPercent: 0.02, // 2% 边缘裁剪
+          filterEmpty: false, // Giữ Tất cả\u683c\u5b50
+          edgeMarginPercent: 0.02, // 2% \u8fb9\u7f18\u88c1\u526a
         },
       });
       
-      // 将切割结果映射到视角
+      // \u5c06\u5207\u5272kết quả\u6620\u5c04ĐếnGóc nhìn
       const viewpointImagesMap: Record<string, { imageUrl: string; gridIndex: number }> = {};
       
       for (const vp of viewpointsToUse) {
         const gridIndex = vp.gridIndex;
-        // 根据宽高比计算行列
+        // \u6839\u636e\u5bbd\u9ad8\u6bd4Tính toánđược rồiCột
         const row = Math.floor(gridIndex / expectedCols);
         const col = gridIndex % expectedCols;
         
-        // splitResults 按 row/col 匹配
+        // splitResults \u6309 row/col trận đấu
         const splitResult = splitResults.find(sr => sr.row === row && sr.col === col);
         
         if (splitResult) {
@@ -1201,7 +1201,7 @@ ${gridItemsZh}
         }
       }
       
-      // 同步更新 extractedViewpoints，确保保存时有数据
+      // \u540c\u6b65Cập nhật extractedViewpoints，\u786e\u4fddLưu\u65f6Có\u6570\u636e
       if (currentPageVps.length > 0 && extractedViewpoints.length === 0) {
         setExtractedViewpoints(currentPageVps.map(vp => ({
           id: vp.id,
@@ -1217,34 +1217,34 @@ ${gridItemsZh}
       }
       
       setSplitViewpointImages(viewpointImagesMap);
-      toast.success(`已切割为 ${Object.keys(viewpointImagesMap).length} 个视角图片`);
+      toast.success(`Đã rồi\u5207\u5272cho ${Object.keys(viewpointImagesMap).length} Góc nhìnHình ảnh`);
     } catch (error) {
-      console.error('[ContactSheet] 切割失败:', error);
-      toast.error("切割失败，请检查图片格式");
+      console.error('[ContactSheet] \u5207\u5272Thất bại:', error);
+      toast.error("\u5207\u5272Thất bại，\u8bf7\u68c0\u67e5Hình ảnhĐịnh dạng");
     } finally {
       setIsSplitting(false);
     }
   };
 
   /**
-   * 保存视角图片 - 为每个视角创建独立的子场景
-   * 例如：“张家客厅” → 创建文件夹“张家客厅-视角” → 保存子场景到文件夹
-   * 如果没有选中场景，会自动创建一个父场景
+   * LưuGóc nhìnHình ảnh - cho mỗi Góc nhìnTạođộc lậpcủa\u5b50Cảnh
+   * Ví dụ：“Phòng khách của Trương” → TạoThư mục“Phòng khách của Trương-Góc nhìn” → Lưu\u5b50CảnhĐếnThư mục
+   * nếu không\u9009Trung bình Cảnh，\u4f1aTự động TạomộtmộtPhụ huynh Cảnh
    */
   const handleSaveViewpointImages = async () => {
     if (Object.keys(splitViewpointImages).length === 0) {
-      toast.error("没有可保存的视角图片");
+      toast.error("\u6ca1Có\u53efLưucủaGóc nhìnHình ảnh");
       return;
     }
     
-    // 如果没有选中场景，先自动创建一个父场景
+    // nếu không\u9009Trung bình Cảnh，đầu tiênTự động TạomộtmộtPhụ huynh Cảnh
     let parentScene = selectedScene;
     if (!parentScene) {
-      // 检查表单数据
-      const sceneName = name.trim() || '未命名场景';
+      // \u68c0\u67e5\u8868\u5355\u6570\u636e
+      const sceneName = name.trim() || 'Chưa đặt tênCảnh';
       const sceneLocation = location.trim() || sceneName;
       
-      // 创建父场景
+      // TạoPhụ huynh Cảnh
       const newParentId = addScene({
         name: sceneName,
         location: sceneLocation,
@@ -1255,34 +1255,34 @@ ${gridItemsZh}
         projectId: resourceProjectId ?? undefined,
       });
       
-      // 获取刚创建的场景
+      // \u83b7\u53d6\u521aTạo'Cảnh
       const { scenes } = useSceneStore.getState();
       parentScene = scenes.find(s => s.id === newParentId) || null;
       
       if (!parentScene) {
-        toast.error("创建父场景失败");
+        toast.error("TạoPhụ huynh CảnhThất bại");
         return;
       }
       
-      // 选中新创建的场景
+      // \u9009trong\u65b0Tạo'Cảnh
       selectScene(newParentId);
-      toast.success(`已自动创建场景「${sceneName}」`);
+      toast.success(`Đã Tự động TạoCảnh「${sceneName}」`);
     }
 
-    // 优先使用 pendingViewpoints（从剧本传来的），否则用 extractedViewpoints
+    // Ưu tiênsử dụng pendingViewpoints（từKịch bản\u4f20\u6765của），\u5426\u5219sử dụng extractedViewpoints
     const currentPageVps = pendingViewpoints.filter(v => v.pageIndex === currentPageIndex);
     let viewpointsToUse = currentPageVps.length > 0 ? currentPageVps : extractedViewpoints;
     
     if (viewpointsToUse.length === 0) {
-      toast.error("没有视角数据");
+      toast.error("\u6ca1CóGóc nhìdữ liệu");
       return;
     }
     
-    // === 补全未分配的分镜 shotIds ===
-    // 找到当前场景的所有分镜
+    // === \u8865\u5168\u672a\u5206\u914dcủaPhân cảnh shotIds ===
+    // tìm thấyC hiện tạiảnhTất cảPhân cảnh
     const sceneName = parentScene.name || parentScene.location || '';
     const sceneShots = allShots.filter(shot => {
-      // 通过 sceneRefId 或场景名称匹配
+      // Chấp nhận sceneRefId hoặcCảnhTêntrận đấu
       const scriptScenes = currentProject?.scriptData?.scenes || [];
       const matchedScene = scriptScenes.find(s => 
         s.name === sceneName || s.location === sceneName ||
@@ -1292,29 +1292,29 @@ ${gridItemsZh}
     });
     
     if (sceneShots.length > 0) {
-      // 收集已分配的分镜 ID
+      // \u6536đặtĐã rồi\u5206\u914dcủaPhân cảnh ID
       const assignedShotIds = new Set(viewpointsToUse.flatMap(vp => vp.shotIds || []));
       
-      // 找出未分配的分镜
+      // \u627e\u51fa\u672a\u5206\u914dcủaPhân cảnh
       const unassignedShots = sceneShots.filter(shot => !assignedShotIds.has(shot.id));
       
       if (unassignedShots.length > 0) {
-        console.log(`[ContactSheet] 发现 ${unassignedShots.length} 个未分配的分镜，按序号分配到视角`);
+        console.log(`[ContactSheet] khám phá ${unassignedShots.length} Ph chưa được phân bổân cảnh，\u6309\u5e8f\u53f7Được giao cho Góc nhìn`);
         
-        // 按分镜序号分配到视角（分镜1->视角1，分镜2->视角2，...）
-        // 复制 viewpointsToUse 以便修改
+        // \u6309Phân cảsố sê-riĐược giao cho Góc nhìn（Phân cảnh1->Góc nhìn1，Phân cảnh2->Góc nhìn2，...）
+        // \u590d\u5236 viewpointsToUse \u4ee5\u4fbfSửa
         viewpointsToUse = viewpointsToUse.map((vp) => ({
           ...vp,
           shotIds: [...(vp.shotIds || [])],
         })) as typeof viewpointsToUse;
         
-        // 将未分配的分镜按序号分配
+        // \u5c06\u672a\u5206\u914dcủaPhân cảnh\u6309\u5e8f\u53f7\u5206\u914d
         for (const shot of unassignedShots) {
-          // 根据分镜在场景内的序号确定对应的视角
+          // Theo Ph.ân cảnh ở trongCảnhbên trongcủa\u5e8f\u53f7\u786e\u5b9a\u5bf9\u5e94củaGóc nhìn
           const shotIndexInScene = sceneShots.findIndex(s => s.id === shot.id);
           const vpIndex = shotIndexInScene % viewpointsToUse.length;
           viewpointsToUse[vpIndex].shotIds.push(shot.id);
-          console.log(`  - 分镜 ${shot.id} (序号${shotIndexInScene + 1}) -> 视角 ${vpIndex + 1}: ${viewpointsToUse[vpIndex].name}`);
+          console.log(`  - Phân cảnh ${shot.id} (\u5e8f\u53f7${shotIndexInScene + 1}) -> Góc nhìn ${vpIndex + 1}: ${viewpointsToUse[vpIndex].name}`);
         }
       }
     }
@@ -1322,31 +1322,31 @@ ${gridItemsZh}
     const parentSceneName = parentScene.name || parentScene.location;
     const createdVariantIds: string[] = [];
     
-    // 子场景保存在和父场景相同的文件夹中，通过 parentSceneId 关联
+    // \u5b50CảnhLưu\u5728vàPhụ huynh Cảnh\u76f8\u540cThư mụctrong，Chấp nhận parentSceneId \u5173\u8054
     const targetFolderId = parentScene.folderId;
     
-    console.log('[ContactSheet] 保存视角图片（始终新建）:', {
+    console.log('[ContactSheet] LưuGóc nhìnHình ảnh（\u59cb\u7ec8Tạo mới）:', {
       parentSceneId: parentScene.id,
       parentSceneName,
       viewpointsToSave: viewpointsToUse.map(v => v.name),
     });
     
-    // 为每个视角始终创建新子场景（图片先存本地）
+    // cho mỗi Góc nhìn\u59cb\u7ec8Tạo\u65b0\u5b50Cảnh（Hình ảnhđầu tiên\u5b58\u672c\u5730）
     for (const vp of viewpointsToUse) {
       const imgData = splitViewpointImages[vp.id];
       if (!imgData) continue;
       
       const variantName = `${parentSceneName}-${vp.name}`;
-      // 将 data URL 保存到本地文件
+      // \u5c06 data URL LưuĐếnđịa phươngTệp
       const safeName = variantName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
       const localPath = await saveImageToLocal(
         imgData.imageUrl,
         'scenes',
         `${safeName}_${Date.now()}.png`
       );
-      // 验证本地保存是否成功（失败时 saveImageToLocal 返回原始 data: URL）
+      // \u9a8c\u8bc1\u672c\u5730Lưu\u662f\u5426Thành công（Thất bại\u65f6 saveImageToLocal Quay lạinguyên bản data: URL）
       if (!localPath.startsWith('local-image://')) {
-        console.warn(`[ContactSheet] 视角图片本地保存失败: ${vp.name}, 将使用原始 URL`);
+        console.warn(`[ContactSheet] Góc nhìnHình ảnh\u672c\u5730LưuThất bại: ${vp.name}, \u5c06sử dụngnguyên bản URL`);
       }
       const variantId = addScene({
         name: variantName,
@@ -1359,7 +1359,7 @@ ${gridItemsZh}
         folderId: targetFolderId,
         projectId: parentScene.projectId ?? resourceProjectId ?? undefined,
         tags: parentScene.tags,
-        // 视角变体特有字段
+        // Góc nhìcác biến thể\u7279Cótừ\u6bb5
         parentSceneId: parentScene.id,
         viewpointId: vp.id,
         viewpointName: vp.name,
@@ -1368,11 +1368,11 @@ ${gridItemsZh}
       } as any);
       createdVariantIds.push(variantId);
 
-      // 同步归档到素材库 AI图片 文件夹
+      // \u540c\u6b65\u5f52\u6863ĐếnChất liệu\u5e93 AIHình ảnh Thư mục
       const aiFolder = getOrCreateCategoryFolder('ai-image');
       addMediaFromUrl({
         url: localPath,
-        name: `场景-${variantName}`,
+        name: `Cảnh-${variantName}`,
         type: 'image',
         source: 'ai-image',
         folderId: aiFolder,
@@ -1380,7 +1380,7 @@ ${gridItemsZh}
       });
     }
 
-    // 更新父场景：仅记录本次联合图（不覆盖其它子场景）
+    // Cập nhậtPhụ huynh Cảnh：\u4ec5Bản ghi\u672clầđồ thị chung（Không được bảo hiểm\u5176\u5b83\u5b50Cảnh）
     const viewpointsData = viewpointsToUse.map(vp => ({
       id: vp.id,
       name: vp.name,
@@ -1389,7 +1389,7 @@ ${gridItemsZh}
       keyProps: vp.keyProps,
       gridIndex: vp.gridIndex,
     }));
-    // 联合图也保存到本地（避免 base64 持久化膨胀）
+    // \u8054\u5408\u56fe\u4e5fLưuĐến\u672c\u5730（\u907f\u514d base64 \u6301\u4e45\u5316\u81a8\u80c0）
     let localContactSheet: string | null = contactSheetImage;
     if (contactSheetImage && contactSheetImage.startsWith('data:')) {
       const csPath = await saveImageToLocal(
@@ -1399,11 +1399,11 @@ ${gridItemsZh}
       );
       if (csPath.startsWith('local-image://')) {
         localContactSheet = csPath;
-        // 联合图同步归档到素材库
+        // \u8054\u5408\u56fe\u540c\u6b65\u5f52\u6863ĐếnChất liệu\u5e93
         const csAiFolder = getOrCreateCategoryFolder('ai-image');
         addMediaFromUrl({
           url: csPath,
-          name: `联合图-${parentSceneName}`,
+          name: `\u8054\u5408\u56fe-${parentSceneName}`,
           type: 'image',
           source: 'ai-image',
           folderId: csAiFolder,
@@ -1416,17 +1416,17 @@ ${gridItemsZh}
       viewpoints: viewpointsData,
     } as any);
 
-    console.log('[ContactSheet] 保存完成（始终新建）:', {
+    console.log('[ContactSheet] LưuHoàn thành（\u59cb\u7ec8Tạo mới）:', {
       parentSceneId: parentScene.id,
       created: createdVariantIds.length,
     });
 
-    // 仅保存新创建的子场景 ID，用于批量四视图
+    // \u4ec5Lưu\u65b0Tạocủa\u5b50Cảnh ID，sử dụng\u4e8elô\u91cfbốn\u89c6\u56fe
     setSavedChildSceneIds(createdVariantIds);
     
-    toast.success(`已创建 ${createdVariantIds.length} 个视角变体场景`);
+    toast.success(`Đã Tạo ${createdVariantIds.length} Góc nhìcác biến thểCảnh`);
     
-    // 清空临时状态（保留 savedChildSceneIds）
+    // \u6e05\u7a7a\u4e34\u65f6Trạng thái（\u4fdd\u7559 savedChildSceneIds）
     setContactSheetPrompt(null);
     setContactSheetPromptZh(null);
     setContactSheetImage(null);
@@ -1437,7 +1437,7 @@ ${gridItemsZh}
   };
 
   /**
-   * 取消多视角操作
+   * HuỷNhiều Góc nhìnThao tác
    */
   const handleCancelContactSheet = () => {
     setContactSheetPrompt(null);
@@ -1448,12 +1448,12 @@ ${gridItemsZh}
   };
 
   /**
-   * 一键自动流水线：生成联合图 → 切割 → 保存子场景
-   * 任务在后台运行，用户可以继续设置下一个生成任务
+   * một\u952e\u81ea\u52a8nước chảy\u7ebf：Tạo\u8054\u5408\u56fe → \u5207\u5272 → Lưu\u5b50Cảnh
+   * Nhiệm vụ\u5728\u540e\u53f0\u8fd0được rồi，Người dùng\u53ef\u4ee5tiếp tụcCài đặt\u4e0bmộtmộtTạoNhiệm vụ
    */
   const handleAutoGenerateContactSheet = async () => {
     if (!contactSheetPrompt) {
-      toast.error("请先生成提示词");
+      toast.error("\u8bf7đầu tiênTạoPrompt");
       return;
     }
 
@@ -1463,7 +1463,7 @@ ${gridItemsZh}
       return;
     }
 
-    // 快照当前所有必要的状态（确保后台运行时不受 UI 状态变化影响）
+    // Ảnh chụp nhanhhiện tạiTất cả\u5fc5\u8981Trạng thái（\u786e\u4fdd\u540e\u53f0\u8fd0được rồi\u65f6\u4e0d\u53d7 UI Trạng thátôi thay đổi\u5f71\u54cd）
     const snapshotPrompt = contactSheetPrompt;
     const snapshotStyleId = styleId;
     const snapshotAspectRatio = contactSheetAspectRatio;
@@ -1473,7 +1473,7 @@ ${gridItemsZh}
     const snapshotCurrentPageIndex = currentPageIndex;
     const snapshotPendingPrompts = [...pendingContactSheetPrompts];
 
-    console.log('[AutoContactSheet] 快照状态:', {
+    console.log('[AutoContactSheet] Ảnh chụp nhanhTrạng thái:', {
       promptLength: contactSheetPrompt?.length,
       aspectRatio: snapshotAspectRatio,
       layout: snapshotLayout,
@@ -1483,7 +1483,7 @@ ${gridItemsZh}
       currentPageIndex,
     });
 
-    const snapshotName = name.trim() || selectedScene?.name || '未命名场景';
+    const snapshotName = name.trim() || selectedScene?.name || 'Chưa đặt tênCảnh';
     const snapshotLocation = location.trim() || selectedScene?.location || snapshotName;
     const snapshotTime = time || selectedScene?.time || 'day';
     const snapshotAtmosphere = atmosphere || selectedScene?.atmosphere || 'peaceful';
@@ -1493,7 +1493,7 @@ ${gridItemsZh}
     const snapshotFolderId = currentFolderId;
     const snapshotProjectId = resourceProjectId;
 
-    // 立即创建或复用父场景
+    // \u7acb\u5373Tạohoặc\u590dsử dụngPhụ huynh Cảnh
     let parentSceneId: string;
     if (selectedScene) {
       parentSceneId = selectedScene.id;
@@ -1514,22 +1514,22 @@ ${gridItemsZh}
       onSceneCreated?.(parentSceneId);
     }
 
-    // 设置生成中状态 — 中间栏会显示 spinner
-    setContactSheetTask(parentSceneId, { status: 'generating', progress: 10, message: '正在生成联合图...' });
-    toast.info(`场景「${snapshotName}」联合图开始生成...`);
+    // Cài đặtTạotrongTrạng thái — trong\u95f4\u680f\u4f1a\u663e\u793a spinner
+    setContactSheetTask(parentSceneId, { status: 'generating', progress: 10, message: 'Là Tạo\u8054\u5408\u56fe...' });
+    toast.info(`Cảnh「${snapshotName}」\u8054\u5408\u56feBắt đầuTạo...`);
 
-    // 立即清空左栏状态，允许用户设置下一个任务
+    // \u7acb\u5373\u6e05\u7a7a\u5de6\u680fTrạng thái，\u5141\u8bb8Người dùngCài đặt\u4e0bmộtmộtNhiệm vụ
     setContactSheetPrompt(null);
     setContactSheetPromptZh(null);
     setContactSheetImage(null);
     setSplitViewpointImages({});
     setIsGeneratingContactSheet(false);
 
-    // 后台异步执行整个流水线
+    // \u540e\u53f0\u5f02\u6b65\u6267được rồi\u6574mộtnước chảy\u7ebf
     (async () => {
       try {
-        // ==================== 阶段 1: 生成联合图 ====================
-        // 获取 API 配置 — 与导演面板一致使用 submitGridImageRequest
+        // ==================== \u9636\u6bb5 1: Tạo\u8054\u5408\u56fe ====================
+        // \u83b7\u53d6 API Cấu hình — vớigiám đốc\u9762\u677fmột\u81f4sử dụng submitGridImageRequest
         const autoFeatureConfig = getFeatureConfig('character_generation');
         if (!autoFeatureConfig) {
           throw new Error(getFeatureNotConfiguredMessage('character_generation'));
@@ -1540,21 +1540,21 @@ ${gridItemsZh}
         const keyManager = autoFeatureConfig.keyManager;
 
         if (!apiKey || !baseUrl || !model) {
-          throw new Error('图片生成 API 未配置');
+          throw new Error('Hình ảnhTạo API Chưa được định cấu hình');
         }
 
-        // 负面提示词 — 增加 distorted grid / uneven panels
+        // Lời nhắc tiêu cực — \u589e\u52a0 distorted grid / uneven panels
         const stylePreset = getStyleById(snapshotStyleId);
         const isRealistic = stylePreset?.category === 'real';
         const negativePrompt = isRealistic
           ? 'blurry, low quality, watermark, text, labels, titles, captions, words, letters, numbers, annotations, subtitles, typography, font, writing, people, characters, anime, cartoon, distorted grid, uneven panels'
           : 'blurry, low quality, watermark, text, labels, titles, captions, words, letters, numbers, annotations, subtitles, typography, font, writing, people, characters, distorted grid, uneven panels';
 
-        // 增强提示词：如果用户编辑的是中文提示词，在前面包裹英文结构化网格指令
+        // \u589e\u5f3aPrompt：Chẳng hạn như\u679cNgười dùngChỉnh sửcủa một\u662fLời nhắc tiếng Trung，\u5728\u524d\u9762góiTiếng Anhcó cấu trúc\u7f51\u683c\u6307\u4ee4
         let finalPrompt = snapshotPrompt;
         const isChinese = /[\u4e00-\u9fa5]/.test(finalPrompt) && !finalPrompt.includes('<instruction>');
         if (isChinese) {
-          // 用户提供了中文提示词但没有结构化指令 → 包裹英文 grid 指令
+          // Người dùng\u63d0\u4f9b\u4e86Lời nhắc tiếng Trung\u4f46\u6ca1Cócó cấu trúc\u6307\u4ee4 → góiTiếng Anh grid \u6307\u4ee4
           const currentPagePromptForLayout = snapshotPendingPrompts[snapshotCurrentPageIndex];
           const layoutForPrompt = currentPagePromptForLayout?.gridLayout || 
             (() => {
@@ -1583,15 +1583,15 @@ ${gridItemsZh}
             `Negative constraints: ${negativePrompt}`,
           ].filter(Boolean).join('\n');
         } else {
-          // 已有英文结构化提示词，追加负面提示词
+          // Đã rồiCóTiếng Anhcó cấu trúcPrompt，\u8ffd\u52a0Lời nhắc tiêu cực
           if (!finalPrompt.includes('Negative constraints:')) {
             finalPrompt += `\nNegative constraints: ${negativePrompt}`;
           }
         }
 
-        setContactSheetTask(parentSceneId, { status: 'generating', progress: 30, message: '正在调用 AI 生成...' });
+        setContactSheetTask(parentSceneId, { status: 'generating', progress: 30, message: '\u6b63\u5728\u8c03sử dụng AI Tạo...' });
 
-        // 使用 submitGridImageRequest — 与导演面板保持一致
+        // sử dụng submitGridImageRequest — vớigiám đốc\u9762\u677fgiữmột\u81f4
         const result = await submitGridImageRequest({
           model,
           prompt: finalPrompt,
@@ -1604,16 +1604,16 @@ ${gridItemsZh}
 
         const generatedImageUrl = result.imageUrl;
         if (!generatedImageUrl) {
-          throw new Error('图片生成失败：未返回图片 URL');
+          throw new Error('Hình ảnhTạoThất bại：\u672aQuay lạiHình ảnh URL');
         }
 
-        console.log('[AutoContactSheet] 阶段1完成，图片URL类型:', 
+        console.log('[AutoContactSheet] \u9636\u6bb51Hoàn thành，Hình ảnhURLLoại:', 
           generatedImageUrl.startsWith('data:') ? 'base64' : 'HTTP URL',
-          '长度:', generatedImageUrl.length
+          'Chiều dài:', generatedImageUrl.length
         );
 
-        // ==================== 阶段 2: 切割 ====================
-        setContactSheetTask(parentSceneId, { status: 'splitting', progress: 60, message: '正在切割视角...' });
+        // ==================== \u9636\u6bb5 2: \u5207\u5272 ====================
+        setContactSheetTask(parentSceneId, { status: 'splitting', progress: 60, message: '\u6b63\u5728\u5207\u5272Góc nhìn...' });
 
         const currentPagePrompt = snapshotPendingPrompts[snapshotCurrentPageIndex];
         let expectedRows: number, expectedCols: number;
@@ -1633,10 +1633,10 @@ ${gridItemsZh}
         }
         const expectedCount = expectedRows * expectedCols;
 
-        // 如果图片是 HTTP URL，先转为 base64 避免 CORS 导致 canvas 被污染
+        // Chẳng hạn như\u679cHình ảnh là HTTP URL，đầu tiên\u8f6ccho base64 \u907f\u514d CORS \u5bfc\u81f4 canvas \u88ab\u6c61\u67d3
         let imageForSplit = generatedImageUrl;
         if (generatedImageUrl.startsWith('http://') || generatedImageUrl.startsWith('https://')) {
-          console.log('[AutoContactSheet] HTTP URL 检测到，转换为 base64...');
+          console.log('[AutoContactSheet] HTTP URL Phát hiệnĐến，\u8f6c\u6362cho base64...');
           try {
             const resp = await fetch(generatedImageUrl);
             const blob = await resp.blob();
@@ -1646,13 +1646,13 @@ ${gridItemsZh}
               reader.onerror = reject;
               reader.readAsDataURL(blob);
             });
-            console.log('[AutoContactSheet] HTTP→base64 转换成功，长度:', imageForSplit.length);
+            console.log('[AutoContactSheet] HTTP→base64 \u8f6c\u6362Thành công，Chiều dài:', imageForSplit.length);
           } catch (convertErr) {
-            console.warn('[AutoContactSheet] HTTP→base64 转换失败，使用原URL:', convertErr);
+            console.warn('[AutoContactSheet] HTTP→base64 \u8f6c\u6362Thất bại，sử dụng\u539fURL:', convertErr);
           }
         }
 
-        console.log('[AutoContactSheet] 切割参数:', { expectedRows, expectedCols, expectedCount, aspectRatio: snapshotAspectRatio });
+        console.log('[AutoContactSheet] \u5207\u5272Tham số:', { expectedRows, expectedCols, expectedCount, aspectRatio: snapshotAspectRatio });
 
         const splitResults = await splitStoryboardImage(imageForSplit, {
           aspectRatio: snapshotAspectRatio,
@@ -1666,16 +1666,16 @@ ${gridItemsZh}
           },
         });
 
-        console.log('[AutoContactSheet] 切割完成，结果数量:', splitResults.length);
+        console.log('[AutoContactSheet] \u5207\u5272Hoàn thành，kết quả\u6570\u91cf:', splitResults.length);
 
-        // 如果 snapshotViewpoints 为空（用户手动编辑提示词，未走视角生成流程），
-        // 自动生成 fallback 视角以匹配切割结果
+        // Chẳng hạn như\u679c snapshotViewpoints cho\u7a7a（Người dùngManualChỉnh sửaPrompt，\u672ađiGóc nhìnTạoquá trình），
+        // Tự động Tạo fallback Góc nhìn\u4ee5trận đấu\u5207\u5272kết quả
         let effectiveViewpoints = snapshotViewpoints;
         if (effectiveViewpoints.length === 0 && splitResults.length > 0) {
-          console.log('[AutoContactSheet] 视角为空，自动生成 fallback 视角，数量:', splitResults.length);
+          console.log('[AutoContactSheet] Góc nhìncho\u7a7a，Tự động Tạo fallback Góc nhìn，\u6570\u91cf:', splitResults.length);
           effectiveViewpoints = splitResults.map((sr, idx) => ({
             id: `auto-vp-${idx}-${Date.now()}`,
-            name: `视角-${idx + 1}`,
+            name: `Góc nhìn-${idx + 1}`,
             nameEn: `Viewpoint-${idx + 1}`,
             shotIds: [] as string[],
             shotIndexes: [] as number[],
@@ -1686,28 +1686,28 @@ ${gridItemsZh}
           }));
         }
 
-        console.log('[AutoContactSheet] 有效视角数量:', effectiveViewpoints.length);
-        // 调试：输出每个视角的 gridIndex
+        console.log('[AutoContactSheet] Có\u6548Góc nhìnSố lượng:', effectiveViewpoints.length);
+        // Gỡ lỗi：Đầu ra\u6bcfGóc nhìncủa gridIndex
         effectiveViewpoints.forEach((vp, i) => {
-          console.log(`[AutoContactSheet] 视角[${i}]: id=${vp.id}, name=${vp.name}, gridIndex=${vp.gridIndex}`);
+          console.log(`[AutoContactSheet] Góc nhìn[${i}]: id=${vp.id}, name=${vp.name}, gridIndex=${vp.gridIndex}`);
         });
 
-        // 将切割结果映射到视角 — 双重映射策略：优先直接索引，回退到 row/col 查找
+        // \u5c06\u5207\u5272kết quả\u6620\u5c04ĐếnGóc nhìn — \u53cc\u91cd\u6620\u5c04Chiến lược：Ưu tiên\u76f4\u63a5\u7d22\u5f15，\u56de\u9000Đến row/col \u67e5\u627e
         const viewpointImagesMap: Record<string, { imageUrl: string; gridIndex: number }> = {};
         for (const vp of effectiveViewpoints) {
           const gridIdx = vp.gridIndex;
-          // 策略 1: 直接索引 — splitResults 按行优先排列，gridIndex 直接对应
+          // Chiến lược 1: \u76f4\u63a5\u7d22\u5f15 — splitResults \u6309được rồiƯu tiên\u6392Cột，gridIndex \u76f4\u63a5\u5bf9\u5e94
           let splitResult = (gridIdx >= 0 && gridIdx < splitResults.length) ? splitResults[gridIdx] : undefined;
-          // 验证：直接索引的 row/col 应该 = gridIndex 整除和取模
+          // \u9a8c\u8bc1：\u76f4\u63a5\u7d22\u5f15của row/col \u5e94\u8be5 = gridIndex \u6574\u9664và\u53d6\u6a21
           if (splitResult) {
             const expectRow = Math.floor(gridIdx / expectedCols);
             const expectCol = gridIdx % expectedCols;
             if (splitResult.row !== expectRow || splitResult.col !== expectCol) {
-              console.warn(`[AutoContactSheet] 直接索引不匹配: gridIndex=${gridIdx}, split[row=${splitResult.row},col=${splitResult.col}] vs expected[row=${expectRow},col=${expectCol}]`);
-              splitResult = undefined; // 不匹配，回退到查找
+              console.warn(`[AutoContactSheet] \u76f4\u63a5\u7d22\u5f15không có trận đấu: gridIndex=${gridIdx}, split[row=${splitResult.row},col=${splitResult.col}] vs expected[row=${expectRow},col=${expectCol}]`);
+              splitResult = undefined; // không có trận đấu，\u56de\u9000Đến\u67e5\u627e
             }
           }
-          // 策略 2: row/col 查找
+          // Chiến lược 2: row/col \u67e5\u627e
           if (!splitResult) {
             const row = Math.floor(gridIdx / expectedCols);
             const col = gridIdx % expectedCols;
@@ -1716,20 +1716,20 @@ ${gridItemsZh}
           if (splitResult) {
             viewpointImagesMap[vp.id] = { imageUrl: splitResult.dataUrl, gridIndex: vp.gridIndex };
           } else {
-            console.warn(`[AutoContactSheet] 视角 ${vp.name}(gridIndex=${gridIdx}) 未找到对应切割结果`);
+            console.warn(`[AutoContactSheet] Góc nhìn ${vp.name}(gridIndex=${gridIdx}) \u672atìm thấy\u5bf9\u5e94\u5207\u5272kết quả`);
           }
         }
 
         const mappedCount = Object.keys(viewpointImagesMap).length;
-        console.log('[AutoContactSheet] 映射结果数量:', mappedCount, '/', effectiveViewpoints.length);
+        console.log('[AutoContactSheet] \u6620\u5c04kết quả\u6570\u91cf:', mappedCount, '/', effectiveViewpoints.length);
 
-        // ===== 安全回退：如果映射全部失败但切割有结果，直接使用切割结果创建子场景 =====
+        // ===== \u5b89\u5168\u56de\u9000：Chẳng hạn như\u679c\u6620\u5c04Tất cảThất bại\u4f46\u5207\u5272Cókết quả，Sử dụng trực tiếp\u5207\u5272kết quảTạo\u5b50Cảnh =====
         if (mappedCount === 0 && splitResults.length > 0) {
-          console.warn('[AutoContactSheet] ⚠ 映射全部失败！启用安全回退：直接使用切割结果创建子场景');
-          // 重建 effectiveViewpoints 和 viewpointImagesMap
+          console.warn('[AutoContactSheet] ⚠ \u6620\u5c04Tất cảThất bại！\u542fsử dụng\u5b89\u5168\u56de\u9000：Sử dụng trực tiếp\u5207\u5272kết quảTạo\u5b50Cảnh');
+          // \u91cd\u5efa effectiveViewpoints và viewpointImagesMap
           effectiveViewpoints = splitResults.map((sr, idx) => ({
             id: `fallback-vp-${idx}-${Date.now()}`,
-            name: `视角-${idx + 1}`,
+            name: `Góc nhìn-${idx + 1}`,
             nameEn: `Viewpoint-${idx + 1}`,
             shotIds: [] as string[],
             shotIndexes: [] as number[],
@@ -1741,22 +1741,22 @@ ${gridItemsZh}
           effectiveViewpoints.forEach((vp, idx) => {
             viewpointImagesMap[vp.id] = { imageUrl: splitResults[idx].dataUrl, gridIndex: idx };
           });
-          console.log('[AutoContactSheet] 回退后映射数量:', Object.keys(viewpointImagesMap).length);
+          console.log('[AutoContactSheet] \u56de\u9000\u540e\u6620\u5c04\u6570\u91cf:', Object.keys(viewpointImagesMap).length);
         }
 
-        // ==================== 阶段 3: 保存子场景 ====================
-        setContactSheetTask(parentSceneId, { status: 'saving', progress: 80, message: '正在保存视角...' });
+        // ==================== \u9636\u6bb5 3: Lưu\u5b50Cảnh ====================
+        setContactSheetTask(parentSceneId, { status: 'saving', progress: 80, message: '\u6b63\u5728LưuGóc nhìn...' });
 
         const { scenes: currentScenes } = useSceneStore.getState();
         const parentScene = currentScenes.find(s => s.id === parentSceneId);
         if (!parentScene) {
-          throw new Error('父场景已被删除');
+          throw new Error('Phụ huynh CảnhĐã rồi\u88abXoá');
         }
         const parentSceneName = parentScene.name || parentScene.location;
         const targetFolderId = parentScene.folderId;
         const createdVariantIds: string[] = [];
 
-        // 补全分镜 shotIds — 使用 effectiveViewpoints（含 fallback）
+        // \u8865\u5168Phân cảnh shotIds — sử dụng effectiveViewpoints（\u542b fallback）
         let viewpointsToSave = effectiveViewpoints.map((vp) => ({
           ...vp,
           shotIds: [...(vp.shotIds || [])],
@@ -1781,12 +1781,12 @@ ${gridItemsZh}
           }
         }
 
-        console.log('[AutoContactSheet] 阶段3: 准备保存子场景, viewpointsToSave:', viewpointsToSave.length, 'viewpointImagesMap条目:', Object.keys(viewpointImagesMap).length);
+        console.log('[AutoContactSheet] \u9636\u6bb53: \u51c6\u5907Lưu\u5b50Cảnh, viewpointsToSave:', viewpointsToSave.length, 'viewpointImagesMap\u6761\u76ee:', Object.keys(viewpointImagesMap).length);
 
         for (const vp of viewpointsToSave) {
           const imgData = viewpointImagesMap[vp.id];
           if (!imgData) {
-            console.warn(`[AutoContactSheet] 跳过视角 ${vp.name}: viewpointImagesMap 中无对应数据 (id=${vp.id})`);
+            console.warn(`[AutoContactSheet] bỏ quaGóc nhìn ${vp.name}: viewpointImagesMap trongkhông có\u5bf9\u5e94\u6570\u636e (id=${vp.id})`);
             continue;
           }
 
@@ -1820,7 +1820,7 @@ ${gridItemsZh}
           const aiFolder = getOrCreateCategoryFolder('ai-image');
           addMediaFromUrl({
             url: localPath,
-            name: `场景-${variantName}`,
+            name: `Cảnh-${variantName}`,
             type: 'image',
             source: 'ai-image',
             folderId: aiFolder,
@@ -1828,7 +1828,7 @@ ${gridItemsZh}
           });
         }
 
-        // 保存联合图到父场景（同时兼容 base64 和 imageForSplit 已转换过的）
+        // Lưu\u8054\u5408\u56feĐếnPhụ huynh Cảnh（\u540c\u65f6\u517c\u5bb9 base64 và imageForSplit Đã rồi\u8f6c\u6362\u8fc7của）
         let localContactSheet: string | null = imageForSplit || generatedImageUrl;
         const imageToSave = imageForSplit || generatedImageUrl;
         if (imageToSave && (imageToSave.startsWith('data:') || imageToSave.startsWith('http'))) {
@@ -1842,7 +1842,7 @@ ${gridItemsZh}
             const csAiFolder = getOrCreateCategoryFolder('ai-image');
             addMediaFromUrl({
               url: csPath,
-              name: `联合图-${parentSceneName}`,
+              name: `\u8054\u5408\u56fe-${parentSceneName}`,
               type: 'image',
               source: 'ai-image',
               folderId: csAiFolder,
@@ -1864,31 +1864,31 @@ ${gridItemsZh}
           viewpoints: viewpointsData,
         } as any);
 
-        // ==================== 完成 ====================
-        console.log('[AutoContactSheet] ✅ 流水线完成:', {
+        // ==================== Hoàn thành ====================
+        console.log('[AutoContactSheet] ✅ nước chảy\u7ebfHoàn thành:', {
           parentSceneId,
           childScenesCreated: createdVariantIds.length,
           splitResultsCount: splitResults.length,
           viewpointsMapped: Object.keys(viewpointImagesMap).length,
         });
-        setContactSheetTask(parentSceneId, { status: 'done', progress: 100, message: `完成，已创建 ${createdVariantIds.length} 个子场景` });
+        setContactSheetTask(parentSceneId, { status: 'done', progress: 100, message: `Hoàn thành，Đã Tạo ${createdVariantIds.length} một\u5b50Cảnh` });
         if (createdVariantIds.length > 0) {
-          toast.success(`场景「${parentSceneName}」联合图已切割保存，共 ${createdVariantIds.length} 个视角子场景（点击展开查看）`);
+          toast.success(`Cảnh「${parentSceneName}」\u8054\u5408\u56feĐã rồi\u5207\u5272Lưu，tổng cộng ${createdVariantIds.length} Góc nhìn\u5b50Cảnh（\u70b9\u51fbMở rộng\u67e5\u770b）`);
         } else {
-          toast.warning(`场景「${parentSceneName}」联合图已保存，但未能创建子场景（切割结果: ${splitResults.length} 个）`);
+          toast.warning(`Cảnh「${parentSceneName}」\u8054\u5408\u56feĐã Lưu，\u4f46\u672a\u80fdTạo\u5b50Cảnh（\u5207\u5272kết quả: ${splitResults.length} một）`);
         }
 
-        // 3秒后清除完成状态
+        // 3giây\u540e\u6e05\u9664Hoàn thànhTrạng thái
         setTimeout(() => {
           setContactSheetTask(parentSceneId, null);
         }, 3000);
 
       } catch (error) {
         const err = error as Error;
-        console.error('[AutoContactSheet] 自动流水线失败:', err);
+        console.error('[AutoContactSheet] \u81ea\u52a8nước chảy\u7ebfThất bại:', err);
         setContactSheetTask(parentSceneId, { status: 'error', progress: 0, message: err.message });
-        toast.error(`场景联合图自动生成失败: ${err.message}`);
-        // 10秒后清除错误状态
+        toast.error(`CảnhĐồ thị chung T tự độngạoThất bại: ${err.message}`);
+        // 10 giây\u540e\u6e05\u9664LỗiTrạng thái
         setTimeout(() => {
           setContactSheetTask(parentSceneId, null);
         }, 10000);
@@ -1897,18 +1897,18 @@ ${gridItemsZh}
   };
 
   /**
-   * 清除批量四视图状态
+   * \u6e05\u9664lô\u91cfbốn\u89c6\u56feTrạng thái
    */
   const handleClearBatchOrthographic = () => {
     setSavedChildSceneIds([]);
   };
 
   /**
-   * 批量生成四视图（为所有子场景）
+   * Lô Tạobốn\u89c6\u56fe（choTất cả\u5b50Cảnh）
    */
   const handleBatchGenerateOrthographic = async () => {
     if (savedChildSceneIds.length === 0) {
-      toast.error("没有可处理的子场景");
+      toast.error("\u6ca1Có\u53ef\u5904\u7406của\u5b50Cảnh");
       return;
     }
 
@@ -1924,18 +1924,18 @@ ${gridItemsZh}
       .filter(Boolean) as Scene[];
 
     if (childScenes.length === 0) {
-      toast.error("找不到子场景");
+      toast.error("\u627e\u4e0dĐến\u5b50Cảnh");
       return;
     }
 
-    toast.info(`开始为 ${childScenes.length} 个子场景生成四视图...`);
+    toast.info(`Bắt đầbạn là ${childScenes.length} một\u5b50CảnhTạobốn\u89c6\u56fe...`);
 
     let successCount = 0;
     let failCount = 0;
 
     for (const childScene of childScenes) {
       try {
-        // 生成四视图提示词
+        // Tạobốn\u89c6\u56fePrompt
         const { anchor, walls } = extractSpatialAssets(childScene);
         const sceneName = childScene.name || childScene.location || 'the scene';
         const stylePreset = getStyleById(childScene.styleId || styleId);
@@ -1955,10 +1955,10 @@ No characters, empty environment.`;
           ? 'blurry, low quality, watermark, text, people, characters, anime, cartoon, distorted grid'
           : 'blurry, low quality, watermark, text, people, characters, distorted grid';
 
-        // 收集参考图：优先用「全景」子场景 + 当前子场景图片
+        // Thu thậpHình ảnh tham khảo：Ưu tiênsử dụng「Toàn cảnh」\u5b50Cảnh + hiện tại\u5b50CảnhHình ảnh
         const rawReferenceImages: string[] = [];
         
-        // 1. 获取同一父场景下的「全景」子场景
+        // 1. \u83b7\u53d6\u540cmộtPhụ huynh Cảnh\u4e0bcủa「Toàn cảnh」\u5b50Cảnh
         let overviewImage: string | null = null;
         if (childScene.parentSceneId) {
           const overviewScene = scenes.find(s => 
@@ -1971,7 +1971,7 @@ No characters, empty environment.`;
           if (!overviewImage) {
             const overviewByName = scenes.find(s => 
               s.parentSceneId === childScene.parentSceneId && 
-              (s.name?.includes('全景') || (s as any).viewpointName === '全景')
+              (s.name?.includes('Toàn cảnh') || (s as any).viewpointName === 'Toàn cảnh')
             );
             if (overviewByName?.referenceImage) {
               overviewImage = overviewByName.referenceImage;
@@ -1981,15 +1981,15 @@ No characters, empty environment.`;
         
         if (overviewImage) {
           rawReferenceImages.push(overviewImage);
-          console.log(`[批量四视图] ${childScene.name} 使用全景子场景作为参考`);
+          console.log(`[lô\u91cfbốn\u89c6\u56fe] ${childScene.name} sử dụngToàn cảnh\u5b50Cảnh để tham khảo`);
         }
         
-        // 2. 添加子场景自身的图片
+        // 2. Thêm\u5b50Cảnh\u81ea\u8eabHình ảnh
         if (childScene.referenceImage && childScene.referenceImage !== overviewImage) {
           rawReferenceImages.push(childScene.referenceImage);
         }
 
-        // 将 local-image:// 转换为 base64 以传给 API
+        // \u5c06 local-image:// \u8f6c\u6362cho base64 \u4ee5\u4f20\u7ed9 API
         const referenceImages: string[] = [];
         for (const ref of rawReferenceImages) {
           if (ref.startsWith('local-image://')) {
@@ -2000,7 +2000,7 @@ No characters, empty environment.`;
           }
         }
 
-        // 生成图片
+        // Tạo hình ảnh
         const result = await generateSceneImageAPI({
           prompt: promptEn,
           negativePrompt,
@@ -2009,7 +2009,7 @@ No characters, empty environment.`;
           referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
         });
 
-        // 切割
+        // \u5207\u5272
         const splitResults = await splitStoryboardImage(result.imageUrl, {
           aspectRatio: orthographicAspectRatio,
           resolution: '2K',
@@ -2017,12 +2017,12 @@ No characters, empty environment.`;
           options: { expectedRows: 2, expectedCols: 2, filterEmpty: false, edgeMarginPercent: 0.02 },
         });
 
-        // 保存 4 个视角子场景
+        // Lưu 4 Góc nhìn\u5b50Cảnh
         const viewLabels = [
-          { key: 'front', name: '正面', row: 0, col: 0 },
-          { key: 'back', name: '背面', row: 0, col: 1 },
-          { key: 'left', name: '左侧', row: 1, col: 0 },
-          { key: 'right', name: '右侧', row: 1, col: 1 },
+          { key: 'front', name: 'phía trước', row: 0, col: 0 },
+          { key: 'back', name: '\u80cc\u9762', row: 0, col: 1 },
+          { key: 'left', name: '\u5de6\u4fa7', row: 1, col: 0 },
+          { key: 'right', name: '\u53f3\u4fa7', row: 1, col: 1 },
         ];
 
         for (const view of viewLabels) {
@@ -2049,11 +2049,11 @@ No characters, empty environment.`;
               isViewpointVariant: true,
             } as any);
 
-            // 同步归档到素材库
+            // \u540c\u6b65\u5f52\u6863ĐếnChất liệu\u5e93
             const batchAiFolder = getOrCreateCategoryFolder('ai-image');
             addMediaFromUrl({
               url: localPath,
-              name: `场景-${childScene.name}-${view.name}`,
+              name: `Cảnh-${childScene.name}-${view.name}`,
               type: 'image',
               source: 'ai-image',
               folderId: batchAiFolder,
@@ -2063,28 +2063,28 @@ No characters, empty environment.`;
         }
 
         successCount++;
-        console.log(`[批量四视图] ${childScene.name} 完成`);
+        console.log(`[lô\u91cfbốn\u89c6\u56fe] ${childScene.name} Hoàn thành`);
       } catch (err) {
         failCount++;
-        console.error(`[批量四视图] ${childScene.name} 失败:`, err);
+        console.error(`[lô\u91cfbốn\u89c6\u56fe] ${childScene.name} Thất bại:`, err);
       }
     }
 
     setSavedChildSceneIds([]);
-    toast.success(`批量四视图完成！成功 ${successCount} 个，失败 ${failCount} 个`);
+    toast.success(`lô\u91cfbốn\u89c6\u56feHoàn thành！Thành công ${successCount} một，Thất bại ${failCount} một`);
   };
 
-  // ========== 四视图（正交视图）功能 ==========
+  // ========== bốn\u89c6\u56fe（\u6b63\u4ea4\u89c6\u56fe）chức năng ==========
 
   /**
-   * 从场景描述中提取空间资产
+   * Từ CảnhMô tảtrongTrích xuất\u7a7a\u95f4tài sản
    */
   const extractSpatialAssets = (scene: Scene) => {
     const locationParts = (scene.location || '').split(/[,，、。；;\n]/).filter(Boolean);
     const visualParts = (scene.visualPrompt || '').split(/[,，、。；;\n]/).filter(Boolean);
     
-    // 尝试识别场景中的主要物体作为 ANCHOR
-    const commonAnchors = ['桌', '椅', '床', '沙发', '柜', '台', '架', '灯', '门', '窗'];
+    // \u5c1d\u8bd5\u8bc6\u522bCảnhtrongcủachính\u7269\u4f53\u4f5ccho ANCHOR
+    const commonAnchors = ['\u684c', '\u6905', 'giường', 'Sofa', '\u67dc', '\u53f0', '\u67b6', '\u706f', 'cửa', 'cửa sổ'];
     let anchor = locationParts[0] || scene.name || 'the central object';
     for (const part of [...locationParts, ...visualParts]) {
       for (const keyword of commonAnchors) {
@@ -2095,20 +2095,20 @@ No characters, empty environment.`;
       }
     }
 
-    // 生成四面墙的描述
+    // Tạobốn\u9762\u5899củaMô tả
     const wallDescriptions = {
-      north: '窗户和自然光',
-      south: '入口门',
-      west: '装饰墙或书架',
-      east: '家具或陈设',
+      north: 'các cửa sổvàánh sáng tự nhiên',
+      south: 'lối vàocửa',
+      west: '\u88c5\u9970\u5899hoặcgiá sách',
+      east: 'nhà\u5177hoặc\u9648\u8bbe',
     };
 
-    // 从视觉描述中尝试提取墙面信息
+    // từTầm nhìn Mô tảtrong\u5c1d\u8bd5Trích xuất\u5899\u9762thông tin
     const wallKeywords = {
-      window: ['窗', 'window', '阳光', 'sunlight'],
-      door: ['门', 'door', '入口', 'entrance'],
-      shelf: ['架', 'shelf', '柜', 'cabinet', '书'],
-      decoration: ['画', '装饰', 'decoration', 'art'],
+      window: ['cửa sổ', 'window', '\u9633\u5149', 'sunlight'],
+      door: ['cửa', 'door', 'lối vào', 'entrance'],
+      shelf: ['\u67b6', 'shelf', '\u67dc', 'cabinet', '\u4e66'],
+      decoration: ['\u753b', '\u88c5\u9970', 'decoration', 'art'],
     };
 
     for (const part of [...locationParts, ...visualParts]) {
@@ -2127,22 +2127,22 @@ No characters, empty environment.`;
   };
 
   /**
-   * 生成四视图（正交视图）提示词
+   * Tạobốn\u89c6\u56fe（\u6b63\u4ea4\u89c6\u56fe）Prompt
    */
   const handleGenerateOrthographicPrompt = () => {
     if (!selectedScene) {
-      toast.error("请先选择场景");
+      toast.error("\u8bf7đầu tiên\u9009\u62e9Cảnh");
       return;
     }
 
     const { anchor, walls } = extractSpatialAssets(selectedScene);
     const sceneName = selectedScene.name || selectedScene.location || 'the scene';
     
-    // 获取风格 tokens
+    // Nhận Phong cách tokens
     const stylePreset = getStyleById(styleId);
     const styleTokens = stylePreset?.prompt || 'anime style';
 
-    // 英文提示词
+    // Tiếng AnhNhắc
     const promptEn = `A professional orthographic concept sheet arranged in a precise 2x2 grid, depicting ${sceneName} from four cardinal angles with perfect spatial continuity. ${styleTokens}, detailed environment concept art.
 
 **Top-Left (Front View):**
@@ -2159,34 +2159,34 @@ A side profile shot of ${anchor} from the right. The background is the opposite 
 
 Unified by flat, neutral cinematic lighting to ensure texture visibility. No characters, empty environment.`;
 
-    // 中文提示词
-    const promptZh = `专业正交概念图，精确的 2x2 网格排列，展示「${sceneName}」的四个基本视角，保持完美的空间连续性。${stylePreset?.name || '动画风格'}，详细的环境概念艺术。
+    // Lời nhắc tiếng Trung
+    const promptZh = `\u4e13\u4e1a\u6b63\u4ea4khái niệm\u56fe，\u7cbe\u786ecủa 2x2 \u7f51\u683c\u6392Cột，hiển thị「${sceneName}」củabốnmột\u57fa\u672cGóc nhìn，giữ\u5b8c\u7f8ecủa\u7a7a\u95f4\u8fde\u7eed\u6027。${stylePreset?.name || 'Hoạt ảnhPhong cách'}，\u8be6\u7ec6củamôi trườngkhái niệm\u827a\u672f。
 
-**左上（正面视图）：**
-${anchor} 的正面直视镜头。清晰展示正面细节。背景是其后方的墙壁，包含 ${walls.south}。
+**\u5de6\u4e0a（phía trước\u89c6\u56fe）：**
+${anchor} củaphía trước\u76f4\u89c6Cảnh quay。\u6e05\u6670hiển thịphía trướcChi tiết。Nền\u662f\u5176\u540e\u65b9của\u5899\u58c1，chứa ${walls.south}。
 
-**右上（背面视图）：**
-${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的墙壁，包含 ${walls.north}。
+**\u53f3\u4e0a（\u80cc\u9762\u89c6\u56fe）：**
+${anchor} của\u80cc\u9762\u76f4\u89c6Cảnh quay。hiển thị\u540e\u90e8\u7ed3\u6784。Nền\u662f\u7269\u4f53\u9762\u5411của\u5899\u58c1，chứa ${walls.north}。
 
-**左下（左侧视图）：**
-从左侧拍摄的 ${anchor} 侧面镜头。背景是对面的墙壁，严格包含 ${walls.east}。
+**\u5de6\u4e0b（\u5de6\u4fa7\u89c6\u56fe）：**
+từ\u5de6Bắn bên\u6444của ${anchor} \u4fa7\u9762Cảnh quay。Nền\u662f\u5bf9\u9762của\u5899\u58c1，\u4e25\u683cchứa ${walls.east}。
 
-**右下（右侧视图）：**
-从右侧拍摄的 ${anchor} 侧面镜头。背景是对面的墙壁，严格包含 ${walls.west}。
+**\u53f3\u4e0b（\u53f3\u4fa7\u89c6\u56fe）：**
+từ\u53f3Bắn bên\u6444của ${anchor} \u4fa7\u9762Cảnh quay。Nền\u662f\u5bf9\u9762của\u5899\u58c1，\u4e25\u683cchứa ${walls.west}。
 
-使用平坦、中性的电影光照以确保纹理可见。无角色，空场景。`;
+sử dụngbằng phẳng、trong\u6027của\u7535\u5f71\u5149\u7167\u4ee5\u786e\u4fdd\u7eb9\u7406\u53ef\u89c1。không cóNhân vật，\u7a7aCảnh。`;
 
     setOrthographicPrompt(promptEn);
     setOrthographicPromptZh(promptZh);
-    toast.success("四视图提示词已生成");
+    toast.success("bốn\u89c6\u56fePromptĐã Tạo");
   };
 
   /**
-   * 生成四视图图片
+   * Tạobốn\u89c6\u56feHình ảnh
    */
   const handleGenerateOrthographicImage = async () => {
     if (!orthographicPrompt) {
-      toast.error("请先生成提示词");
+      toast.error("\u8bf7đầu tiênTạoPrompt");
       return;
     }
 
@@ -2208,10 +2208,10 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
 
       setOrthographicProgress(20);
 
-      // 收集参考图：优先使用「全景」子场景，而不是整张联合图
+      // Thu thậpHình ảnh tham khảo：Ưu tiênsử dụng「Toàn cảnh」\u5b50Cảnh，thay vì\u6574\u5f20\u8054\u5408\u56fe
       const rawRefs: string[] = [];
       
-      // 1. 尝试获取「全景」子场景的图片（最高优先级）
+      // 1. \u5c1d\u8bd5\u83b7\u53d6「Toàn cảnh」\u5b50CảH của nhình ảnh（ưu tiên cao nhất）
       let overviewImage: string | null = null;
       
       if (selectedScene?.parentSceneId) {
@@ -2222,33 +2222,33 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
         );
         if (overviewScene?.referenceImage) {
           overviewImage = overviewScene.referenceImage;
-          console.log('[Orthographic] 找到全景子场景作为参考');
+          console.log('[Orthographic] tìm thấyToàn cảnh\u5b50Cảnh để tham khảo');
         }
         
         if (!overviewImage) {
           const overviewByName = scenes.find(s => 
             s.parentSceneId === selectedScene.parentSceneId && 
-            (s.name?.includes('全景') || (s as any).viewpointName === '全景')
+            (s.name?.includes('Toàn cảnh') || (s as any).viewpointName === 'Toàn cảnh')
           );
           if (overviewByName?.referenceImage) {
             overviewImage = overviewByName.referenceImage;
-            console.log('[Orthographic] 按名称找到全景子场景');
+            console.log('[Orthographic] \u6309Têntìm thấyToàn cảnh\u5b50Cảnh');
           }
         }
       }
       
       if (overviewImage) {
         rawRefs.push(overviewImage);
-        console.log('[Orthographic] 使用全景子场景作为主参考');
+        console.log('[Orthographic] sử dụngToàn cảnh\u5b50Cảnh\u4f5cchoChúa ơiTài liệu tham khảo');
       }
       
-      // 2. 添加当前选中场景的参考图
+      // 2. Thêmhiện tại\u9009Trung bình CảnhHình ảnh tham khảo
       if (selectedScene?.referenceImage && selectedScene.referenceImage !== overviewImage) {
         rawRefs.push(selectedScene.referenceImage);
-        console.log('[Orthographic] 添加子场景图片作为辅助参考');
+        console.log('[Orthographic] Thêm\u5b50CảnhHình ảnh\u4f5cchophụ trợTài liệu tham khảo');
       }
 
-      // 将 local-image:// 转换为 base64 以传给 API
+      // \u5c06 local-image:// \u8f6c\u6362cho base64 \u4ee5\u4f20\u7ed9 API
       const referenceImages: string[] = [];
       for (const ref of rawRefs) {
         if (ref.startsWith('local-image://')) {
@@ -2269,11 +2269,11 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
 
       setOrthographicProgress(100);
       setOrthographicImage(result.imageUrl);
-      toast.success("四视图生成成功，可以进行切割");
+      toast.success("bốn\u89c6\u56feTạoThành công，\u53ef\u4ee5\u8fdbđược rồi\u5207\u5272");
     } catch (error) {
       const err = error as Error;
-      console.error('[Orthographic] 生成失败:', err);
-      toast.error(`生成失败: ${err.message}`);
+      console.error('[Orthographic] TạoThất bại:', err);
+      toast.error(`TạoThất bại: ${err.message}`);
     } finally {
       setIsGeneratingOrthographic(false);
       setOrthographicProgress(0);
@@ -2281,7 +2281,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
   };
 
   /**
-   * 上传四视图（备用）
+   * Tải lênbốn\u89c6\u56fe（dự phòng）
    */
   const handleUploadOrthographic = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2291,25 +2291,25 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setOrthographicImage(dataUrl);
-      toast.success("四视图已上传，可以进行切割");
+      toast.success("bốn\u89c6\u56feĐã Tải lên，\u53ef\u4ee5\u8fdbđược rồi\u5207\u5272");
     };
     reader.readAsDataURL(file);
   };
 
   /**
-   * 切割四视图 (2x2)
+   * \u5207\u5272bốn\u89c6\u56fe (2x2)
    */
   const handleSplitOrthographic = async () => {
     if (!orthographicImage) {
-      toast.error("请先生成或上传四视图");
+      toast.error("\u8bf7đầu tiênTạohoặcTải lênbốn\u89c6\u56fe");
       return;
     }
 
     setIsSplitting(true);
     try {
-      // 2x2 切割，支持 16:9 或 9:16
+      // 2x2 \u5207\u5272，Hỗ trợ 16:9 hoặc 9:16
       const splitResults = await splitStoryboardImage(orthographicImage, {
-        aspectRatio: orthographicAspectRatio, // 使用用户选择的宽高比
+        aspectRatio: orthographicAspectRatio, // sử dụngNgười dùng\u9009\u62e9của\u5bbd\u9ad8\u6bd4
         resolution: '2K',
         sceneCount: 4,
         options: {
@@ -2320,7 +2320,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
         },
       });
 
-      // 映射到四个视角: 左上=正面, 右上=背面, 左下=左侧, 右下=右侧
+      // \u6620\u5c04ĐếnbốnGóc nhìn: \u5de6\u4e0a=phía trước, \u53f3\u4e0a=\u80cc\u9762, \u5de6\u4e0b=\u5de6\u4fa7, \u53f3\u4e0b=\u53f3\u4fa7
       const viewMap: { front: string | null; back: string | null; left: string | null; right: string | null } = {
         front: null,
         back: null,
@@ -2336,37 +2336,37 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
       }
 
       setOrthographicViews(viewMap);
-      toast.success("已切割为 4 个视角图片");
+      toast.success("Đã rồi\u5207\u5272cho 4 Góc nhìnHình ảnh");
     } catch (error) {
-      console.error('[Orthographic] 切割失败:', error);
-      toast.error("切割失败，请检查图片格式");
+      console.error('[Orthographic] \u5207\u5272Thất bại:', error);
+      toast.error("\u5207\u5272Thất bại，\u8bf7\u68c0\u67e5Hình ảnhĐịnh dạng");
     } finally {
       setIsSplitting(false);
     }
   };
 
   /**
-   * 保存四视图到场景
+   * Lưubốn\u89c6\u56feĐếnCảnh
    */
   const handleSaveOrthographicViews = async () => {
     if (!selectedScene) {
-      toast.error("请先选择场景");
+      toast.error("\u8bf7đầu tiên\u9009\u62e9Cảnh");
       return;
     }
 
     const { front, back, left, right } = orthographicViews;
     if (!front && !back && !left && !right) {
-      toast.error("没有可保存的视角图片");
+      toast.error("\u6ca1Có\u53efLưucủaGóc nhìnHình ảnh");
       return;
     }
 
     const parentSceneName = selectedScene.name || selectedScene.location;
     const createdIds: string[] = [];
     const viewLabels = [
-      { key: 'front', name: '正面', nameEn: 'Front View', image: front },
-      { key: 'back', name: '背面', nameEn: 'Back View', image: back },
-      { key: 'left', name: '左侧', nameEn: 'Left View', image: left },
-      { key: 'right', name: '右侧', nameEn: 'Right View', image: right },
+      { key: 'front', name: 'phía trước', nameEn: 'Front View', image: front },
+      { key: 'back', name: '\u80cc\u9762', nameEn: 'Back View', image: back },
+      { key: 'left', name: '\u5de6\u4fa7', nameEn: 'Left View', image: left },
+      { key: 'right', name: '\u53f3\u4fa7', nameEn: 'Right View', image: right },
     ];
 
     for (const view of viewLabels) {
@@ -2396,11 +2396,11 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
         isViewpointVariant: true,
       } as any);
       
-      // 同步归档到素材库
+      // \u540c\u6b65\u5f52\u6863ĐếnChất liệu\u5e93
       const orthoAiFolder = getOrCreateCategoryFolder('ai-image');
       addMediaFromUrl({
         url: localPath,
-        name: `场景-${variantName}`,
+        name: `Cảnh-${variantName}`,
         type: 'image',
         source: 'ai-image',
         folderId: orthoAiFolder,
@@ -2410,14 +2410,14 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
       createdIds.push(variantId);
     }
 
-    // 保存四视图原图到父场景
+    // Lưubốn\u89c6\u56fe\u539f\u56feĐếnPhụ huynh Cảnh
     updateScene(selectedScene.id, {
       orthographicImage,
     } as any);
 
-    toast.success(`已创建 ${createdIds.length} 个正交视角场景`);
+    toast.success(`Đã Tạo ${createdIds.length} một\u6b63\u4ea4Góc nhìnCảnh`);
     
-    // 清空状态
+    // \u6e05\u7a7aTrạng thái
     setOrthographicPrompt(null);
     setOrthographicPromptZh(null);
     setOrthographicImage(null);
@@ -2425,7 +2425,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
   };
 
   /**
-   * 取消四视图操作
+   * Huỷbốn\u89c6\u56feThao tác
    */
   const handleCancelOrthographic = () => {
     setOrthographicPrompt(null);
@@ -2435,7 +2435,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
   };
 
   /**
-   * 复制四视图提示词
+   * \u590d\u5236bốn\u89c6\u56fePrompt
    */
   const handleCopyOrthographicPrompt = (isEnglish: boolean) => {
     const prompt = isEnglish ? orthographicPrompt : orthographicPromptZh;
@@ -2446,32 +2446,32 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
     
     const fullPrompt = isEnglish
       ? `=== Orthographic View Settings ===\nStyle: ${styleName}\nAspect Ratio: ${orthographicAspectRatio}\nGrid Layout: 2x2\n\n=== Prompt ===\n${prompt}`
-      : `=== 四视图设置 ===\n视觉风格: ${styleName}\n宽高比: ${orthographicAspectRatio}\n网格布局: 2x2\n\n=== 提示词 ===\n${prompt}`;
+      : `=== bốn\u89c6\u56feCài đặt ===\nTầm nhìn Phong cách: ${styleName}\n\u5bbd\u9ad8\u6bd4: ${orthographicAspectRatio}\nbố trí lưới: 2x2\n\n=== Prompt ===\n${prompt}`;
     
     navigator.clipboard.writeText(fullPrompt);
-    toast.success(isEnglish ? "英文提示词已复制" : "中文提示词已复制");
+    toast.success(isEnglish ? "Tiếng AnhNhắcĐã rồi\u590d\u5236" : "Lời nhắc tiếng TrungĐã rồi\u590d\u5236");
   };
 
-  // ========== 四视图 UI ==========
+  // ========== bốn\u89c6\u56fe UI ==========
   if (orthographicPrompt) {
     return (
       <div className="h-full flex flex-col">
         <div className="p-3 pb-2 border-b flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Box className="h-4 w-4" />
-            <h3 className="font-medium text-sm">四视图（正交视图）</h3>
+            <h3 className="font-medium text-sm">bốn\u89c6\u56fe（\u6b63\u4ea4\u89c6\u56fe）</h3>
           </div>
           <Button variant="ghost" size="sm" onClick={handleCancelOrthographic}>
-            取消
+            Huỷ
           </Button>
         </div>
         
         <ScrollArea className="flex-1 p-3">
           <div className="space-y-4">
-            {/* 视觉风格 + 宽高比 */}
+            {/* Tầm nhìn Phong cách + \u5bbd\u9ad8\u6bd4 */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
-                <Label className="text-xs">视觉风格</Label>
+                <Label className="text-xs">Tầm nhìn Phong cách</Label>
                 <StylePicker
                   value={styleId}
                   onChange={(id) => setStyleId(id)}
@@ -2479,52 +2479,52 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">宽高比</Label>
+                <Label className="text-xs">\u5bbd\u9ad8\u6bd4</Label>
                 <Select value={orthographicAspectRatio} onValueChange={(v) => setOrthographicAspectRatio(v as '16:9' | '9:16')} disabled={isGeneratingOrthographic}>
                   <SelectTrigger className="h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="16:9">16:9 横屏</SelectItem>
-                    <SelectItem value="9:16">9:16 竖屏</SelectItem>
+                    <SelectItem value="16:9">16:9 \u6a2a\u5c4f</SelectItem>
+                    <SelectItem value="9:16">9:16 \u7ad6\u5c4f</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* 视角说明 */}
+            {/* Góc nhìnGiải thích */}
             <div className="space-y-2">
-              <Label className="text-xs">视角布局 (2x2)</Label>
+              <Label className="text-xs">Góc nhìnBố cục (2x2)</Label>
               <div className="grid grid-cols-2 gap-1.5 text-xs">
                 <div className="p-2 rounded border bg-muted/50 text-center">
-                  <span className="font-medium">正面</span>
+                  <span className="font-medium">phía trước</span>
                   <span className="text-muted-foreground block">Front View</span>
                 </div>
                 <div className="p-2 rounded border bg-muted/50 text-center">
-                  <span className="font-medium">背面</span>
+                  <span className="font-medium">\u80cc\u9762</span>
                   <span className="text-muted-foreground block">Back View</span>
                 </div>
                 <div className="p-2 rounded border bg-muted/50 text-center">
-                  <span className="font-medium">左侧</span>
+                  <span className="font-medium">\u5de6\u4fa7</span>
                   <span className="text-muted-foreground block">Left Profile</span>
                 </div>
                 <div className="p-2 rounded border bg-muted/50 text-center">
-                  <span className="font-medium">右侧</span>
+                  <span className="font-medium">\u53f3\u4fa7</span>
                   <span className="text-muted-foreground block">Right Profile</span>
                 </div>
               </div>
             </div>
 
-            {/* 参考图预览（自动获取） */}
+            {/* Hình ảnh tham khảoXem trước（\u81ea\u52a8\u83b7\u53d6） */}
             {(() => {
-              // 计算参考图：优先用「全景」子场景
+              // Tính toánHình ảnh tham khảo：Ưu tiênsử dụng「Toàn cảnh」\u5b50Cảnh
               const referenceImages: { label: string; src: string }[] = [];
               
-              // 1. 查找「全景」子场景（最高优先级）
+              // 1. \u67e5\u627e「Toàn cảnh」\u5b50Cảnh（ưu tiên cao nhất）
               let overviewImage: string | null = null;
               if (selectedScene?.parentSceneId) {
                 const { scenes } = useSceneStore.getState();
-                // 查找同一父场景的所有子场景，找 viewpointId='overview' 的那个
+                // \u67e5\u627e\u540cmộtPhụ huynh CảnhTất cả\u5b50Cảnh，\u627e viewpointId='overview' của\u90a3một
                 const overviewScene = scenes.find(s => 
                   s.parentSceneId === selectedScene.parentSceneId && 
                   (s as any).viewpointId === 'overview'
@@ -2534,11 +2534,11 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 } else if (overviewScene?.referenceImageBase64) {
                   overviewImage = overviewScene.referenceImageBase64;
                 }
-                // 如果找不到，尝试按名称匹配
+                // Chẳng hạn như\u679c\u627e\u4e0dĐến，\u5c1d\u8bd5\u6309Têntrận đấu
                 if (!overviewImage) {
                   const overviewByName = scenes.find(s => 
                     s.parentSceneId === selectedScene.parentSceneId && 
-                    (s.name?.includes('全景') || (s as any).viewpointName === '全景')
+                    (s.name?.includes('Toàn cảnh') || (s as any).viewpointName === 'Toàn cảnh')
                   );
                   if (overviewByName?.referenceImage) {
                     overviewImage = overviewByName.referenceImage;
@@ -2546,21 +2546,21 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 }
               }
               if (overviewImage) {
-                referenceImages.push({ label: '全景参考', src: overviewImage });
+                referenceImages.push({ label: 'Toàn cảnh tham khảo', src: overviewImage });
               }
               
-              // 2. 当前子场景图片
+              // 2. hiện tại\u5b50CảnhHình ảnh
               if (selectedScene?.referenceImage && selectedScene.referenceImage !== overviewImage) {
-                referenceImages.push({ label: '当前视角', src: selectedScene.referenceImage });
+                referenceImages.push({ label: 'hiện tạiGóc nhìn', src: selectedScene.referenceImage });
               } else if (selectedScene?.referenceImageBase64 && selectedScene.referenceImageBase64 !== overviewImage) {
-                referenceImages.push({ label: '当前视角', src: selectedScene.referenceImageBase64 });
+                referenceImages.push({ label: 'hiện tạiGóc nhìn', src: selectedScene.referenceImageBase64 });
               }
               
               if (referenceImages.length === 0) return null;
               
               return (
                 <div className="space-y-2">
-                  <Label className="text-xs">参考图（自动获取）</Label>
+                  <Label className="text-xs">Hình ảnh tham khảo（\u81ea\u52a8\u83b7\u53d6）</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {referenceImages.map((ref, idx) => (
                       <div key={idx} className="space-y-1">
@@ -2578,13 +2578,13 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                     ))}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    💡 使用「全景」子场景作为主参考，确保四视图风格一致
+                    💡 sử dụng「Toàn cảnh」\u5b50Cảnh\u4f5cchoChúa ơiTài liệu tham khảo，\u786e\u4fddbốn\u89c6\u56fePhong cáchmột\u81f4
                   </p>
                 </div>
               );
             })()}
 
-            {/* 生成按钮 */}
+            {/* Tạo\u6309\u94ae */}
             {!orthographicImage && (
               <div className="space-y-2">
                 <Button 
@@ -2595,18 +2595,18 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   {isGeneratingOrthographic ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      生成中... {orthographicProgress}%
+                      Tạotrong... {orthographicProgress}%
                     </>
                   ) : (
                     <>
                       <Box className="h-4 w-4 mr-2" />
-                      生成四视图
+                      Tạobốn\u89c6\u56fe
                     </>
                   )}
                 </Button>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">或</span>
+                  <span className="text-xs text-muted-foreground">hoặc</span>
                   <div className="flex-1 h-px bg-border" />
                 </div>
                 <label className="block">
@@ -2619,37 +2619,37 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   />
                   <div className="flex items-center justify-center gap-2 p-2 border border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors">
                     <Upload className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">上传已有图片</span>
+                    <span className="text-xs text-muted-foreground">Tải lênĐã rồiCóHình ảnh</span>
                   </div>
                 </label>
               </div>
             )}
 
-            {/* 提示词（默认展开，可编辑，根据语言偏好只显示一种） */}
+            {/* Prompt（Mặc địnhMở rộng，Cán Chỉnh sửa，\u6839\u636engôn ngữ\u504f\u597d\u53ea\u663e\u793amột\u79cd） */}
             <details className="group" open>
               <summary className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                 <span className="group-open:rotate-90 transition-transform">▶</span>
-                四视图提示词（可编辑，修改后直接用于生成）
+                bốn\u89c6\u56fePrompt（Cán Chỉnh sửa，Sửa\u540e\u76f4\u63a5cho Tạo）
               </summary>
               <div className="mt-2 space-y-2">
                 {(() => {
                   const effectiveLang = promptLanguage || scriptProject?.promptLanguage || 'zh';
                   const isZh = effectiveLang === 'zh' || effectiveLang === 'zh+en';
-                  const langLabel = isZh ? '中文' : 'English';
+                  const langLabel = isZh ? 'Tiếng Trung' : 'English';
                   const currentValue = isZh
                     ? (orthographicPromptZh || orthographicPrompt || '')
                     : (orthographicPrompt || orthographicPromptZh || '');
                   return (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs">生成提示词（{langLabel}，修改后直接用于生成）</Label>
+                        <Label className="text-xs">TạoPrompt（{langLabel}，Sửa\u540e\u76f4\u63a5cho Tạo）</Label>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-5 px-2 text-xs"
                           onClick={() => handleCopyOrthographicPrompt(isZh ? false : true)}
                         >
-                          <Copy className="h-3 w-3 mr-1" />复制
+                          <Copy className="h-3 w-3 mr-1" />\u590d\u5236
                         </Button>
                       </div>
                       <Textarea
@@ -2657,7 +2657,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                         onChange={(e) => {
                           if (isZh) {
                             setOrthographicPromptZh(e.target.value);
-                            // 同步更新实际发送的提示词
+                            // \u540c\u6b65Cập nhật\u5b9e\u9645\u53d1\u9001củaPrompt
                             setOrthographicPrompt(e.target.value);
                           } else {
                             setOrthographicPrompt(e.target.value);
@@ -2671,14 +2671,14 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               </div>
             </details>
 
-            {/* 四视图预览 */}
+            {/* bốn\u89c6\u56feXem trước */}
             {orthographicImage && (
               <div className="space-y-2">
-                <Label className="text-xs">四视图预览 ({orthographicAspectRatio})</Label>
+                <Label className="text-xs">bốn\u89c6\u56feXem trước ({orthographicAspectRatio})</Label>
                 <div className={`relative rounded-lg overflow-hidden border bg-muted ${orthographicAspectRatio === '16:9' ? 'aspect-video' : 'aspect-[9/16]'}`}>
                   <img 
                     src={orthographicImage} 
-                    alt="四视图预览"
+                    alt="bốn\u89c6\u56feXem trước"
                     className="w-full h-full object-contain"
                   />
                 </div>
@@ -2690,28 +2690,28 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   {isSplitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      切割中...
+                      \u5207\u5272trong...
                     </>
                   ) : (
                     <>
                       <Scissors className="h-4 w-4 mr-2" />
-                      切割为 4 个视角
+                      \u5207\u5272cho 4 Góc nhìn
                     </>
                   )}
                 </Button>
               </div>
             )}
 
-            {/* 切割结果预览 */}
+            {/* \u5207\u5272kết quảXem trước */}
             {(orthographicViews.front || orthographicViews.back || orthographicViews.left || orthographicViews.right) && (
               <div className="space-y-2">
-                <Label className="text-xs">切割结果</Label>
+                <Label className="text-xs">\u5207\u5272kết quả</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { key: 'front', name: '正面', image: orthographicViews.front },
-                    { key: 'back', name: '背面', image: orthographicViews.back },
-                    { key: 'left', name: '左侧', image: orthographicViews.left },
-                    { key: 'right', name: '右侧', image: orthographicViews.right },
+                    { key: 'front', name: 'phía trước', image: orthographicViews.front },
+                    { key: 'back', name: '\u80cc\u9762', image: orthographicViews.back },
+                    { key: 'left', name: '\u5de6\u4fa7', image: orthographicViews.left },
+                    { key: 'right', name: '\u53f3\u4fa7', image: orthographicViews.right },
                   ].map((view) => (
                     <div key={view.key} className="space-y-1">
                       <div className={`relative rounded overflow-hidden border bg-muted ${orthographicAspectRatio === '16:9' ? 'aspect-video' : 'aspect-[9/16]'}`}>
@@ -2735,7 +2735,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 </div>
                 <Button onClick={handleSaveOrthographicViews} className="w-full">
                   <Check className="h-4 w-4 mr-2" />
-                  保存视角图片到场景
+                  LưuGóc nhìnHình ảnhĐếnCảnh
                 </Button>
               </div>
             )}
@@ -2744,7 +2744,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
 
         <div className="p-3 border-t">
           <p className="text-xs text-muted-foreground text-center">
-            💡 四视图可保证场景在不同机位下的空间一致性
+            💡 bốn\u89c6\u56fe\u53ef\u4fdd\u8bc1Cảnh ở trong\u4e0d\u540cGóc máy\u4e0bcủa\u7a7a\u95f4một\u81f4\u6027
           </p>
         </div>
       </div>
@@ -2756,7 +2756,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
     const totalPages = pendingContactSheetPrompts.length;
     const hasMultiplePages = totalPages > 1;
     
-    // 获取当前页的视角数据（带分镜序号）
+    // \u83b7\u53d6hiện tại\u9875củaGóc nhìdữ liệu（\u5e26Phân cảsố sê-ri）
     const currentPageViewpointsWithIndexes = pendingViewpoints
       .filter(v => v.pageIndex === currentPageIndex)
       .sort((a, b) => a.gridIndex - b.gridIndex);
@@ -2765,7 +2765,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
       <div className="h-full flex flex-col">
         <div className="p-3 pb-2 border-b flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm">多视角联合图</h3>
+            <h3 className="font-medium text-sm">Nhiều Góc nhìđồ thị chung</h3>
             {hasMultiplePages && (
               <span className="text-xs text-muted-foreground">
                 ({currentPageIndex + 1}/{totalPages})
@@ -2773,13 +2773,13 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
             )}
           </div>
           <Button variant="ghost" size="sm" onClick={handleCancelContactSheet}>
-            取消
+            Huỷ
           </Button>
         </div>
         
         <ScrollArea className="flex-1 p-3">
           <div className="space-y-4">
-            {/* 分页控制 */}
+            {/* Phân trang\u63a7\u5236 */}
             {hasMultiplePages && (
               <div className="flex items-center justify-between p-2 rounded bg-muted/50">
                 <Button
@@ -2796,10 +2796,10 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                     setSplitViewpointImages({});
                   }}
                 >
-                  上一页
+                  \u4e0amột\u9875
                 </Button>
                 <span className="text-xs">
-                  联合图 {currentPageIndex + 1} / {totalPages}
+                  \u8054\u5408\u56fe {currentPageIndex + 1} / {totalPages}
                 </span>
                 <Button
                   variant="ghost"
@@ -2815,16 +2815,16 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                     setSplitViewpointImages({});
                   }}
                 >
-                  下一页
+                  \u4e0bmột\u9875
                 </Button>
               </div>
             )}
             
-            {/* 视觉风格 + 宽高比 + 布局选择 */}
+            {/* Tầm nhìn Phong cách + \u5bbd\u9ad8\u6bd4 + Bố cục\u9009\u62e9 */}
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-2">
-                  <Label className="text-xs">视觉风格</Label>
+                  <Label className="text-xs">Tầm nhìn Phong cách</Label>
                   <StylePicker
                     value={styleId}
                     onChange={(id) => setStyleId(id)}
@@ -2832,43 +2832,43 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs">宽高比</Label>
+                  <Label className="text-xs">\u5bbd\u9ad8\u6bd4</Label>
                   <Select value={contactSheetAspectRatio} onValueChange={(v) => setContactSheetAspectRatio(v as '16:9' | '9:16')} disabled={isGeneratingContactSheet}>
                     <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="16:9">16:9 横屏</SelectItem>
-                      <SelectItem value="9:16">9:16 竖屏</SelectItem>
+                      <SelectItem value="16:9">16:9 \u6a2a\u5c4f</SelectItem>
+                      <SelectItem value="9:16">9:16 \u7ad6\u5c4f</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              {/* 布局选择 */}
+              {/* Bố cục\u9009\u62e9 */}
               <div className="space-y-2">
-                <Label className="text-xs">网格布局</Label>
+                <Label className="text-xs">bố trí lưới</Label>
                 <Select value={contactSheetLayout} onValueChange={(v) => handleContactSheetLayoutChange(v as ContactSheetLayout)} disabled={isGeneratingContactSheet}>
                   <SelectTrigger className="h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2x2">2×2 (4格)</SelectItem>
-                    <SelectItem value="3x3">3×3 (9格)</SelectItem>
+                    <SelectItem value="2x2">2×2 (4\u683c)</SelectItem>
+                    <SelectItem value="3x3">3×3 (9\u683c)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-muted-foreground">
                   {(() => {
                     const dims = getLayoutDimensions(contactSheetLayout, contactSheetAspectRatio);
-                    return `${dims.rows}行${dims.cols}列 = ${dims.rows * dims.cols}格`;
+                    return `${dims.rows}được rồi${dims.cols}Cột = ${dims.rows * dims.cols}\u683c`;
                   })()}
                 </p>
               </div>
             </div>
             
-            {/* 视角列表（显示关联分镜序号） */}
+            {/* Góc nhìnDanh sách（\u663e\u793a\u5173\u8054Phân cảsố sê-ri） */}
             <div className="space-y-2">
               <Label className="text-xs">
-                当前页视角 ({currentPageViewpointsWithIndexes.length > 0 ? currentPageViewpointsWithIndexes.length : extractedViewpoints.length})
+                hiện tại\u9875Góc nhìn ({currentPageViewpointsWithIndexes.length > 0 ? currentPageViewpointsWithIndexes.length : extractedViewpoints.length})
               </Label>
               <div className="space-y-1.5">
                 {(currentPageViewpointsWithIndexes.length > 0 ? currentPageViewpointsWithIndexes : extractedViewpoints).map((vp, idx) => {
@@ -2886,12 +2886,12 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                       <div className="flex-1 min-w-0">
                         <div className="font-medium">{vp.name}</div>
                         <div className="text-muted-foreground truncate">
-                          {vp.keyProps.join('、') || '默认视角'}
+                          {vp.keyProps.join('、') || 'Mặc địnhGóc nhìn'}
                         </div>
                       </div>
                       {shotIndexes.length > 0 && (
                         <div className="text-muted-foreground text-right shrink-0">
-                          <div className="text-[10px]">分镜</div>
+                          <div className="text-[10px]">Phân cảnh</div>
                           <div>#{shotIndexes.map(i => String(i).padStart(2, '0')).join(',#')}</div>
                         </div>
                       )}
@@ -2901,7 +2901,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               </div>
             </div>
 
-            {/* 一键生成联合图（自动生成→切割→保存） */}
+            {/* một\u952eTạo\u8054\u5408\u56fe（Tự động Tạo→\u5207\u5272→Lưu） */}
             {!contactSheetImage && (
               <div className="space-y-2">
                 <Button 
@@ -2912,18 +2912,18 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   {isGeneratingContactSheet ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      生成中... {contactSheetProgress}%
+                      Tạotrong... {contactSheetProgress}%
                     </>
                   ) : (
                     <>
                       <Grid3X3 className="h-4 w-4 mr-2" />
-                      生成联合图（自动切割并保存）
+                      Tạo\u8054\u5408\u56fe（\u81ea\u52a8\u5207\u5272\u5e76Lưu）
                     </>
                   )}
                 </Button>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">或</span>
+                  <span className="text-xs text-muted-foreground">hoặc</span>
                   <div className="flex-1 h-px bg-border" />
                 </div>
                 <label className="block">
@@ -2936,37 +2936,37 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   />
                   <div className="flex items-center justify-center gap-2 p-2 border border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors">
                     <Upload className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">上传已有图片</span>
+                    <span className="text-xs text-muted-foreground">Tải lênĐã rồiCóHình ảnh</span>
                   </div>
                 </label>
               </div>
             )}
 
-            {/* 提示词（默认展开，可编辑，根据语言偏好只显示一种） */}
+            {/* Prompt（Mặc địnhMở rộng，Cán Chỉnh sửa，\u6839\u636engôn ngữ\u504f\u597d\u53ea\u663e\u793amột\u79cd） */}
             <details className="group" open>
               <summary className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                 <span className="group-open:rotate-90 transition-transform">▶</span>
-                联合图提示词（可编辑，修改后直接用于生成）
+                Biểu đồ công đoàn（Cán Chỉnh sửa，Sửa\u540e\u76f4\u63a5cho Tạo）
               </summary>
               <div className="mt-2 space-y-2">
                 {(() => {
                   const effectiveLang = promptLanguage || scriptProject?.promptLanguage || 'zh';
                   const isZh = effectiveLang === 'zh' || effectiveLang === 'zh+en';
-                  const langLabel = isZh ? '中文' : 'English';
+                  const langLabel = isZh ? 'Tiếng Trung' : 'English';
                   const currentValue = isZh
                     ? (contactSheetPromptZh || contactSheetPrompt || '')
                     : (contactSheetPrompt || contactSheetPromptZh || '');
                   return (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs">生成提示词（{langLabel}，修改后直接用于生成）</Label>
+                        <Label className="text-xs">TạoPrompt（{langLabel}，Sửa\u540e\u76f4\u63a5cho Tạo）</Label>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-5 px-2 text-xs"
                           onClick={() => handleCopyPrompt(isZh ? false : true)}
                         >
-                          <Copy className="h-3 w-3 mr-1" />复制
+                          <Copy className="h-3 w-3 mr-1" />\u590d\u5236
                         </Button>
                       </div>
                       <Textarea
@@ -2974,7 +2974,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                         onChange={(e) => {
                           if (isZh) {
                             setContactSheetPromptZh(e.target.value);
-                            // 同步更新实际发送的提示词
+                            // \u540c\u6b65Cập nhật\u5b9e\u9645\u53d1\u9001củaPrompt
                             setContactSheetPrompt(e.target.value);
                           } else {
                             setContactSheetPrompt(e.target.value);
@@ -2988,14 +2988,14 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               </div>
             </details>
 
-            {/* 联合图预览 */}
+            {/* \u8054\u5408\u56feXem trước */}
             {contactSheetImage && (
               <div className="space-y-2">
-                <Label className="text-xs">联合图预览</Label>
+                <Label className="text-xs">\u8054\u5408\u56feXem trước</Label>
                 <div className="relative rounded-lg overflow-hidden border bg-muted">
                   <img 
                     src={contactSheetImage} 
-                    alt="联合图预览"
+                    alt="\u8054\u5408\u56feXem trước"
                     className="w-full h-auto"
                   />
                 </div>
@@ -3007,35 +3007,35 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   {isSplitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      切割中...
+                      \u5207\u5272trong...
                     </>
                   ) : (
                     <>
                       <Scissors className="h-4 w-4 mr-2" />
-                      切割为 {(() => {
+                      \u5207\u5272cho {(() => {
                         const currentPageVps = pendingViewpoints.filter(v => v.pageIndex === currentPageIndex);
                         return currentPageVps.length > 0 ? currentPageVps.length : extractedViewpoints.length || 6;
-                      })()} 个视角
+                      })()} Góc nhìn
                     </>
                   )}
                 </Button>
               </div>
             )}
 
-            {/* 切割结果预览 */}
+            {/* \u5207\u5272kết quảXem trước */}
             {Object.keys(splitViewpointImages).length > 0 && (() => {
-              // 优先使用 pendingViewpoints，否则用 extractedViewpoints
+              // Ưu tiênsử dụng pendingViewpoints，\u5426\u5219sử dụng extractedViewpoints
               const currentPageVps = pendingViewpoints.filter(v => v.pageIndex === currentPageIndex);
               const viewpointsToDisplay = currentPageVps.length > 0 ? currentPageVps : extractedViewpoints;
               
-              // 根据宽高比决定切割结果的显示比例
+              // \u6839\u636e\u5bbd\u9ad8\u6bd4\u51b3\u5b9a\u5207\u5272kết quảcủa\u663e\u793aTỷ lệ
               const aspectClass = contactSheetAspectRatio === '9:16' ? 'aspect-[9/16]' : 'aspect-video';
-              // 9:16 竖屏时用 2 列，16:9 横屏时用 3 列
+              // 9:16 \u7ad6\u5c4f\u65f6sử dụng 2 Cột，16:9 \u6a2a\u5c4f\u65f6sử dụng 3 Cột
               const gridCols = contactSheetAspectRatio === '9:16' ? 'grid-cols-2' : 'grid-cols-3';
               
               return (
                 <div className="space-y-2">
-                  <Label className="text-xs">切割结果 ({contactSheetAspectRatio})</Label>
+                  <Label className="text-xs">\u5207\u5272kết quả ({contactSheetAspectRatio})</Label>
                   <div className={`grid ${gridCols} gap-2`}>
                     {viewpointsToDisplay.map((vp) => {
                       const imgData = splitViewpointImages[vp.id];
@@ -3063,7 +3063,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                   </div>
                   <Button onClick={handleSaveViewpointImages} className="w-full">
                     <Check className="h-4 w-4 mr-2" />
-                    保存视角图片到场景
+                    LưuGóc nhìnHình ảnhĐếnCảnh
                   </Button>
                 </div>
               );
@@ -3073,7 +3073,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
 
         <div className="p-3 border-t">
           <p className="text-xs text-muted-foreground text-center">
-            💡 点击「生成联合图」后自动完成切割和保存，可连续发起多个任务
+            💡 \u70b9\u51fb「Tạo\u8054\u5408\u56fe」\u540e\u81ea\u52a8Hoàn thành\u5207\u5272vàLưu，\u53ef\u8fde\u7eed\u53d1\u8d77\u591amộtNhiệm vụ
           </p>
         </div>
       </div>
@@ -3084,29 +3084,29 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
   if (previewUrl) {
     return (
       <div className="h-full flex flex-col p-3">
-        <h3 className="font-medium text-sm mb-3">预览场景概念图</h3>
+        <h3 className="font-medium text-sm mb-3">Xem trướcCảbản đồ khái niệm nh</h3>
         <ScrollArea className="flex-1">
           <div className="space-y-4">
             <div className="relative rounded-lg overflow-hidden border-2 border-amber-500/50 bg-muted">
               <img 
                 src={previewUrl} 
-                alt="场景概念图预览"
+                alt="Cảbản đồ khái niệm nhXem trước"
                 className="w-full h-auto"
               />
               <div className="absolute top-2 left-2 bg-amber-500 text-white text-xs px-2 py-1 rounded">
-                预览
+                Xem trước
               </div>
             </div>
             <Button onClick={handleSavePreview} className="w-full">
               <Check className="h-4 w-4 mr-2" />
-              保存概念图
+              Lưukhái niệm\u56fe
             </Button>
             <Button onClick={handleGenerate} variant="outline" className="w-full" disabled={isGenerating}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              重新生成
+              \u91cd\u65b0Tạo
             </Button>
             <Button onClick={handleDiscardPreview} variant="ghost" className="w-full text-muted-foreground" size="sm">
-              放弃并返回
+              \u653e\u5f03\u5e76Quay lại
             </Button>
           </div>
         </ScrollArea>
@@ -3117,25 +3117,25 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
   return (
     <div className="h-full flex flex-col">
       <div className="p-3 pb-2 border-b space-y-2">
-        <h3 className="font-medium text-sm">生成控制台</h3>
-        {/* 生成模式切换 */}
+        <h3 className="font-medium text-sm">Tạo\u63a7\u5236\u53f0</h3>
+        {/* Tạomode\u5207\u6362 */}
         <ToggleGroup 
           type="single" 
           value={generationMode} 
           onValueChange={(v) => v && setGenerationMode(v as GenerationMode)}
           className="justify-start"
         >
-          <ToggleGroupItem value="single" aria-label="单图" className="text-xs px-2.5 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+          <ToggleGroupItem value="single" aria-label="\u5355\u56fe" className="text-xs px-2.5 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
             <ImageIcon className="h-3 w-3 mr-1" />
-            单图
+            \u5355\u56fe
           </ToggleGroupItem>
-          <ToggleGroupItem value="contact-sheet" aria-label="联合图" className="text-xs px-2.5 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+          <ToggleGroupItem value="contact-sheet" aria-label="\u8054\u5408\u56fe" className="text-xs px-2.5 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
             <Grid3X3 className="h-3 w-3 mr-1" />
-            联合图
+            \u8054\u5408\u56fe
           </ToggleGroupItem>
-          <ToggleGroupItem value="orthographic" aria-label="四视图" className="text-xs px-2.5 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+          <ToggleGroupItem value="orthographic" aria-label="bốn\u89c6\u56fe" className="text-xs px-2.5 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
             <Box className="h-3 w-3 mr-1" />
-            四视图
+            bốn\u89c6\u56fe
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
@@ -3144,22 +3144,22 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
         <div className="space-y-4">
           {/* Scene name */}
           <div className="space-y-2">
-            <Label className="text-xs">场景名称</Label>
+            <Label className="text-xs">CảnhTên</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="例如：城市街道、森林小屋"
+              placeholder="Ví dụ：thành phốđường phố、rừng\u5c0f\u5c4b"
               disabled={isGenerating}
             />
           </div>
 
           {/* Location */}
           <div className="space-y-2">
-            <Label className="text-xs">地点描述</Label>
+            <Label className="text-xs">Vị trí Mô tả</Label>
             <Textarea
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="详细描述场景的环境，例如：繁华的东京涩谷十字路口，霓虹灯闪烁..."
+              placeholder="Chi tiếtMô tảCảnhmôi trường，Ví dụ：truyền thống\u534ecủa\u4e1c\u4eac\u6da9\u8c37ngã tư，đèn neon\u706f\u95ea\u70c1..."
               className="min-h-[100px] text-sm resize-none"
               disabled={isGenerating}
             />
@@ -3168,10 +3168,10 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
           {/* Time and Atmosphere */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
-              <Label className="text-xs">时间</Label>
+              <Label className="text-xs">Thời gian</Label>
               <Select value={time} onValueChange={setTime} disabled={isGenerating}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择" />
+                  <SelectValue placeholder="\u9009\u62e9" />
                 </SelectTrigger>
                 <SelectContent>
                   {TIME_PRESETS.map((t) => (
@@ -3181,10 +3181,10 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">氛围</Label>
+              <Label className="text-xs">bầu không khí</Label>
               <Select value={atmosphere} onValueChange={setAtmosphere} disabled={isGenerating}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择" />
+                  <SelectValue placeholder="\u9009\u62e9" />
                 </SelectTrigger>
                 <SelectContent>
                   {ATMOSPHERE_PRESETS.map((a) => (
@@ -3197,7 +3197,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
 
           {/* Style */}
           <div className="space-y-2">
-            <Label className="text-xs">视觉风格</Label>
+            <Label className="text-xs">Tầm nhìn Phong cách</Label>
             <StylePicker
               value={styleId}
               onChange={(id) => setStyleId(id)}
@@ -3208,7 +3208,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
           {/* Reference images */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">参考图片</Label>
+              <Label className="text-xs">Tài liệu tham khảoHình ảnh</Label>
               <span className="text-xs text-muted-foreground">{referenceImages.length}/3</span>
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -3216,7 +3216,7 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 <div key={i} className="relative group">
                   <img
                     src={img}
-                    alt={`参考图 ${i + 1}`}
+                    alt={`Hình ảnh tham khảo ${i + 1}`}
                     className="w-14 h-14 object-cover rounded-md border"
                   />
                   <button
@@ -3243,13 +3243,13 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                     onClick={() => document.getElementById('scene-gen-ref-image')?.click()}
                   >
                     <ImagePlus className="h-4 w-4" />
-                    <span className="text-[10px]">上传</span>
+                    <span className="text-[10px]">Tải lên</span>
                   </div>
                 </>
               )}
             </div>
             <p className="text-[10px] text-muted-foreground">
-              AI 将参考这些图片生成场景概念图
+              AI \u5c06Tài liệu tham khảo\u8fd9\u4e9bHình ảnhTạoCảbản đồ khái niệm nh
             </p>
           </div>
         </div>
@@ -3257,12 +3257,12 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
 
       {/* Action buttons */}
       <div className="p-3 border-t space-y-2">
-        {/* 批量四视图按钮（在保存联合图视角后显示） */}
+        {/* lô\u91cfbốn\u89c6\u56fe\u6309\u94ae（\u5728Lưu\u8054\u5408\u56feGóc nhìn\u540e\u663e\u793a） */}
         {savedChildSceneIds.length > 0 && (
           <div className="p-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 space-y-2">
             <div className="text-xs text-center">
-              <span className="font-medium">已保存 {savedChildSceneIds.length} 个子场景</span>
-              <p className="text-muted-foreground">可为每个子场景生成四视图（共 {savedChildSceneIds.length * 4} 张）</p>
+              <span className="font-medium">Đã Lưu {savedChildSceneIds.length} một\u5b50Cảnh</span>
+              <p className="text-muted-foreground">\u53efcho\u6bcfmột\u5b50CảnhTạobốn\u89c6\u56fe（tổng cộng {savedChildSceneIds.length * 4} \u5f20）</p>
             </div>
             <div className="flex gap-2">
               <Button 
@@ -3271,25 +3271,25 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 size="sm"
               >
                 <Box className="h-3 w-3 mr-1" />
-                批量生成四视图
+                Lô Tạobốn\u89c6\u56fe
               </Button>
               <Button 
                 onClick={handleClearBatchOrthographic} 
                 variant="ghost"
                 size="sm"
               >
-                跳过
+                bỏ qua
               </Button>
             </div>
           </div>
         )}
         
-        {/* 单图模式 */}
+        {/* \u5355\u56fechế độ */}
         {generationMode === 'single' && (
           !selectedScene ? (
             <Button onClick={handleCreateScene} className="w-full" disabled={!name.trim() || !location.trim()}>
               <Plus className="h-4 w-4 mr-2" />
-              创建场景
+              TạoCảnh
             </Button>
           ) : (
             <Button 
@@ -3300,31 +3300,31 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  生成中...
+                  Tạotrong...
                 </>
               ) : (
                 <>
                   <MapPin className="h-4 w-4 mr-2" />
-                  {selectedScene.referenceImage ? '重新生成概念图' : '生成场景概念图'}
+                  {selectedScene.referenceImage ? '\u91cd\u65b0Tạokhái niệm\u56fe' : 'TạoCảbản đồ khái niệm nh'}
                 </>
               )}
             </Button>
           )
         )}
         
-        {/* 联合图模式 - 无论是否选中场景都显示上传选项 */}
+        {/* \u8054\u5408\u56fechế độ - không có\u8bba\u662f\u5426\u9009Trung bình Cảnh\u90fd\u663e\u793aTải lên\u9009\u9879 */}
         {generationMode === 'contact-sheet' && (
           <div className="space-y-2">
-            {/* 布局选择器 */}
+            {/* Bố cục\u9009\u62e9\u5668 */}
             <div className="flex items-center gap-2">
-              <Label className="text-xs shrink-0">网格布局</Label>
+              <Label className="text-xs shrink-0">bố trí lưới</Label>
               <Select value={contactSheetLayout} onValueChange={(v) => setContactSheetLayout(v as ContactSheetLayout)} disabled={isGenerating}>
                 <SelectTrigger className="h-8 flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2x2">2×2 (4格)</SelectItem>
-                  <SelectItem value="3x3">3×3 (9格)</SelectItem>
+                  <SelectItem value="2x2">2×2 (4\u683c)</SelectItem>
+                  <SelectItem value="3x3">3×3 (9\u683c)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -3335,18 +3335,18 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
                 disabled={isGenerating}
               >
                 <Grid3X3 className="h-4 w-4 mr-2" />
-                生成多视角联合图
+                TạoNhiều Góc nhìđồ thị chung
               </Button>
             ) : (
               <Button onClick={handleCreateScene} className="w-full" disabled={!name.trim() || !location.trim()}>
                 <Plus className="h-4 w-4 mr-2" />
-                创建场景
+                TạoCảnh
               </Button>
             )}
-            {/* 或直接上传 */}
+            {/* hoặc\u76f4\u63a5Tải lên */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground">或</span>
+              <span className="text-xs text-muted-foreground">hoặc</span>
               <div className="flex-1 h-px bg-border" />
             </div>
             <label className="block">
@@ -3359,18 +3359,18 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               />
               <div className="flex items-center justify-center gap-2 p-2 border border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors">
                 <Upload className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">直接上传联合图切割</span>
+                <span className="text-xs text-muted-foreground">\u76f4\u63a5Tải lêđồ thị chung\u5207\u5272</span>
               </div>
             </label>
           </div>
         )}
         
-        {/* 四视图模式 */}
+        {/* bốn\u89c6\u56fechế độ */}
         {generationMode === 'orthographic' && (
           !selectedScene ? (
             <Button onClick={handleCreateScene} className="w-full" disabled={!name.trim() || !location.trim()}>
               <Plus className="h-4 w-4 mr-2" />
-              创建场景
+              TạoCảnh
             </Button>
           ) : (
             <Button 
@@ -3379,14 +3379,14 @@ ${anchor} 的背面直视镜头。展示后部结构。背景是物体面向的�
               disabled={isGenerating}
             >
               <Box className="h-4 w-4 mr-2" />
-              生成四视图
+              Tạobốn\u89c6\u56fe
             </Button>
           )
         )}
         <p className="text-xs text-muted-foreground text-center">
-          {generationMode === 'single' && '💡 单图模式：生成单一视角的场景概念图'}
-          {generationMode === 'contact-sheet' && '💡 联合图模式：生成 2x3 多视角场景网格'}
-          {generationMode === 'orthographic' && '💡 四视图模式：生成前/后/左/右正交视角'}
+          {generationMode === 'single' && '💡 \u5355\u56fechế độ：Tạo\u5355mộtGóc nhìnCảbản đồ khái niệm nh'}
+          {generationMode === 'contact-sheet' && '💡 \u8054\u5408\u56fechế độ：Tạo 2x3 Nhiều Góc nhìnCảnh\u7f51\u683c'}
+          {generationMode === 'orthographic' && '💡 bốn\u89c6\u56fechế độ：Tạo\u524d/\u540e/\u5de6/\u53f3\u6b63\u4ea4Góc nhìn'}
         </p>
       </div>
     </div>
@@ -3407,15 +3407,15 @@ function buildScenePrompt(
   const atmospherePreset = ATMOSPHERE_PRESETS.find(a => a.id === scene.atmosphere);
   const atmospherePrompt = atmospherePreset?.prompt || '';
 
-  // 从分镜动作描写中提取关键道具
+  // Từ Phân cảnhHành động mô tả được trích xuấtđạo cụ chính
   let propsPrompt = '';
   if (actionDescriptions && actionDescriptions.length > 0) {
-    // 合并所有动作描写，提取关键元素
+    // \u5408\u5e76Tất cảHành động mô tả，Trích xuấtyếu tố then chốt
     const allActions = actionDescriptions.join(' ');
     const extractedProps = extractPropsFromActions(allActions);
     if (extractedProps.length > 0) {
       propsPrompt = `, with ${extractedProps.join(', ')}`;
-      console.log('[buildScenePrompt] 提取的道具:', extractedProps);
+      console.log('[buildScenePrompt] Trích xuấtcủađạo cụ:', extractedProps);
     }
   }
 
@@ -3423,66 +3423,65 @@ function buildScenePrompt(
 }
 
 /**
- * 从动作描写中提取关键道具
+ * từ Hành động mô tả được trích xuấtđạo cụ chính
  */
 function extractPropsFromActions(actions: string): string[] {
   const props: string[] = [];
   
-  // 常见道具关键词映射（中文 -> 英文）
+  // \u5e38\u89c1đạo cụchìa khóa\u8bcd\u6620\u5c04（Tiếng Trung -> Tiếng Anh）
   const propMappings: Record<string, string> = {
-    // 家具/用具
-    '饭桌': 'dining table',
-    '餐桌': 'dining table',
-    '碗筷': 'bowls and chopsticks',
-    '菜肴': 'dishes of food',
-    '吃饭': 'dining table with food',
-    '沙发': 'sofa',
-    '茶几': 'coffee table',
-    '电视': 'television',
-    '电视柜': 'TV cabinet',
-    '书桌': 'desk',
-    '书柜': 'bookshelf',
-    '床': 'bed',
-    '衣柜': 'wardrobe',
-    '窗户': 'window',
-    '窗': 'window',
-    '门': 'door',
-    // 物品
-    '毕业证': 'graduation certificate',
-    '证书': 'certificate',
-    '照片': 'photo frame',
-    '全家福': 'family photo',
-    '手机': 'smartphone',
-    '电脑': 'computer',
-    '文件': 'documents',
-    '信': 'letter',
-    // 植物
-    '栀子花': 'gardenia flowers',
-    '花': 'flowers',
-    '盆栽': 'potted plant',
-    '绿植': 'green plants',
-    // 食物
-    '酒': 'wine/alcohol',
-    '酒杯': 'wine glasses',
-    '咖啡': 'coffee',
-    '茶': 'tea',
-    // 场景元素
-    '阳台': 'balcony',
-    '窗外': 'view outside window',
-    '灯': 'lamp',
-    '台灯': 'table lamp',
-    '吹风機': 'electric fan',
-    '空调': 'air conditioner',
+    // nhà\u5177/sử dụng\u5177
+    'bàn ăn': 'dining table',
+    'Bộ đồ ăn': 'bowls and chopsticks',
+    'Món ăn': 'dishes of food',
+    'ăn': 'dining table with food',
+    'Sofa': 'sofa',
+    'bàn cà phê': 'coffee table',
+    'truyền hình': 'television',
+    'truyền hình\u67dc': 'TV cabinet',
+    'bàn': 'desk',
+    '\u4e66\u67dc': 'bookshelf',
+    'giường': 'bed',
+    '\u8863\u67dc': 'wardrobe',
+    'các cửa sổ': 'window',
+    'cửa sổ': 'window',
+    'cửa': 'door',
+    // Mặt hàng
+    '\u6bd5\u4e1a\u8bc1': 'graduation certificate',
+    'Giấy chứng nhận': 'certificate',
+    '\u7167\u7247': 'photo frame',
+    '\u5168nhà\u798f': 'family photo',
+    'Điện thoại': 'smartphone',
+    'máy tính': 'computer',
+    'Tệp': 'documents',
+    '\u4fe1': 'letter',
+    // thực vật
+    '\u6800\u5b50\u82b1': 'gardenia flowers',
+    '\u82b1': 'flowers',
+    '\u76c6\u683d': 'potted plant',
+    '\u7eff\u690d': 'green plants',
+    // \u98df\u7269
+    '\u9152': 'wine/alcohol',
+    'ly rượu': 'wine glasses',
+    '\u5496\u5561': 'coffee',
+    '\u8336': 'tea',
+    // Cảnhphần tử
+    'ban công': 'balcony',
+    'bên ngoài cửa sổ': 'view outside window',
+    '\u706f': 'lamp',
+    'đèn bàn': 'table lamp',
+    '\u5439gió\u6a5f': 'electric fan',
+    '\u7a7a\u8c03': 'air conditioner',
   };
   
-  // 检查每个关键词是否出现在动作描写中
+  // Kiểm tra mọi từ khóa\u662f\u5426\u51fa\u73b0\u5728Hành động mô tảtrong
   for (const [chinese, english] of Object.entries(propMappings)) {
     if (actions.includes(chinese) && !props.includes(english)) {
       props.push(english);
     }
   }
   
-  return props.slice(0, 8); // 最多返回 8 个道具
+  return props.slice(0, 8); // Lên tới Bến Lại 8 mộtđạo cụ
 }
 
 function fileToBase64(file: File): Promise<string> {

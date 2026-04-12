@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * OverviewPanel — 项目概览（SeriesMeta 展示 + 内联编辑）
+ * OverviewPanel — Dự ánTổng quan（SeriesMeta hiển thị + bên trong\u8054Chỉnh sửa）
  *
- * 两栏布局：
- *   左栏：故事核心 + 世界观 + 制作设定
- *   右栏：角色列表 + 阵营 + 关键物品/地理
+ * \u4e24\u680fBố cục：
+ *   \u5de6\u680f：Cốt lõi câu chuyện + thế giới quan + Cài đặt sản xuất
+ *   \u53f3\u680f：Nhân vậdanh sách t + trại + mục chính/Địa lý
  */
 
 import { useState, useCallback } from "react";
@@ -50,36 +50,36 @@ import { getStyleName } from "@/lib/constants/visual-styles";
 const OVERVIEW_WORKFLOW_SECTIONS: Array<{ id: number; title: string; steps: string[] }> = [
   {
     id: 1,
-    title: "剧本模块",
+    title: "Kịch bản\u6a21\u5757",
     steps: [
-      "点击剧本模块",
-      "导入",
-      "粘贴完整剧本",
-      "点击导入完整剧本",
-      "选择视觉风格",
-      "二次检查",
-      "AI场景校准",
-      "点击场景，右边栏：去场景库生成场景",
-      "在场景板块左边栏生成后生成保存",
-      "AI校准分镜",
-      "AI角色校准",
-      "点击角色，右边栏：去角色库生成形象",
-      "在角色板块点击“生成设定图”",
-      "生成后保存",
+      "\u70b9\u51fbKịch bản\u6a21\u5757",
+      "Nhập",
+      "\u7c98\u8d34\u5b8c\u6574Kịch bản",
+      "\u70b9\u51fbNhậhoàn thànhKịch bản",
+      "\u9009\u62e9Tầm nhìn Phong cách",
+      "Hailần\u68c0\u67e5",
+      "AICảnh\u6821\u51c6",
+      "\u70b9\u51fbCảnh，\u53f3\u8fb9\u680f：\u53bbThư viện cảnhTạoCảnh",
+      "\u5728Cảnh\u677f\u5757\u5de6\u8fb9\u680fTạo\u540eTạoLưu",
+      "AI hiệu chuẩn Phân cảnh",
+      "AINhân vật\u6821\u51c6",
+      "\u70b9\u51fbNhân vật，\u53f3\u8fb9\u680f：\u53bbThư viện nhân vậtTạo\u5f62\u8c61",
+      "\u5728Nhân vật\u677f\u5757\u70b9\u51fb“Tạocài đặt\u56fe”",
+      "Tạo\u540eLưu",
     ],
   },
   {
     id: 2,
-    title: "导演模块",
+    title: "giám đốc\u6a21\u5757",
     steps: [
-      "点击导演模块",
-      "点击左边树形栏",
-      "把需要的场景点击“+”后，添加到左边栏分镜编辑里",
-      "图片生成方式：选择“合并生成”，参数和图自行选",
-      "点击执行合并生成",
-      "图片生成完毕",
-      "无主角案例时：“生成成图”按钮",
-      "有主角生成成图：在所有分镜页下方“生成视频”按钮",
+      "\u70b9\u51fbgiám đốc\u6a21\u5757",
+      "\u70b9\u51fb\u5de6\u8fb9cây\u5f62\u680f",
+      "\u628a\u9700\u8981Cảnh\u70b9\u51fb“+”\u540e，ThêmĐến\u5de6\u8fb9\u680fPhân cảnhChỉnh sửa\u91cc",
+      "Hình ảnhTạo\u65b9\u5f0f：\u9009\u62e9“\u5408\u5e76Tạo”，Tham sốvà\u56fe\u81eađược rồi\u9009",
+      "\u70b9\u51fb\u6267được rồi\u5408\u5e76Tạo",
+      "Hình ảnhTạo\u5b8c\u6bd5",
+      "không cónhân vật chính\u6848\u4f8b\u65f6：“Tạo\u6210\u56fe”\u6309\u94ae",
+      "Cónhân vật chínhTạo\u6210\u56fe：\u5728Tất cảPhân cảnh\u9875\u4e0b\u65b9“Tạo video”\u6309\u94ae",
     ],
   },
 ];
@@ -199,7 +199,7 @@ function NamedEntityList({
           </Badge>
           <EditableText
             value={item.desc}
-            placeholder="描述..."
+            placeholder="Mô tả..."
             onSave={(desc) => {
               const next = [...items];
               next[i] = { ...item, desc };
@@ -237,10 +237,10 @@ export function OverviewPanel() {
   const episodes: EpisodeRawScript[] = scriptProject?.episodeRawScripts || [];
   const scriptData = scriptProject?.scriptData || null;
 
-  // 新建集状态
+  // Tạo mớiĐặt Trạng thái
   const [showNewEpisode, setShowNewEpisode] = useState(false);
   const [newEpTitle, setNewEpTitle] = useState("");
-  // 删除确认状态
+  // XoáXác nhậnTrạng thái
   const [deletingEpIndex, setDeletingEpIndex] = useState<number | null>(null);
 
   const update = useCallback(
@@ -257,10 +257,10 @@ export function OverviewPanel() {
           <div className="border-b px-5 py-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               <BookOpen className="h-3.5 w-3.5" />
-              新手引导
+              \u65b0tay\u5f15\u5bfc
             </div>
-            <h3 className="mt-2 text-lg font-semibold text-foreground">单机版爱阅真人剧基础工作流</h3>
-            <p className="mt-1 text-sm text-muted-foreground">按顺序执行，不要跳步。</p>
+            <h3 className="mt-2 text-lg font-semibold text-foreground">\u5355\u673a\u7248\u7231\u9605người thật\u5267Cơ bản\u5de5\u4f5c\u6d41</h3>
+            <p className="mt-1 text-sm text-muted-foreground">theo thứ tự\u6267được rồi，\u4e0d\u8981\u8df3\u6b65。</p>
           </div>
           <div className="grid gap-4 p-4 md:grid-cols-2">
             {OVERVIEW_WORKFLOW_SECTIONS.map((section) => (
@@ -295,7 +295,7 @@ export function OverviewPanel() {
       <div className="p-3 pb-2 bg-panel border-b flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4" />
-          <h2 className="font-semibold text-sm">项目概览</h2>
+          <h2 className="font-semibold text-sm">Dự ánTổng quan</h2>
           <span className="text-xs text-muted-foreground">
             《{meta.title}》
             {meta.genre && <Badge variant="secondary" className="ml-1 text-[10px]">{meta.genre}</Badge>}
@@ -303,7 +303,7 @@ export function OverviewPanel() {
           </span>
         </div>
         <span className="text-[10px] text-muted-foreground">
-          {episodes.length} 集 · {meta.characters.length} 角色 · {meta.factions?.length || 0} 阵营 · {meta.keyItems?.length || 0} 物品
+          {episodes.length} đặt · {meta.characters.length} Nhân vật · {meta.factions?.length || 0} trại · {meta.keyItems?.length || 0} Mặt hàng
         </span>
       </div>
 
@@ -313,71 +313,71 @@ export function OverviewPanel() {
         <ResizablePanel defaultSize={55} minSize={35}>
           <ScrollArea className="h-full">
             <div className="p-4 space-y-4 pb-32">
-              {/* 故事核心 */}
-              <SectionCard icon={BookOpen} title="故事核心">
-                <FieldRow label="标题">
-                  <EditableText value={meta.title} placeholder="剧名" onSave={(v) => update({ title: v })} />
+              {/* Cốt lõi câu chuyện */}
+              <SectionCard icon={BookOpen} title="Cốt lõi câu chuyện">
+                <FieldRow label="Tiêu đề">
+                  <EditableText value={meta.title} placeholder="Tiêu đề phim truyền hình" onSave={(v) => update({ title: v })} />
                 </FieldRow>
                 <FieldRow label="Logline">
-                  <EditableText value={meta.logline} placeholder="一句话概括故事主线..." onSave={(v) => update({ logline: v })} />
+                  <EditableText value={meta.logline} placeholder="Tóm tắt một câucâu chuyệnChúa ơi\u7ebf..." onSave={(v) => update({ logline: v })} />
                 </FieldRow>
-                <FieldRow label="大纲">
-                  <EditableText value={meta.outline} placeholder="100-500字完整故事线..." onSave={(v) => update({ outline: v })} multiline />
+                <FieldRow label="phác thảo">
+                  <EditableText value={meta.outline} placeholder="Một câu chuyện hoàn chỉnh từ 100-500 từ..." onSave={(v) => update({ outline: v })} multiline />
                 </FieldRow>
-                <FieldRow label="核心冲突">
-                  <EditableText value={meta.centralConflict} placeholder="主线矛盾..." onSave={(v) => update({ centralConflict: v })} />
+                <FieldRow label="xung đột cốt lõi">
+                  <EditableText value={meta.centralConflict} placeholder="Xung đột dòng chính..." onSave={(v) => update({ centralConflict: v })} />
                 </FieldRow>
-                <FieldRow label="主题">
+                <FieldRow label="chủ đề">
                   <div className="flex flex-wrap gap-1">
                     {meta.themes?.map((t, i) => (
                       <Badge key={i} variant="secondary" className="text-[10px]">{t}</Badge>
                     ))}
                     {(!meta.themes || meta.themes.length === 0) && (
-                      <span className="text-xs text-muted-foreground italic">未设置主题标签</span>
+                      <span className="text-xs text-muted-foreground italic">\u672aCài đặtchủ đềnhãn</span>
                     )}
                   </div>
                 </FieldRow>
               </SectionCard>
 
-              {/* 世界观 */}
-              <SectionCard icon={Globe} title="世界观">
-                <FieldRow label="时代">
-                  <EditableText value={meta.era} placeholder="古代/现代/未来..." onSave={(v) => update({ era: v })} />
+              {/* thế giới quan */}
+              <SectionCard icon={Globe} title="thế giới quan">
+                <FieldRow label="thời đại">
+                  <EditableText value={meta.era} placeholder="thời cổ đại/hiện đại/tương lai..." onSave={(v) => update({ era: v })} />
                 </FieldRow>
-                <FieldRow label="类型">
-                  <EditableText value={meta.genre} placeholder="武侠/商战/爱情..." onSave={(v) => update({ genre: v })} />
+                <FieldRow label="Loại">
+                  <EditableText value={meta.genre} placeholder="võ thuật/chiến tranh kinh doanh/tình yêu..." onSave={(v) => update({ genre: v })} />
                 </FieldRow>
-                <FieldRow label="时间线">
-                  <EditableText value={meta.timelineSetting} placeholder="精确时间线设定..." onSave={(v) => update({ timelineSetting: v })} />
+                <FieldRow label="Thờtôi gian dòng">
+                  <EditableText value={meta.timelineSetting} placeholder="Chính xácờtôi cài đặt dòng..." onSave={(v) => update({ timelineSetting: v })} />
                 </FieldRow>
-                <FieldRow label="社会体系">
-                  <EditableText value={meta.socialSystem} placeholder="社会/权力结构..." onSave={(v) => update({ socialSystem: v })} />
+                <FieldRow label="hệ thống xã hội">
+                  <EditableText value={meta.socialSystem} placeholder="\u793e\u4f1a/quyền lựcấu trúc c..." onSave={(v) => update({ socialSystem: v })} />
                 </FieldRow>
-                <FieldRow label="力量体系">
-                  <EditableText value={meta.powerSystem} placeholder="武功/魔法/科技..." onSave={(v) => update({ powerSystem: v })} />
+                <FieldRow label="hệ thống điện">
+                  <EditableText value={meta.powerSystem} placeholder="võ thuật/ma thuật/\u79d1\u6280..." onSave={(v) => update({ powerSystem: v })} />
                 </FieldRow>
-                <FieldRow label="世界观">
-                  <EditableText value={meta.worldNotes} placeholder="补充设定..." onSave={(v) => update({ worldNotes: v })} multiline />
-                </FieldRow>
-              </SectionCard>
-
-              {/* 制作设定 */}
-              <SectionCard icon={Settings2} title="制作设定">
-                <FieldRow label="视觉风格">
-                  <span className="text-xs">{meta.styleId ? getStyleName(meta.styleId) : "未设置"}</span>
-                </FieldRow>
-                <FieldRow label="色彩基调">
-                  <EditableText value={meta.colorPalette} placeholder="全剧主色调..." onSave={(v) => update({ colorPalette: v })} />
-                </FieldRow>
-                <FieldRow label="语言">
-                  <span className="text-xs">{meta.language || "中文"}</span>
+                <FieldRow label="thế giới quan">
+                  <EditableText value={meta.worldNotes} placeholder="bổ sungcài đặt..." onSave={(v) => update({ worldNotes: v })} multiline />
                 </FieldRow>
               </SectionCard>
 
-              {/* 分集目录 — 子项目管理台 */}
-              <SectionCard icon={ListOrdered} title={`分集目录 (${episodes.length} 集)`}>
+              {/* Cài đặt sản xuất */}
+              <SectionCard icon={Settings2} title="Cài đặt sản xuất">
+                <FieldRow label="Tầm nhìn Phong cách">
+                  <span className="text-xs">{meta.styleId ? getStyleName(meta.styleId) : "\u672aCài đặt"}</span>
+                </FieldRow>
+                <FieldRow label="Màu sắgiai điệu c">
+                  <EditableText value={meta.colorPalette} placeholder="Nhân vật chính của toàn bộ vở kịchông màu..." onSave={(v) => update({ colorPalette: v })} />
+                </FieldRow>
+                <FieldRow label="ngôn ngữ">
+                  <span className="text-xs">{meta.language || "Tiếng Trung"}</span>
+                </FieldRow>
+              </SectionCard>
+
+              {/* \u5206Đặt Thư mục — \u5b50Dự ánQuản lý\u53f0 */}
+              <SectionCard icon={ListOrdered} title={`\u5206Đặt Thư mục (${episodes.length} đặt)`}>
                 {episodes.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">暂无分集数据（导入剧本后自动生成）</p>
+                  <p className="text-xs text-muted-foreground italic">\u6682không có\u5206đặt\u6570\u636e（NhậpKịch bản\u540eTự động Tạo）</p>
                 ) : (
                   <div className="space-y-2">
                     {episodes.map((ep) => {
@@ -401,22 +401,22 @@ export function OverviewPanel() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5 font-medium">
                               {statusIcon}
-                              <span>第{ep.episodeIndex}集</span>
+                              <span>Không.{ep.episodeIndex}đặt</span>
                               <span className="text-muted-foreground font-normal truncate max-w-[200px]">
-                                {ep.title.replace(/^第\d+集[：:]?\s*/, '')}
+                                {ep.title.replace(/^Không.\bộ d+[：:]?\s*/, '')}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
-                              {epSceneCount > 0 && <span>{epSceneCount} 场景</span>}
+                              {epSceneCount > 0 && <span>{epSceneCount} Cảnh</span>}
                               {ep.season && <Badge variant="outline" className="text-[9px] h-4 px-1">{ep.season}</Badge>}
-                              {/* 编辑标题 */}
+                              {/* Chỉnh sửaTiêu đề */}
                               <Button
                                 size="icon"
                                 variant="ghost"
                                 className="h-5 w-5 opacity-0 group-hover:opacity-70"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  const newTitle = window.prompt('编辑集标题', ep.title);
+                                  const newTitle = window.prompt('Chỉnh sửatiêu đề tập phim', ep.title);
                                   if (newTitle !== null && newTitle !== ep.title) {
                                     updateEpisodeBundle(projectId, ep.episodeIndex, { title: newTitle });
                                   }
@@ -424,10 +424,10 @@ export function OverviewPanel() {
                               >
                                 <Pencil className="h-3 w-3" />
                               </Button>
-                              {/* 删除 */}
+                              {/* Xoá */}
                               {isDeleting ? (
                                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                  <span className="text-red-400 text-[10px]">确认删除?</span>
+                                  <span className="text-red-400 text-[10px]">Xác nhậnXoá?</span>
                                   <Button
                                     size="icon"
                                     variant="ghost"
@@ -461,7 +461,7 @@ export function OverviewPanel() {
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               )}
-                              {/* 进入箭头 */}
+                              {/* nhập\u7bad\u5934 */}
                               <ArrowRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-70 text-primary" />
                             </div>
                           </div>
@@ -486,7 +486,7 @@ export function OverviewPanel() {
                   </div>
                 )}
 
-                {/* 新建集 */}
+                {/* Tạo mớiđặt */}
                 {scriptData && (
                   <div className="mt-3 pt-3 border-t">
                     {showNewEpisode ? (
@@ -494,12 +494,12 @@ export function OverviewPanel() {
                         <Input
                           value={newEpTitle}
                           onChange={(e) => setNewEpTitle(e.target.value)}
-                          placeholder={`第${episodes.length + 1}集 标题...`}
+                          placeholder={`Không.${episodes.length + 1}đặt Tiêu đề...`}
                           className="h-7 text-xs flex-1"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
-                              addEpisodeBundle(projectId, newEpTitle || `第${episodes.length + 1}集`);
+                              addEpisodeBundle(projectId, newEpTitle || `Không.${episodes.length + 1}đặt`);
                               setNewEpTitle('');
                               setShowNewEpisode(false);
                             }
@@ -514,12 +514,12 @@ export function OverviewPanel() {
                           variant="default"
                           className="h-7 text-xs px-3"
                           onClick={() => {
-                            addEpisodeBundle(projectId, newEpTitle || `第${episodes.length + 1}集`);
+                            addEpisodeBundle(projectId, newEpTitle || `Không.${episodes.length + 1}đặt`);
                             setNewEpTitle('');
                             setShowNewEpisode(false);
                           }}
                         >
-                          <Check className="h-3 w-3 mr-1" /> 添加
+                          <Check className="h-3 w-3 mr-1" /> Thêm
                         </Button>
                         <Button
                           size="icon"
@@ -537,7 +537,7 @@ export function OverviewPanel() {
                         className="w-full h-8 text-xs"
                         onClick={() => setShowNewEpisode(true)}
                       >
-                        <Plus className="h-3 w-3 mr-1" /> 新建集
+                        <Plus className="h-3 w-3 mr-1" /> Tạo mớiđặt
                       </Button>
                     )}
                   </div>
@@ -553,10 +553,10 @@ export function OverviewPanel() {
         <ResizablePanel defaultSize={45} minSize={30}>
           <ScrollArea className="h-full">
             <div className="p-4 space-y-4 pb-32">
-              {/* 角色列表 */}
-              <SectionCard icon={Users} title={`角色 (${meta.characters.length})`}>
+              {/* Nhân vậdanh sách t */}
+              <SectionCard icon={Users} title={`Nhân vật (${meta.characters.length})`}>
                 {meta.characters.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">暂无角色数据</p>
+                  <p className="text-xs text-muted-foreground italic">\u6682không cóNhân vật\u6570\u636e</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     {meta.characters.slice(0, 20).map((char) => (
@@ -567,13 +567,13 @@ export function OverviewPanel() {
                         <div className="font-medium flex items-center gap-1">
                           {char.name}
                           {char.tags?.includes("protagonist") && (
-                            <Badge variant="default" className="text-[9px] h-4 px-1">主角</Badge>
+                            <Badge variant="default" className="text-[9px] h-4 px-1">nhân vật chính</Badge>
                           )}
                           {char.tags?.includes("supporting") && (
-                            <Badge variant="secondary" className="text-[9px] h-4 px-1">配角</Badge>
+                            <Badge variant="secondary" className="text-[9px] h-4 px-1">vai phụ</Badge>
                           )}
                         </div>
-                        {char.age && <span className="text-muted-foreground">{char.age}岁</span>}
+                        {char.age && <span className="text-muted-foreground">{char.age}tuổi</span>}
                         {char.role && (
                           <p className="text-muted-foreground line-clamp-2">{char.role}</p>
                         )}
@@ -583,15 +583,15 @@ export function OverviewPanel() {
                 )}
                 {meta.characters.length > 20 && (
                   <p className="text-[10px] text-muted-foreground">
-                    还有 {meta.characters.length - 20} 个角色...
+                    \u8fd8Có {meta.characters.length - 20} Nhân vật...
                   </p>
                 )}
               </SectionCard>
 
-              {/* 阵营 */}
-              <SectionCard icon={Shield} title={`阵营 (${meta.factions?.length || 0})`}>
+              {/* trại */}
+              <SectionCard icon={Shield} title={`trại (${meta.factions?.length || 0})`}>
                 {!meta.factions?.length ? (
-                  <p className="text-xs text-muted-foreground italic">暂无阵营数据（AI 校准后自动填充）</p>
+                  <p className="text-xs text-muted-foreground italic">\u6682không cótrại\u6570\u636e（AI \u6821\u51c6\u540etự động điền）</p>
                 ) : (
                   <div className="space-y-2">
                     {meta.factions.map((faction, i) => (
@@ -608,20 +608,20 @@ export function OverviewPanel() {
                 )}
               </SectionCard>
 
-              {/* 关键物品 */}
-              <SectionCard icon={Gem} title={`关键物品 (${meta.keyItems?.length || 0})`}>
+              {/* mục chính */}
+              <SectionCard icon={Gem} title={`mục chính (${meta.keyItems?.length || 0})`}>
                 <NamedEntityList
                   items={meta.keyItems}
-                  emptyText="暂无关键物品（AI 分析后自动填充）"
+                  emptyText="\u6682không cómục chính（AI Phân tích\u540etự động điền）"
                   onUpdate={(items) => update({ keyItems: items })}
                 />
               </SectionCard>
 
-              {/* 地理 */}
-              <SectionCard icon={MapPin} title={`地理设定 (${meta.geography?.length || 0})`}>
+              {/* Địa lý */}
+              <SectionCard icon={MapPin} title={`Cài đặt địa lý (${meta.geography?.length || 0})`}>
                 <NamedEntityList
                   items={meta.geography}
-                  emptyText="暂无地理数据（AI 分析后自动填充）"
+                  emptyText="\u6682không cóĐịa lý\u6570\u636e（AI Phân tích\u540etự động điền）"
                   onUpdate={(items) => update({ geography: items })}
                 />
               </SectionCard>

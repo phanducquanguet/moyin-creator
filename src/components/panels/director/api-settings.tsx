@@ -78,15 +78,15 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
   }> = [
     {
       id: "memefast",
-      name: "魔因API",
-      description: "全功能 AI 中转，支持对话/图片/视频/图片理解",
-      services: ["对话", "图片", "视频", "图片理解"],
+      name: "API ma thuật",
+      description: "Chuyển AI đầy đủ tính năng，\u652f\u6301\u5bf9\u8bdd/\u56fe\u7247/\u89c6\u9891/\u56fe\u7247\u7406\u89e3",
+      services: ["\u5bf9\u8bdd", "\u56fe\u7247", "\u89c6\u9891", "\u56fe\u7247\u7406\u89e3"],
     },
     {
       id: "runninghub",
       name: "RunningHub",
-      description: "Qwen 视角切换 / 多角度生成",
-      services: ["视角切换", "图生图"],
+      description: "Qwen \u89c6\u89d2\u5207\u6362 / \u591agóc\u751f\u6210",
+      services: ["\u89c6\u89d2\u5207\u6362", "\u56fe\u751f\u56fe"],
     },
   ];
 
@@ -100,7 +100,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       >
         <span className="flex items-center gap-2">
           <Settings className="h-4 w-4" />
-          API 设置
+          API \u8bbe\u7f6e
         </span>
         <ChevronDown className="h-4 w-4" />
       </Button>
@@ -113,7 +113,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       <div className="flex items-center justify-between">
         <h3 className="font-medium text-sm flex items-center gap-2">
           <Settings className="h-4 w-4" />
-          API 设置
+          API \u8bbe\u7f6e
         </h3>
         <Button
           variant="ghost"
@@ -134,7 +134,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
               {isConfigured(provider.id) && (
                 <span className="text-xs text-green-500 flex items-center gap-1">
                   <Check className="h-3 w-3" />
-                  已配置
+                  được cấu hình
                 </span>
               )}
             </div>
@@ -143,7 +143,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
               <div className="relative flex-1">
                 <Input
                   type={showKeys[provider.id] ? "text" : "password"}
-                  placeholder={`输入 ${provider.name} API Key`}
+                  placeholder={`\u8f93\u5165 ${provider.name} API Key`}
                   value={apiKeys[provider.id] || ""}
                   onChange={(e) => setApiKey(provider.id, e.target.value)}
                   className="pr-10 text-sm"
@@ -174,7 +174,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
                 ) : testResults[provider.id] === false ? (
                   <X className="h-4 w-4 text-destructive" />
                 ) : (
-                  "测试"
+                  "\u6d4b\u8bd5"
                 )}
               </Button>
             </div>
@@ -195,7 +195,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
 
       {/* Concurrency Setting */}
       <div className="pt-2 border-t space-y-2">
-        <Label className="text-sm font-medium">并发设置</Label>
+        <Label className="text-sm font-medium">Đồng thời\u8bbe\u7f6e</Label>
         <div className="flex items-center gap-2">
           <Input
             type="number"
@@ -206,7 +206,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
             className="w-20 text-sm"
           />
           <span className="text-xs text-muted-foreground">
-            同时生成场景数（单 Key 建议设为 1）
+            \u540c\u65f6\u751f\u6210\u573a\u666f\u6570（\u5355 Key \u5efa\u8bae\u8bbecho 1）
           </span>
         </div>
       </div>
@@ -214,7 +214,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       {/* Tips */}
       <div className="pt-2 border-t">
         <p className="text-xs text-muted-foreground">
-          💡 API Key 仅存储在本地浏览器，不会上传到服务器
+          💡 API Key \u4ec5\u5b58\u50a8\u5728\u672c\u5730\u6d4f\u89c8\u5668，sẽ không\u4e0a\u4f20Đến\u670d\u52a1\u5668
         </p>
       </div>
     </div>

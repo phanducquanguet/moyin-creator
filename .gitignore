@@ -93,3 +93,4 @@ version.json
 *.njsproj
 *.sln
 *.sw?
+.omx/

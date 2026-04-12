@@ -38,13 +38,13 @@ export function isRateLimitError(error: unknown): boolean {
     message.includes("service unavailable") ||
     message.includes("temporarily unavailable") ||
     message.includes("internal server error") ||
-    message.includes("上游负载") ||
-    message.includes("上游服务") ||
-    message.includes("饱和") ||
-    message.includes("负载已满") ||
-    message.includes("暂时不可用") ||
-    message.includes("服务暂时不可用") ||
-    message.includes("无可用渠道") ||
+    message.includes("tải ngược dòng") ||
+    message.includes("dịch vụ thượng nguồn") ||
+    message.includes("bão hòa") ||
+    message.includes("Tải đã đầy") ||
+    message.includes("Tạm thời không có") ||
+    message.includes("Dịch vụ tạm thời không khả dụng") ||
+    message.includes("Không có kênh nào") ||
     message.includes("no available channel") ||
     message.includes("server error")
   ) {
@@ -70,8 +70,8 @@ export async function retryOperation<T>(
   
   let lastError: Error | undefined;
 
-  // maxRetries 表示"失败后最多重试几次"，首次尝试不计入重试
-  // 总共尝试 1 + maxRetries 次
+  // maxRetries có nghĩa là"Thất bạSau tôi nhiều nhất là Thử lạtôi đã bao nhiêu lần"，Lần thử ��ầu tiên không được tính vào Thử lại
+  // Tổng số lần thử 1 + số lần thử lại tối đa
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
