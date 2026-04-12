@@ -22,7 +22,7 @@ function App() {
   const [startupUpdate, setStartupUpdate] = useState<AvailableUpdateInfo | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
-  // 启动时运行存储迁移 + 数据恢复
+  // Chạy migration lưu trữ + khôi phục dữ liệu khi khởi động
   useEffect(() => {
     (async () => {
       try {
@@ -37,7 +37,7 @@ function App() {
     })();
   }, []);
 
-  // 启动时自动同步所有已配置 API Key 的供应商模型元数据
+  // Tự động đồng bộ metadata mô hình của tất cả nhà cung cấp đã cấu hình API Key khi khởi động
   useEffect(() => {
     if (isMigrating) return;
     let cancelled = false;
@@ -73,7 +73,7 @@ function App() {
     };
   }, [isMigrating]);
 
-  // 同步主题到 html 元素
+  // Đồng bộ theme sang phần tử html
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
@@ -117,13 +117,13 @@ function App() {
     };
   }, [isMigrating, updateSettings.autoCheckEnabled, updateSettings.ignoredVersion]);
 
-  // 迁移中显示加载界面
+  // Hiển thị màn hình loading trong khi đang migration
   if (isMigrating) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">正在初始化...</p>
+          <p className="text-muted-foreground">Đang khởi tạo...</p>
         </div>
       </div>
     );

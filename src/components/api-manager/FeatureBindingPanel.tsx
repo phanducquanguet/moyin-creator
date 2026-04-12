@@ -5,9 +5,9 @@
 
 /**
  * Feature Binding Panel (Multi-Select Mode)
- * 品牌分类模型选择 — 仿 MemeFast pricing 页面
- * 一级：品牌 pill（带 SVG logo + 模型数）
- * 二级：模型列表（checkbox 多选）
+ * Chọn mô hình theo phân loại thương hiệu — phong cách trang pricing MemeFast
+ * Cấp 1: pill thương hiệu (có SVG logo + số mô hình)
+ * Cấp 2: danh sách mô hình (checkbox đa chọn)
  */
 
 import { useMemo, useState } from "react";
@@ -37,7 +37,7 @@ import { getBrandIcon } from "./brand-icons";
 import { getModelDisplayName } from "@/lib/freedom/model-display-names";
 
 /**
- * 供应商选项 - 每个功能可选的平台 + 模型
+ * Tuỳ chọn nhà cung cấp - Nền tảng + mô hình có thể chọn cho mỗi tính năng
  */
 interface ProviderOption {
   providerId: string;
@@ -52,56 +52,56 @@ interface FeatureMeta {
   description: string;
   icon: ReactNode;
   requiredCapability?: ModelCapability;
-  /** 推荐模型提示（蓝色高亮） */
+  /** Gợi ý mô hình khuyến nghị (highlight màu xanh) */
   recommendation?: string;
 }
 
 const FEATURE_CONFIGS: FeatureMeta[] = [
   {
     key: "script_analysis",
-    name: "剧本分析 / 对话",
-    description: "将故事文本分解为结构化剧本",
+    name: "Phân tích kịch bản / Hội thoại",
+    description: "Phân tách văn bản câu chuyện thành kịch bản có cấu trúc",
     icon: <FileText className="h-4 w-4" />,
     requiredCapability: "text",
   },
   {
     key: "character_generation",
-    name: "图片生成",
-    description: "生成角色和场景参考图",
+    name: "Tạo ảnh",
+    description: "Tạo ảnh tham chiếu cho nhân vật và cảnh",
     icon: <Image className="h-4 w-4" />,
     requiredCapability: "image_generation",
-    recommendation: "💎 推荐使用 Nano Banana Pro (Gemini 3 Pro)— 画质优秀、一致性好",
+    recommendation: "💎 Khuyến nghị dùng Nano Banana Pro (Gemini 3 Pro) — chất lượng hình ảnh tốt, tính nhất quán cao",
   },
   {
     key: "video_generation",
-    name: "视频生成",
-    description: "将图片转换为视频",
+    name: "Tạo video",
+    description: "Chuyển đổi ảnh thành video",
     icon: <Video className="h-4 w-4" />,
     requiredCapability: "video_generation",
-    recommendation: "🧪 测试推荐 doubao-seedance-1-0-lite-t2v-250428 — 适合快速验证流程",
+    recommendation: "🧪 Khuyến nghị dùng doubao-seedance-1-0-lite-t2v-250428 để thử nghiệm — phù hợp để xác minh quy trình nhanh",
   },
   {
     key: "image_understanding",
-    name: "图片理解",
-    description: "分析图片内容生成描述",
+    name: "Hiểu ảnh",
+    description: "Phân tích nội dung ảnh để tạo mô tả",
     icon: <ScanEye className="h-4 w-4" />,
     requiredCapability: "vision",
   },
   {
     key: "freedom_image",
-    name: "自由板块-图片",
-    description: "自由板块独立的图片生成配置（未配置时回退到「图片生成」）",
+    name: "Bảng tự do - Ảnh",
+    description: "Cấu hình tạo ảnh riêng cho bảng tự do (khi chưa cấu hình sẽ dùng cấu hình「Tạo ảnh」)",
     icon: <Sparkles className="h-4 w-4" />,
     requiredCapability: "image_generation",
-    recommendation: "🎨 可独立配置自由板块使用的图片生成模型，不影响其他板块",
+    recommendation: "🎨 Có thể cấu hình riêng mô hình tạo ảnh cho bảng tự do, không ảnh hưởng các bảng khác",
   },
   {
     key: "freedom_video",
-    name: "自由板块-视频",
-    description: "自由板块独立的视频生成配置（未配置时回退到「视频生成」）",
+    name: "Bảng tự do - Video",
+    description: "Cấu hình tạo video riêng cho bảng tự do (khi chưa cấu hình sẽ dùng cấu hình「Tạo video」)",
     icon: <Clapperboard className="h-4 w-4" />,
     requiredCapability: "video_generation",
-    recommendation: "🎬 可独立配置自由板块使用的视频生成模型，不影响其他板块",
+    recommendation: "🎬 Có thể cấu hình riêng mô hình tạo video cho bảng tự do, không ảnh hưởng các bảng khác",
   },
 ];
 
@@ -125,12 +125,12 @@ const DEFAULT_PLATFORM_CAPABILITIES: Record<string, ModelCapability[]> = {
 };
 
 /**
- * 模型级别能力映射
- * 精确控制每个模型在服务映射中的可选范围
- * 未列出的模型将 fallback 到平台级别能力
+ * Ánh xạ khả năng cấp mô hình
+ * Kiểm soát chính xác phạm vi có thể chọn của từng mô hình trong ánh xạ dịch vụ
+ * Mô hình chưa liệt kê sẽ fallback về khả năng cấp nền tảng
  */
 const MODEL_CAPABILITIES: Record<string, ModelCapability[]> = {
-  // ---- 对话/文本模型 ----
+  // ---- Mô hình hội thoại/văn bản ----
   'glm-4.7': ['text', 'function_calling'],
   'glm-4.6v': ['text', 'vision'],
   'deepseek-v3': ['text'],
@@ -145,13 +145,13 @@ const MODEL_CAPABILITIES: Record<string, ModelCapability[]> = {
   'gemini-3-pro-preview': ['text'],
   'claude-haiku-4-5-20251001': ['text', 'vision'],
 
-  // ---- 图片生成模型 ----
+  // ---- Mô hình tạo ảnh ----
   'cogview-3-plus': ['image_generation'],
   'gemini-imagen': ['image_generation'],
   'gemini-3-pro-image-preview': ['image_generation'],
   'gpt-image-1.5': ['image_generation'],
 
-  // ---- 视频生成模型 ----
+  // ---- Mô hình tạo video ----
   'cogvideox': ['video_generation'],
   'gemini-veo': ['video_generation'],
   'doubao-seedance-1-5-pro': ['video_generation'],
@@ -164,10 +164,10 @@ const MODEL_CAPABILITIES: Record<string, ModelCapability[]> = {
   'grok-video-3-10s': ['video_generation'],
   'grok-video-3-15s': ['video_generation'],
 
-  // ---- 图片理解/视觉模型 ----
+  // ---- Mô hình hiểu ảnh/thị giác ----
   'doubao-vision': ['vision'],
 
-  // ---- RunningHub 特殊模型 ----
+  // ---- Mô hình đặc biệt RunningHub ----
   '2009613632530812930': ['image_generation'],
 };
 
@@ -190,25 +190,25 @@ function providerSupportsCapability(
 }
 
 /**
- * 检查特定模型是否支持所需能力
- * 优先级：硬编码映射 → 平台元数据(model_type/tags) → 模型名称推断 → 平台级别 fallback
+ * Kiểm tra xem mô hình cụ thể có hỗ trợ khả năng yêu cầu không
+ * Ưu tiên: ánh xạ hardcode → metadata nền tảng (model_type/tags) → suy luận tên mô hình → fallback cấp nền tảng
  */
 function modelSupportsCapability(
   modelName: string,
   provider: { platform: string; capabilities?: ModelCapability[] },
   required?: ModelCapability,
-  modelType?: string,     // "文本" | "图像" | "音视频" | "检索"
-  modelTagsList?: string[] // ["对话","识图","工具"]
+  modelType?: string,     // "文本" | "图像" | "音视频" | "检索" (giá trị từ API, không dịch)
+  modelTagsList?: string[] // ["对话","识图","工具"] (giá trị từ API, không dịch)
 ): boolean {
   if (!required) return true;
 
-  // 1. 硬编码映射（精确控制少量预设模型）
+  // 1. Ánh xạ hardcode (kiểm soát chính xác một số mô hình preset)
   const modelCaps = MODEL_CAPABILITIES[modelName];
   if (modelCaps) {
     return modelCaps.includes(required);
   }
 
-  // 2. 平台元数据（来自 /api/pricing_new 的 model_type + tags）
+  // 2. Metadata nền tảng (model_type + tags từ /api/pricing_new)
   if (modelType) {
     switch (required) {
       case 'text':
@@ -216,10 +216,10 @@ function modelSupportsCapability(
       case 'image_generation':
         return modelType === '图像';
       case 'video_generation':
-        // 音视频类中只筛选带“视频”标签的（排除纯音频/TTS/音乐）
+        // Trong loại âm thanh/video chỉ lọc những cái có tag “视频” (loại trừ thuần âm thanh/TTS/nhạc)
         return modelType === '音视频' && (modelTagsList?.some(t => t.includes('视频')) ?? false);
       case 'vision':
-        // 识图能力跨 model_type，只看 tags 是否含“识图”或“多模态”
+        // Khả năng nhận dạng ảnh trải qua nhiều model_type, chỉ xem tags có chứa “识图” hoặc “多模态” không
         return modelTagsList?.some(t => t.includes('识图') || t.includes('多模态')) ?? false;
       case 'embedding':
         return modelType === '检索';
@@ -228,13 +228,13 @@ function modelSupportsCapability(
     }
   }
 
-  // 3. 模型名称模式推断（非 MemeFast 的其他供应商）
+  // 3. Suy luận theo pattern tên mô hình (các nhà cung cấp không phải MemeFast)
   const inferred = classifyModelByName(modelName);
   if (inferred.length > 0) {
     return inferred.includes(required);
   }
 
-  // 4. 平台级别 fallback
+  // 4. Fallback cấp nền tảng
   return providerSupportsCapability(provider, required);
 }
 
@@ -249,7 +249,7 @@ export function FeatureBindingPanel() {
     getFeatureBindings,
   } = useAPIConfigStore();
   
-  // 跟踪展开/折叠状态
+  // Theo dõi trạng thái mở rộng/thu gọn
   const [expandedFeatures, setExpandedFeatures] = useState<Set<AIFeature>>(new Set());
 
   const configuredProviderIds = useMemo(() => {
@@ -257,7 +257,7 @@ export function FeatureBindingPanel() {
     for (const p of providers) {
       if (parseApiKeys(p.apiKey).length > 0) {
         set.add(p.id);
-        // 也把 platform 加进去，以兼容旧数据检查
+        // Cũng thêm platform vào để tương thích kiểm tra dữ liệu cũ
         set.add(p.platform);
       }
     }
@@ -280,7 +280,7 @@ export function FeatureBindingPanel() {
           .filter((m) => m.length > 0);
 
         for (const model of models) {
-          // 使用平台元数据 (model_type/tags) 进行精确分类
+          // Dùng metadata nền tảng (model_type/tags) để phân loại chính xác
           const mType = modelTypes[model];
           const mTags = modelTags[model];
           if (!modelSupportsCapability(model, provider, feature.requiredCapability, mType, mTags)) continue;
@@ -308,13 +308,13 @@ export function FeatureBindingPanel() {
     return map;
   }, [providers, configuredProviderIds, modelTypes, modelTags]);
 
-  // 计算已配置的功能数（至少有一个有效绑定）
+  // Tính số tính năng đã cấu hình (ít nhất có một binding hợp lệ)
   const configuredCount = useMemo(() => {
     return FEATURE_CONFIGS.filter((feature) => {
       const bindings = getFeatureBindings(feature.key);
       if (bindings.length === 0) return false;
       
-      // 检查是否至少有一个有效的绑定
+      // Kiểm tra xem có ít nhất một binding hợp lệ không
       const options = optionsByFeature[feature.key] || [];
       return bindings.some(binding => {
         const parsed = parseOptionKey(binding);
@@ -325,14 +325,14 @@ export function FeatureBindingPanel() {
     }).length;
   }, [optionsByFeature, configuredProviderIds, getFeatureBindings]);
 
-  // 切换单个模型的选中状态
+  // Chuyển đổi trạng thái chọn của từng mô hình
   const handleToggleBinding = (feature: FeatureMeta, optionKey: string) => {
     const parsed = parseOptionKey(optionKey);
     if (!parsed) return;
     toggleFeatureBinding(feature.key, optionKey);
   };
   
-  // 切换展开/折叠
+  // Chuyển đổi mở rộng/thu gọn
   const toggleExpanded = (feature: AIFeature) => {
     setExpandedFeatures(prev => {
       const newSet = new Set(prev);
@@ -345,7 +345,7 @@ export function FeatureBindingPanel() {
     });
   };
 
-  // 按品牌分组（品牌分类 UI）
+  // Nhóm theo thương hiệu (UI phân loại thương hiệu)
   const brandGroupsByFeature = useMemo(() => {
     const result: Partial<Record<AIFeature, Array<{ brandId: string; options: ProviderOption[] }>>> = {};
 
@@ -359,7 +359,7 @@ export function FeatureBindingPanel() {
         brandMap.get(brandId)!.push(opt);
       }
 
-      // 排序：模型数多的品牌在前
+      // Sắp xếp: thương hiệu có nhiều mô hình hơn đứng trước
       const sorted = [...brandMap.entries()]
         .map(([brandId, options]) => ({ brandId, options }))
         .sort((a, b) => b.options.length - a.options.length);
@@ -370,12 +370,12 @@ export function FeatureBindingPanel() {
     return result;
   }, [optionsByFeature]);
 
-  // 每个 feature 选中的品牌过滤器
+  // Bộ lọc thương hiệu đã chọn cho mỗi feature
   const [selectedBrand, setSelectedBrand] = useState<Record<string, string | null>>({});
-  // 每个 feature 的搜索关键词
+  // Từ khoá tìm kiếm cho mỗi feature
   const [searchQuery, setSearchQuery] = useState<Record<string, string>>({});
 
-  // MemeFast 供应商 ID 集合（用于分组提示）
+  // Tập hợp ID nhà cung cấp MemeFast (dùng cho gợi ý phân nhóm)
   const memefastProviderIds = useMemo(() => {
     const ids = new Set<string>();
     for (const p of providers) {
@@ -389,10 +389,10 @@ export function FeatureBindingPanel() {
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-foreground flex items-center gap-2">
           <Link2 className="h-4 w-4" />
-          服务映射
+          Ánh xạ dịch vụ
         </h3>
         <span className="text-xs text-muted-foreground">
-          已配置: {configuredCount}/{FEATURE_CONFIGS.length}
+          Đã cấu hình: {configuredCount}/{FEATURE_CONFIGS.length}
         </span>
       </div>
 
@@ -421,7 +421,7 @@ export function FeatureBindingPanel() {
             setFeatureBindings(feature.key, null);
           };
           
-          // 检查有效/失效绑定（失效=模型被过滤、下线，或平台未配置）
+          // Kiểm tra binding hợp lệ/không hợp lệ (không hợp lệ = mô hình bị lọc ra, offline, hoặc nền tảng chưa cấu hình)
           const validBindings: string[] = [];
           const invalidBindings: string[] = [];
           for (const binding of currentBindings) {
@@ -478,17 +478,17 @@ export function FeatureBindingPanel() {
                       )}
                       {validBindings.length > 0 && (
                         <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">
-                          {validBindings.length} 个模型
+                          {validBindings.length} mô hình
                         </span>
                       )}
                       {isFreedomFeature && (
                         <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
-                          可用 {selectableOptionKeys.length}
+                          Có thể dùng {selectableOptionKeys.length}
                         </span>
                       )}
                       {isFreedomFeature && invalidBindings.length > 0 && (
                         <span className="text-xs bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
-                          暂不可用 {invalidBindings.length}
+                          Tạm không dùng được {invalidBindings.length}
                         </span>
                       )}
                     </div>
@@ -513,15 +513,15 @@ export function FeatureBindingPanel() {
                 <div className="px-4 pb-4 pt-0 border-t border-border/50">
                   {options.length === 0 ? (
                     <p className="text-xs text-muted-foreground py-2">
-                      暂无可选模型（请先在 API 服务商里配置模型列表）
+                      Chưa có mô hình (vui lòng cấu hình danh sách mô hình trong API dịch vụ trước)
                     </p>
                   ) : (
                     <div className="space-y-3 pt-3">
                       <p className="text-xs text-muted-foreground">
-                        可多选，请求将按轮询分配到各模型（间隔 3 秒）
+                        Có thể chọn nhiều, yêu cầu sẽ được phân phối luân phiên đến từng mô hình (cách 3 giây)
                       </p>
 
-                      {/* 推荐模型提示 */}
+                      {/* Gợi ý mô hình khuyến nghị */}
                       {feature.recommendation && (
                         <div className="flex items-start gap-2 px-3 py-2.5 rounded-md bg-red-500/10 border border-red-500/30">
                           <span className="text-sm font-bold text-red-600 dark:text-red-400 leading-relaxed">
@@ -530,7 +530,7 @@ export function FeatureBindingPanel() {
                         </div>
                       )}
 
-                      {/* MemeFast 分组提示横幅 */}
+                      {/* Biểu ngữ gợi ý phân nhóm MemeFast */}
                       {(() => {
                         const groups = new Set<string>();
                         for (const binding of currentBindings) {
@@ -547,7 +547,7 @@ export function FeatureBindingPanel() {
                         return (
                           <div className="flex flex-col gap-1.5 px-3 py-2.5 rounded-md bg-blue-500/10 border border-blue-500/30">
                             <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                              已选的 MemeFast 模型支持以下分组：
+                              Các mô hình MemeFast đã chọn hỗ trợ các nhóm sau:
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {sortedGroups.map(g => (
@@ -557,18 +557,18 @@ export function FeatureBindingPanel() {
                               ))}
                             </div>
                             <span className="text-[11px] text-blue-600/80 dark:text-blue-400/80">
-                              建议在 memefast.top 后台为以上分组都添加 Key，Key 越多可用性越高。
+                              Khuyến nghị thêm Key cho tất cả các nhóm trên trong trang quản lý memefast.top, càng nhiều Key thì tính sẵn sàng càng cao.
                             </span>
                           </div>
                         );
                       })()}
                       {isFreedomFeature && invalidBindings.length > 0 && (
                         <p className="text-[11px] text-amber-700 dark:text-amber-300">
-                          检测到暂不可用绑定：系统不会自动清理，模型恢复后会自动继续可用。
+                          Phát hiện binding tạm không dùng được: hệ thống sẽ không tự xoá, mô hình sẽ tự động khả dụng trở lại khi phục hồi.
                         </p>
                       )}
 
-                      {/* 自由板块一键全选（勾选=全选；取消=全部不选） */}
+                      {/* Bảng tự do - một click chọn tất cả (tích = chọn tất cả; bỏ tích = bỏ chọn tất cả) */}
                       {isFreedomFeature && (
                         <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                           <label className="flex items-center gap-2 text-xs font-medium text-foreground">
@@ -577,7 +577,7 @@ export function FeatureBindingPanel() {
                               onCheckedChange={handleToggleSelectAll}
                               disabled={selectableOptionKeys.length === 0}
                             />
-                            全选模型（取消即全部不选）
+                            Chọn tất cả mô hình (bỏ tích = bỏ chọn tất cả)
                           </label>
                           <span className="text-[11px] text-muted-foreground">
                             {selectedSelectableCount}/{selectableOptionKeys.length}
@@ -590,7 +590,7 @@ export function FeatureBindingPanel() {
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                         <input
                           type="text"
-                          placeholder="搜索模型名称..."
+                          placeholder="Tìm kiếm tên mô hình..."
                           value={searchQuery[feature.key] || ''}
                           onChange={(e) => setSearchQuery(prev => ({ ...prev, [feature.key]: e.target.value }))}
                           className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary/50"
@@ -603,7 +603,7 @@ export function FeatureBindingPanel() {
                         const activeBrand = selectedBrand[feature.key] || null;
                         const query = (searchQuery[feature.key] || '').toLowerCase();
 
-                        // 过滤后的模型列表
+                        // Danh sách mô hình sau khi lọc
                         const filteredOptions = options.filter(o => {
                           if (query && !o.model.toLowerCase().includes(query) && !getModelDisplayName(o.model).toLowerCase().includes(query)) return false;
                           if (activeBrand && extractBrandFromModel(o.model) !== activeBrand) return false;
@@ -613,7 +613,7 @@ export function FeatureBindingPanel() {
                         return (
                           <>
                             <div className="flex flex-wrap gap-1.5">
-                              {/* 全部品牌 */}
+                              {/* Tất cả thương hiệu */}
                               <button
                                 type="button"
                                 onClick={() => setSelectedBrand(prev => ({ ...prev, [feature.key]: null }))}
@@ -624,7 +624,7 @@ export function FeatureBindingPanel() {
                                     : "bg-muted/30 border-border hover:bg-accent/50 text-muted-foreground"
                                 )}
                               >
-                                全部品牌
+                                Tất cả thương hiệu
                                 <span className={cn(
                                   "text-[10px] px-1 py-0.5 rounded-full min-w-[18px] text-center",
                                   !activeBrand ? "bg-primary/20" : "bg-muted"
@@ -668,7 +668,7 @@ export function FeatureBindingPanel() {
                             <div className="space-y-1 max-h-[280px] overflow-y-auto">
                               {filteredOptions.length === 0 ? (
                                 <p className="text-xs text-muted-foreground py-2 text-center">
-                                  无匹配模型
+                                  Không có mô hình phù hợp
                                 </p>
                               ) : (
                                 filteredOptions.map((option) => {
@@ -724,10 +724,10 @@ export function FeatureBindingPanel() {
           <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
           <div className="text-xs">
             <p className="font-medium text-destructive">
-              部分服务未配置
+              Một số dịch vụ chưa được cấu hình
             </p>
             <p className="text-muted-foreground mt-1">
-              请在上方为每个功能选择「供应商/模型」，并确保对应供应商已填写 API Key。
+              Vui lòng chọn「Nhà cung cấp/Mô hình」cho từng tính năng ở trên, và đảm bảo nhà cung cấp tương ứng đã nhập API Key.
             </p>
           </div>
         </div>
@@ -736,12 +736,12 @@ export function FeatureBindingPanel() {
       {/* Help text */}
       <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg space-y-2">
         <p>
-          <strong>💡 多模型轮询：</strong>
-          每个功能可选择多个模型，请求将按顺序分配到各模型（每次间隔 3 秒），避免单一 API 限流。
+          <strong>💡 Luân phiên đa mô hình:</strong>
+          Mỗi tính năng có thể chọn nhiều mô hình, yêu cầu sẽ phân phối tuần tự đến từng mô hình (cách 3 giây mỗi lần), tránh bị giới hạn tốc độ API đơn lẻ.
         </p>
         <p>
-          <strong>📌 说明：</strong>
-          可选项来自「API 服务商」里配置的模型列表，点击展开后可多选。
+          <strong>📌 Lưu ý:</strong>
+          Các tuỳ chọn đến từ danh sách mô hình đã cấu hình trong「API Nhà cung cấp」, nhấp để mở rộng và chọn nhiều.
         </p>
       </div>
     </div>
