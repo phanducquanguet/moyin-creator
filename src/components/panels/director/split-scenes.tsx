@@ -3393,27 +3393,27 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         </Tabs>
       </div>
 
-      {/* xe kéo Tab bên trong\u5bb9 - \u5b8c\u5168\u590dsử dụng\u5206\u955c\u7f16\u8f91củachức năng */}
+      {/* Tab trailer */}
       {activeTab === "trailer" && (
         <>
           {trailerScenes.length === 0 ? (
             <div className="text-center text-muted-foreground text-sm py-8">
               <Clapperboard className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>xe kéochức năng</p>
-              <p className="text-xs mt-1">\u8bf7\u5728\u5de6\u4fa7「\u5267\u672c」\u9762\u677ftrongcủa「xe kéo」nhãn\u9875\u751f\u6210xe kéo</p>
-              <p className="text-xs mt-1">chọncủa\u5206\u955c\u5c06\u5728\u6b64\u663e\u793a\u5e76\u53ef\u8fdbđược rồi\u56fe\u7247/\u89c6\u9891\u751f\u6210</p>
+              <p>Tính năng trailer</p>
+              <p className="text-xs mt-1">Hãy tạo trailer trong tab "Trailer" ở panel "Kịch bản" bên trái.</p>
+              <p className="text-xs mt-1">Các phân cảnh đã chọn sẽ hiển thị tại đây để bạn tiếp tục tạo ảnh/video.</p>
             </div>
           ) : (
             <>
-              {/* Header - với\u5206\u955c\u7f16\u8f91một\u81f4 */}
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">xe kéo\u5206\u955c</span>
+                  <span className="text-sm font-medium">Phân cảnh trailer</span>
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                    {trailerScenes.length} một\u5206\u955c
+                    {trailerScenes.length} phân cảnh
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    \u9884\u8ba1 {trailerScenes.reduce((sum, s) => sum + (s.duration || 5), 0)} giây
+                    Ước tính {trailerScenes.reduce((sum, s) => sum + (s.duration || 5), 0)} giây
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -3429,9 +3429,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                     ) : (
                       <Sparkles className="h-3 w-3 mr-1 text-yellow-500" />
                     )}
-                    AI \u81ea\u52a8\u586b\u5199\u63d0\u793a\u8bcd
+                    AI tự động điền prompt
                   </Button>
-                  {/* một\u952e\u6e05\u7a7axe kéo\u5206\u955c */}
+                  {/* Xóa toàn bộ phân cảnh trailer */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -3441,31 +3441,31 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                         disabled={isGenerating}
                       >
                         <Trash2 className="h-3 w-3 mr-1" />
-                        \u6e05\u7a7a\u5206\u955c
+                        Xóa tất cả
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>\u786e\u8ba4\u6e05\u7a7axe kéo\u5206\u955c</AlertDialogTitle>
+                        <AlertDialogTitle>Xác nhận xóa phân cảnh trailer</AlertDialogTitle>
                         <AlertDialogDescription>
-                          \u8fd9\u5c06\u5220\u9664\u6240Có {trailerScenes.length} mộtxe kéo\u5206\u955c（bao gồmĐã rồi\u751f\u6210của\u56fe\u7247và\u89c6\u9891）。\u6b64\u64cd\u4f5c\u4e0d\u53ef\u64a4\u9500。
+                          Bạn sẽ xóa toàn bộ {trailerScenes.length} phân cảnh trailer, bao gồm ảnh và video đã tạo. Hành động này không thể hoàn tác.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>\u53d6\u6d88</AlertDialogCancel>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => {
-                            // \u5220\u9664\u6240Cóxe kéo\u5206\u955c
+                            // Xóa tất cả phân cảnh trailer
                             trailerScenes.forEach(scene => {
                               deleteSplitScene(scene.id);
                             });
-                            // \u6e05\u7a7axe kéoCấu hình
+                            // Xóa cấu hình trailer
                             clearTrailer();
-                            toast.success(`Đã rồi\u6e05\u7a7a ${trailerScenes.length} mộtxe kéo\u5206\u955c`);
+                            toast.success(`Đã xóa ${trailerScenes.length} phân cảnh trailer`);
                           }}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          \u786e\u8ba4\u6e05\u7a7a
+                          Xác nhận xóa
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -3473,10 +3473,10 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                 </div>
               </div>
 
-              {/* Global style and aspect ratio config - với\u5206\u955c\u7f16\u8f91một\u81f4 */}
+              {/* Cấu hình phong cách và tỷ lệ khung hình */}
               <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-muted/30 border">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">\u89c6\u89c9gió\u683c:</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Phong cách hình ảnh:</span>
                   <StylePicker
                     value={currentStyleId || ''}
                     onChange={handleStyleChange}

@@ -299,7 +299,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       if (data.type === "character") {
         // Check if already added
         if (selectedCharacters.some(c => c.characterId === data.characterId)) {
-          toast.info("\u8be5\u89d2\u8272Đã rồi\u6dfb\u52a0");
+          toast.info("Nhân vật đã được thêm.");
           return;
         }
 
@@ -311,7 +311,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         };
 
         setSelectedCharacters(prev => [...prev, newChar]);
-        toast.success(`Đã rồi\u6dfb\u52a0\u89d2\u8272: ${data.characterName}`);
+        toast.success(`Đã thêm nhân vật: ${data.characterName}`);
       }
     } catch (err) {
       // Not a valid character drop
@@ -396,7 +396,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
   const handleSubmit = async () => {
     if (!prompt.trim()) {
-      toast.error("\u8bf7\u8f93\u5165\u5267\u672c\u63cf\u8ff0");
+      toast.error("Vui lòng nhập mô tả kịch bản.");
       return;
     }
 
@@ -414,15 +414,15 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         // Upload base64 images to get HTTP URLs (API only accepts URLs)
         let characterReferenceImages: string[] = [];
         if (rawCharacterImages.length > 0) {
-          toast.info('\u6b63\u5728\u4e0a\u4f20\u89d2\u8272Hình ảnh tham khảo...');
+          toast.info("Đang tải ảnh tham chiếu nhân vật...");
           try {
             characterReferenceImages = await uploadMultipleImages(rawCharacterImages);
             if (characterReferenceImages.length > 0) {
-              toast.success(`\u6210\u529f\u4e0a\u4f20 ${characterReferenceImages.length} \u5f20\u89d2\u8272Hình ảnh tham khảo`);
+              toast.success(`Đã tải lên ${characterReferenceImages.length} ảnh tham chiếu nhân vật.`);
             }
           } catch (uploadError) {
             console.warn('[ScreenplayInput] Failed to upload character images:', uploadError);
-            toast.warning('\u89d2\u8272Hình ảnh tham khảo\u4e0a\u4f20\u5931\u8d25，\u5c06\u4e0dsử dụng\u89d2\u8272Hình ảnh tham khảo');
+            toast.warning("Tải ảnh tham chiếu nhân vật thất bại, hệ thống sẽ tiếp tục không dùng ảnh tham chiếu.");
           }
         }
 
@@ -448,7 +448,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
     // Legacy workflow: Check API keys for chat
     const chatReady = isFeatureConfigured('script_analysis') || checkChatKeys().isAllConfigured;
     if (!chatReady) {
-      toast.error('\u8bf7\u5728\u8bbe\u7f6eTrung bình Cấu hình「\u5267\u672c\u5206\u6790/\u5bf9\u8bdd」của\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ "Phân tích kịch bản/Hội thoại" trong Cài đặt.');
       return;
     }
 
@@ -492,12 +492,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       // DirectorStore will be updated via onScreenplayGenerated callback
       useDirectorStore.getState().onScreenplayGenerated(screenplay);
       
-      toast.success("\u5267\u672c\u751f\u6210\u6210\u529f！");
+      toast.success("Tạo kịch bản thành công!");
     } catch (error) {
       const err = error as Error;
       console.error("[ScreenplayInput] Generation failed:", err);
       setScreenplayError(err.message);
-      toast.error(`\u5267\u672c\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.error(`Tạo kịch bản thất bại: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }

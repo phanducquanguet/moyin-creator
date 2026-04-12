@@ -1,10 +1,11 @@
 "use client";
 
-import { Clock, Trash2, X } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useFreedomStore, type HistoryEntry } from '@/stores/freedom-store';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 interface GenerationHistoryProps {
   type: 'image' | 'video' | 'cinema';
@@ -27,7 +28,7 @@ export function GenerationHistory({ type, onSelect, className }: GenerationHisto
     return (
       <div className={cn('flex flex-col items-center justify-center h-full text-muted-foreground', className)}>
         <Clock className="h-8 w-8 mb-2 opacity-40" />
-        <p className="text-sm">\u6682không có\u751f\u6210\u8bb0\u5f55</p>
+        <p className="text-sm">{t('freedom.history.empty')}</p>
       </div>
     );
   }
@@ -35,14 +36,14 @@ export function GenerationHistory({ type, onSelect, className }: GenerationHisto
   return (
     <div className={cn('flex flex-col h-full', className)}>
       <div className="flex items-center justify-between px-3 py-2 border-b">
-        <span className="text-sm font-medium">\u5386\u53f2\u8bb0\u5f55 ({history.length})</span>
+        <span className="text-sm font-medium">{t('freedom.history.title', { count: history.length })}</span>
         <Button
           variant="ghost"
           size="sm"
           className="h-7 text-xs text-muted-foreground hover:text-destructive"
           onClick={() => clearHistory(type)}
         >
-          \u6e05\u7a7a
+          {t('freedom.history.clear')}
         </Button>
       </div>
       <ScrollArea className="flex-1">
@@ -77,7 +78,7 @@ export function GenerationHistory({ type, onSelect, className }: GenerationHisto
                 <p className="text-xs text-muted-foreground truncate">{entry.model}</p>
                 <p className="text-xs mt-0.5 line-clamp-2">{entry.prompt}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  {new Date(entry.createdAt).toLocaleString('zh-CN', {
+                  {new Date(entry.createdAt).toLocaleString(t('freedom.history.timestampLocale'), {
                     month: '2-digit',
                     day: '2-digit',
                     hour: '2-digit',

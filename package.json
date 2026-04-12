@@ -32,6 +32,9 @@
     "build:mac:arm64": "node ./scripts/build-desktop.mjs --mac --arm64",
     "build:mac:universal": "node ./scripts/build-desktop.mjs --mac --universal",
     "build:linux": "node ./scripts/build-desktop.mjs --linux",
+    "test": "npm run test:i18n",
+    "test:i18n": "node ./scripts/check-i18n.mjs",
+    "test:i18n:garbled": "node ./scripts/check-garbled-ui-text.mjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "electron-vite preview"
   },

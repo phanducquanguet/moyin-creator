@@ -11,6 +11,7 @@
 
 import React, { useEffect, useCallback } from "react";
 import { X } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 interface ImagePreviewModalProps {
   imageUrl: string;
@@ -49,7 +50,7 @@ export function ImagePreviewModal({
       <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
         <img 
           src={imageUrl} 
-          alt="Preview" 
+          alt={t('director.mediaPreview.imageAlt')} 
           className="max-w-[90vw] max-h-[90vh] object-contain rounded"
         />
         <button
@@ -59,7 +60,7 @@ export function ImagePreviewModal({
           <X className="h-5 w-5" />
         </button>
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-white/60 text-xs bg-black/40 px-3 py-1 rounded-full pointer-events-none">
-          \u70b9\u51fb\u7a7a\u767d\u5904hoặc\u6309 Esc \u5173\u95ed
+          {t('director.mediaPreview.closeHint')}
         </div>
       </div>
     </div>

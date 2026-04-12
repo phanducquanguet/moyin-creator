@@ -123,7 +123,7 @@ export function ShotPropertiesPanel({
       : endKf?.imageUrl;
 
     if (!imageUrl) {
-      toast.error(`\u8bf7đầu tiên\u751f\u6210${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}`);
+      toast.error(`Vui lòng tạo ${type === "start" ? "khung đầu" : "khung cuối"} trước.`);
       return;
     }
 
@@ -148,7 +148,7 @@ export function ShotPropertiesPanel({
     const appId = runninghubProvider?.model?.[0];
 
     if (!apiKey || !baseUrl || !appId) {
-      toast.error("\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình RunningHub（API Key / Base URL / \u6a21\u578bAppId）");
+      toast.error("Vui lòng cấu hình RunningHub (API Key / Base URL / AppId) trong Cài đặt.");
       setAngleSwitchOpen(false);
       return;
     }
@@ -189,9 +189,9 @@ export function ShotPropertiesPanel({
       setAngleSwitchOpen(false);
       setAngleSwitchResultOpen(true);
 
-      toast.success("\u89c6\u89d2\u5207\u6362\u751f\u6210Hoàn thành");
+      toast.success("Tạo chuyển góc nhìn hoàn thành.");
     } catch (error) {
-      toast.error(`\u89c6\u89d2\u5207\u6362\u5931\u8d25: ${(error as Error).message}`);
+      toast.error(`Chuyển góc nhìn thất bại: ${(error as Error).message}`);
     } finally {
       setIsAngleSwitching(false);
     }
@@ -230,7 +230,7 @@ export function ShotPropertiesPanel({
 
     setAngleSwitchResultOpen(false);
     setAngleSwitchResult(null);
-    toast.success("\u89c6\u89d2Đã rồi\u5e94sử dụng");
+    toast.success("Đã áp dụng góc nhìn.");
   };
 
   // Preview in center panel
@@ -259,7 +259,7 @@ export function ShotPropertiesPanel({
   // Handle image generation
   const handleGenerateImage = async (type: "start" | "end") => {
     if (!selectedShot || !onGenerateImage) {
-      toast.error("không có\u6cd5\u751f\u6210\u56fe\u7247");
+      toast.error("Không thể tạo ảnh.");
       return;
     }
 
@@ -295,9 +295,9 @@ export function ShotPropertiesPanel({
         name: `\u955c\u5934 ${shotIndex + 1} - ${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}`,
       });
 
-      toast.success(`${type === "start" ? "\u8d77\u59cb\u5e27" : "\u7ed3\u675f\u5e27"}\u751f\u6210Hoàn thành`);
+      toast.success(`Tạo ${type === "start" ? "khung đầu" : "khung cuối"} hoàn thành.`);
     } catch (error) {
-      toast.error(`\u751f\u6210\u5931\u8d25: ${(error as Error).message}`);
+      toast.error(`Tạo thất bại: ${(error as Error).message}`);
     } finally {
       setProcessingType(null);
     }
@@ -306,13 +306,13 @@ export function ShotPropertiesPanel({
   // Handle video generation
   const handleGenerateVideo = async () => {
     if (!selectedShot || !onGenerateVideo) {
-      toast.error("không có\u6cd5\u751f\u6210\u89c6\u9891");
+      toast.error("Không thể tạo video.");
       return;
     }
 
     const startImage = startKf?.imageUrl || selectedShot.imageUrl;
     if (!startImage) {
-      toast.error("\u8bf7đầu tiên\u751f\u6210\u8d77\u59cb\u5e27");
+      toast.error("Vui lòng tạo khung đầu trước.");
       return;
     }
 
@@ -334,9 +334,9 @@ export function ShotPropertiesPanel({
         name: `\u955c\u5934 ${shotIndex + 1} - \u89c6\u9891`,
       });
 
-      toast.success("\u89c6\u9891\u751f\u6210Hoàn thành");
+      toast.success("Tạo video hoàn thành.");
     } catch (error) {
-      toast.error(`\u89c6\u9891\u751f\u6210\u5931\u8d25: ${(error as Error).message}`);
+      toast.error(`Tạo video thất bại: ${(error as Error).message}`);
     } finally {
       setProcessingType(null);
     }

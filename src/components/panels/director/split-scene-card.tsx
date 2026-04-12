@@ -215,21 +215,21 @@ export function SplitSceneCard({
         // Tiếng Trung / Tiếng Trung và tiếng Anh：\u66f4mới promptZh，\u4fdd\u7559 prompt không thay đổi
         onUpdateImagePrompt(scene.id, scene.imagePrompt, editPromptValue);
       }
-      toast.success(`\u5206\u955c ${scene.id + 1} khung hình đầu tiên${langLabel}\u63d0\u793a\u8bcdĐã rồi\u66f4mới`);
+      toast.success(`Đã cập nhật prompt ${langLabel} cho khung đầu của phân cảnh ${scene.id + 1}.`);
     } else if (editingPrompt === 'video') {
       if (promptLanguage === 'en') {
         onUpdateVideoPrompt(scene.id, editPromptValue, scene.videoPromptZh);
       } else {
         onUpdateVideoPrompt(scene.id, scene.videoPrompt, editPromptValue);
       }
-      toast.success(`\u5206\u955c ${scene.id + 1} \u89c6\u9891${langLabel}\u63d0\u793a\u8bcdĐã rồi\u66f4mới`);
+      toast.success(`Đã cập nhật prompt ${langLabel} cho video của phân cảnh ${scene.id + 1}.`);
     } else if (editingPrompt === 'endFrame') {
       if (promptLanguage === 'en') {
         onUpdateEndFramePrompt(scene.id, editPromptValue, scene.endFramePromptZh);
       } else {
         onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, editPromptValue);
       }
-      toast.success(`\u5206\u955c ${scene.id + 1} \u5c3e\u5e27${langLabel}\u63d0\u793a\u8bcdĐã rồi\u66f4mới`);
+      toast.success(`Đã cập nhật prompt ${langLabel} cho khung cuối của phân cảnh ${scene.id + 1}.`);
     }
     setEditingPrompt('none');
   };
@@ -248,7 +248,7 @@ export function SplitSceneCard({
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       onUploadImage?.(scene.id, dataUrl);
-      toast.success(`\u5206\u955c ${scene.id + 1} khung hình đầu tiênha\u4e0a\u4f20`);
+      toast.success(`Đã tải lên khung đầu cho phân cảnh ${scene.id + 1}.`);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -267,7 +267,7 @@ export function SplitSceneCard({
       if (!scene.needsEndFrame) {
         onUpdateNeedsEndFrame(scene.id, true);
       }
-      toast.success(`\u5206\u955c ${scene.id + 1} \u5c3e\u5e27Đã rồi\u4e0a\u4f20`);
+      toast.success(`Đã tải lên khung cuối cho phân cảnh ${scene.id + 1}.`);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -276,13 +276,13 @@ export function SplitSceneCard({
   // Xóa\u5c3e\u5e27
   const handleRemoveEndFrame = () => {
     onUpdateEndFrame(scene.id, null);
-    toast.success(`\u5206\u955c ${scene.id + 1} \u5c3e\u5e27Đã rồiXóa`);
+    toast.success(`Đã xóa khung cuối của phân cảnh ${scene.id + 1}.`);
   };
 
   // Xóakhung hình đầu tiên
   const handleRemoveImage = () => {
     onRemoveImage?.(scene.id);
-    toast.success(`\u5206\u955c ${scene.id + 1} khung hình đầu tiênhaXóa`);
+    toast.success(`Đã xóa khung đầu của phân cảnh ${scene.id + 1}.`);
   };
 
   // \u4e0b\u8f7d\u56fe\u7247
@@ -309,10 +309,10 @@ export function SplitSceneCard({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success(`${filename} \u4e0b\u8f7dHoàn thành`);
+      toast.success(`Tải xuống ${filename} thành công.`);
     } catch (err) {
       console.error('Download failed:', err);
-      toast.error('\u4e0b\u8f7d\u5931\u8d25');
+      toast.error("Tải xuống thất bại.");
     }
   };
 
@@ -996,7 +996,7 @@ export function SplitSceneCard({
                         <X className="h-2.5 w-2.5 mr-0.5" />\u53d6\u6d88
                       </Button>
                       <Button size="sm" onClick={handleSavePrompt} className="h-5 px-2 text-[10px]">
-                        <Check className="h-2.5 w-2.5 mr-0.5" />\u4fdd\u5b58
+                        <Check className="h-2.5 w-2.5 mr-0.5" />Lưu
                       </Button>
                     </div>
                   </>
@@ -1051,7 +1051,7 @@ export function SplitSceneCard({
                       "text-[11px] flex-1 line-clamp-6 min-h-[4.5em]",
                       "text-orange-600 dark:text-orange-400"
                     )}>
-                      {getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt) || (scene.needsEndFrame ? "\u70b9\u51fb\u6dfb\u52a0\u5c3e\u5e27\u63cf\u8ff0..." : "\u70b9\u51fb\u6dfb\u52a0\u5c3e\u5e27\u63cf\u8ff0...（Tùy chọn）")}
+                      {getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt) || (scene.needsEndFrame ? "Nhấp để thêm mô tả khung cuối..." : "Nhấp để thêm mô tả khung cuối... (tùy chọn)")}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-orange-500/50 shrink-0 mt-0.5" />}
                   </div>
@@ -1062,7 +1062,7 @@ export function SplitSceneCard({
               <div className="border-l-[3px] border-green-500 pl-3 py-1 space-y-1.5">
                 <Label className="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 font-medium">
                   <Play className="h-3 w-3" />
-                  \u89c6\u9891\u63d0\u793a\u8bcd（\u52a8\u6001\u52a8\u4f5c）
+                  Prompt video (hành động chuyển động)
                 </Label>
                 {/* \u89c6\u9891\u63d0\u793a\u8bcd\u6587\u672c */}
                 {editingPrompt === 'video' ? (
@@ -1071,15 +1071,15 @@ export function SplitSceneCard({
                       value={editPromptValue}
                       onChange={(e) => setEditPromptValue(e.target.value)}
                       className="min-h-[150px] text-xs resize-none border-green-500/30 focus-visible:ring-green-500/30"
-                      placeholder="\u63cf\u8ff0\u89c6\u9891trongcủa\u52a8\u4f5c、các môn thể thao、thay đổi..."
+                      placeholder="Mô tả hành động, chuyển động, biến đổi trong video..."
                       autoFocus
                     />
                     <div className="flex gap-1 justify-end mt-1">
                       <Button variant="outline" size="sm" onClick={handleCancelEdit} className="h-5 px-2 text-[10px]">
-                        <X className="h-2.5 w-2.5 mr-0.5" />\u53d6\u6d88
+                        <X className="h-2.5 w-2.5 mr-0.5" />Hủy
                       </Button>
                       <Button size="sm" onClick={handleSavePrompt} className="h-5 px-2 text-[10px]">
-                        <Check className="h-2.5 w-2.5 mr-0.5" />\u4fdd\u5b58
+                        <Check className="h-2.5 w-2.5 mr-0.5" />Lưu
                       </Button>
                     </div>
                   </>
@@ -1089,7 +1089,7 @@ export function SplitSceneCard({
                     onClick={() => !isGeneratingAny && startEditing('video')}
                   >
                     <p className="text-[11px] text-green-600 dark:text-green-400 flex-1 line-clamp-6 min-h-[4.5em]">
-                      {getPromptByLanguage(scene.videoPromptZh, scene.videoPrompt) || "\u70b9\u51fb\u6dfb\u52a0\u52a8\u4f5c\u63cf\u8ff0..."}
+                      {getPromptByLanguage(scene.videoPromptZh, scene.videoPrompt) || "Nhấp để thêm mô tả hành động..."}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-green-500/50 shrink-0 mt-0.5" />}
                   </div>
@@ -1104,22 +1104,22 @@ export function SplitSceneCard({
             >
               <p className="text-[10px] truncate flex items-center gap-1.5">
                 <span className="shrink-0 inline-flex items-center gap-0.5 text-violet-600 dark:text-violet-400 font-medium">
-                  <Edit3 className="h-2.5 w-2.5" /> \u5267\u672c:
+                  <Edit3 className="h-2.5 w-2.5" /> Kịch bản:
                 </span>
-                <span className="text-muted-foreground">{scene.actionSummary || '\u672a\u8bbe\u7f6e'}</span>
+                <span className="text-muted-foreground">{scene.actionSummary || 'Chưa thiết lập'}</span>
               </p>
               <p className="text-[10px] truncate flex items-center gap-1.5">
                 <span className="shrink-0 inline-flex items-center gap-0.5 text-blue-600 dark:text-blue-400 font-medium">
                   <ImageIcon className="h-2.5 w-2.5" /> khung hình đầu tiên:
                 </span>
-                <span className="text-muted-foreground">{getPromptByLanguage(scene.imagePromptZh, scene.imagePrompt) || '\u672a\u8bbe\u7f6e'}</span>
+                <span className="text-muted-foreground">{getPromptByLanguage(scene.imagePromptZh, scene.imagePrompt) || 'Chưa thiết lập'}</span>
               </p>
               {(scene.needsEndFrame || getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt)) && (
                 <p className="text-[10px] truncate flex items-center gap-1.5">
                   <span className="shrink-0 inline-flex items-center gap-0.5 text-orange-600 dark:text-orange-400 font-medium">
-                    ◉ \u5c3e\u5e27:
+                    ◉ Khung cuối:
                   </span>
-                  <span className="text-orange-600/70 dark:text-orange-400/70">{getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt) || '\u672a\u8bbe\u7f6e'}</span>
+                  <span className="text-orange-600/70 dark:text-orange-400/70">{getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt) || 'Chưa thiết lập'}</span>
                 </p>
               )}
               <p className="text-[10px] truncate flex items-center gap-1.5">

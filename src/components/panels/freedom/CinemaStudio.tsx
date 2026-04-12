@@ -4,20 +4,14 @@ import { useMemo, useCallback } from 'react';
 import { CameraIcon, Loader2, Download, Sparkles, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useFreedomStore } from '@/stores/freedom-store';
 import { CameraControls } from './CameraControls';
 import { GenerationHistory } from './GenerationHistory';
 import { generateFreedomImage } from '@/lib/freedom/freedom-api';
-import {
-  buildCinemaPrompt,
-  CAMERA_MAP,
-  LENS_MAP,
-  FOCAL_PERSPECTIVE,
-  APERTURE_EFFECT,
-} from '@/lib/freedom/camera-dictionary';
+import { buildCinemaPrompt } from '@/lib/freedom/camera-dictionary';
+import { t } from '@/lib/i18n';
 
 export function CinemaStudio() {
   const {
@@ -34,7 +28,7 @@ export function CinemaStudio() {
   // Build the compiled prompt preview
   const compiledPrompt = useMemo(() => {
     return buildCinemaPrompt(
-      cinemaPrompt || '[your prompt here]',
+      cinemaPrompt || t('freedom.cinema.placeholder.promptPreview'),
       selectedCamera,
       selectedLens,
       selectedFocalLength,
@@ -44,7 +38,7 @@ export function CinemaStudio() {
 
   const handleGenerate = useCallback(async () => {
     if (!cinemaPrompt.trim()) {
-      toast.error('\u8bf7\u8f93\u5165\u63cf\u8ff0\u6587từ');
+      toast.error(t('freedom.cinema.validation.promptRequired'));
       return;
     }
 
@@ -84,13 +78,23 @@ export function CinemaStudio() {
         type: 'image',
       });
 
-      toast.success('lớp phim\u56fe\u7247\u751f\u6210\u6210\u529f！Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93');
-    } catch (err: any) {
-      toast.error(`\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.success(t('freedom.cinema.toast.success'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('common.unknownError');
+      toast.error(t('freedom.cinema.toast.failure', { message }));
     } finally {
       setCinemaGenerating(false);
     }
-  }, [cinemaPrompt, selectedCamera, selectedLens, selectedFocalLength, selectedAperture]);
+  }, [
+    cinemaPrompt,
+    selectedCamera,
+    selectedLens,
+    selectedFocalLength,
+    selectedAperture,
+    addHistoryEntry,
+    setCinemaGenerating,
+    setCinemaResult,
+  ]);
 
   return (
     <div className="flex h-full">
@@ -100,7 +104,7 @@ export function CinemaStudio() {
         <div className="p-4 border-b space-y-2">
           <div className="flex items-center gap-2">
             <Film className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">\u76f8\u673a\u8bbe\u7f6e</span>
+            <span className="text-sm font-medium">{t('freedom.cinema.label.cameraConfig')}</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="secondary" className="text-xs">{selectedCamera}</Badge>
@@ -128,7 +132,7 @@ export function CinemaStudio() {
         {/* Prompt + Generate */}
         <div className="p-4 border-t space-y-3">
           <Textarea
-            placeholder="\u63cf\u8ff0của bạn\u7535\u5f71\u573a\u666f..."
+            placeholder={t('freedom.cinema.placeholder.prompt')}
             value={cinemaPrompt}
             onChange={(e) => setCinemaPrompt(e.target.value)}
             className="min-h-[80px] resize-none"
@@ -137,7 +141,7 @@ export function CinemaStudio() {
           {/* Compiled prompt preview */}
           {cinemaPrompt.trim() && (
             <details className="text-xs">
-              <summary className="text-muted-foreground cursor-pointer">\u67e5\u770b\u7f16\u8bd1\u540ecủa Prompt</summary>
+              <summary className="text-muted-foreground cursor-pointer">{t('freedom.cinema.details.compiledPrompt')}</summary>
               <p className="mt-1 p-2 bg-muted rounded text-muted-foreground break-words">
                 {compiledPrompt}
               </p>
@@ -150,9 +154,9 @@ export function CinemaStudio() {
             disabled={cinemaGenerating || !cinemaPrompt.trim()}
           >
             {cinemaGenerating ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> \u751f\u6210trong...</>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('freedom.cinema.button.generating')}</>
             ) : (
-              <><Sparkles className="mr-2 h-4 w-4" /> lớp phim\u62cd\u6444</>
+              <><Sparkles className="mr-2 h-4 w-4" /> {t('freedom.cinema.button.generate')}</>
             )}
           </Button>
         </div>
@@ -163,7 +167,7 @@ export function CinemaStudio() {
         {cinemaGenerating ? (
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">lớp phim\u56fe\u7247\u751f\u6210trong...</p>
+            <p className="text-sm text-muted-foreground">{t('freedom.cinema.center.generating')}</p>
           </div>
         ) : cinemaResult ? (
           <div className="max-w-full max-h-full relative group">
@@ -175,7 +179,7 @@ export function CinemaStudio() {
             <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
               <Button size="sm" variant="secondary" asChild>
                 <a href={cinemaResult} download target="_blank" rel="noopener">
-                  <Download className="h-4 w-4 mr-1" /> \u4e0b\u8f7d
+                  <Download className="h-4 w-4 mr-1" /> {t('freedom.cinema.button.download')}
                 </a>
               </Button>
             </div>
@@ -183,9 +187,9 @@ export function CinemaStudio() {
         ) : (
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <CameraIcon className="h-16 w-16 opacity-20" />
-            <p className="text-lg font-medium">\u7535\u5f71\u5de5\u4f5c\u5ba4</p>
-            <p className="text-sm">\u9009\u62e9\u76f8\u673a、\u955c\u5934、tiêu cự、\u5149\u5708，\u751f\u6210lớp phim\u56fe\u7247</p>
-            <p className="text-xs text-muted-foreground/60">\u76f8\u673a\u53c2\u6570\u4f1a\u81ea\u52a8\u7f16\u8bd1cho AI \u63d0\u793a\u8bcd</p>
+            <p className="text-lg font-medium">{t('freedom.cinema.center.title')}</p>
+            <p className="text-sm">{t('freedom.cinema.center.subtitle')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('freedom.cinema.center.hint')}</p>
           </div>
         )}
       </div>

@@ -89,6 +89,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { t } from "@/lib/i18n";
 
 export function ScriptView() {
   const { activeProjectId } = useProjectStore();
@@ -2348,13 +2349,13 @@ export function ScriptView() {
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-sm flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Kịch bảnChỉnh sửa
+            {t("script.header.editTitle")}
           </h2>
           <span className="text-xs text-muted-foreground">
             {parseStatus === "parsing"
-              ? "phân tích cú pháptrong..."
+              ? t("script.status.parsing")
               : scriptProject?.shotStatus === "generating"
-              ? "Phân cảnhTạotrong..."
+              ? t("script.status.generatingShots")
               : parseStatus === "ready" && scriptData
               ? `${scriptData.title}`
               : ""}
@@ -2502,15 +2503,15 @@ export function ScriptView() {
       <AlertDialog open={structureOverwriteConfirmOpen} onOpenChange={setStructureOverwriteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>\u8986\u76d6C hiện tạiảcấu trúc nh？</AlertDialogTitle>
+            <AlertDialogTitle>{t("script.dialog.overwriteStructureTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              \u8be5đặtĐã rồiCóCảnh dữ liệu，\u91cd\u65b0phân tích cú pháp\u5c06thay thếC hiện tạiảnh\u5e76dọn dẹp\u5bf9\u5e94Phân cảnh。Xác nhậntiếp tục？
+              {t("script.dialog.overwriteStructureDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Huỷ</AlertDialogCancel>
+            <AlertDialogCancel>{t("script.dialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => handleStructureCompletion()}>
-              Xác nhận\u8986\u76d6
+              {t("script.dialog.confirmOverwrite")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

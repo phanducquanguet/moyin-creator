@@ -1,10 +1,11 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFreedomStore } from '@/stores/freedom-store';
+import { useFreedomStore, type StudioMode } from '@/stores/freedom-store';
 import { ImageStudio } from './ImageStudio';
 import { VideoStudio } from './VideoStudio';
 import { CinemaStudio } from './CinemaStudio';
+import { t } from '@/lib/i18n';
 
 export function FreedomView() {
   const { activeStudio, setActiveStudio } = useFreedomStore();
@@ -13,19 +14,19 @@ export function FreedomView() {
     <div className="flex flex-col h-full bg-background overflow-hidden">
       <Tabs
         value={activeStudio}
-        onValueChange={(v) => setActiveStudio(v as any)}
+        onValueChange={(v) => setActiveStudio(v as StudioMode)}
         className="flex flex-col h-full"
       >
         <div className="h-12 border-b flex items-center px-4 shrink-0">
           <TabsList className="h-9">
             <TabsTrigger value="image" className="text-sm px-4">
-              🖼️ \u56fe\u7247\u5de5\u4f5c\u5ba4
+              {t('freedom.tabs.imageStudio')}
             </TabsTrigger>
             <TabsTrigger value="video" className="text-sm px-4">
-              🎥 \u89c6\u9891\u5de5\u4f5c\u5ba4
+              {t('freedom.tabs.videoStudio')}
             </TabsTrigger>
             <TabsTrigger value="cinema" className="text-sm px-4">
-              🎬 \u7535\u5f71\u5de5\u4f5c\u5ba4
+              {t('freedom.tabs.cinemaStudio')}
             </TabsTrigger>
           </TabsList>
         </div>

@@ -1,0 +1,7 @@
+- [x] Toàn bộ chuỗi tiếng Việt trên các màn hình chính hiển thị đúng chính tả, đúng ngữ cảnh, đúng dấu.
+- [x] Không còn hiển thị key kỹ thuật i18n trên UI trong mọi luồng người dùng chính.
+- [x] Placeholder trong chuỗi bản dịch khớp hoàn toàn với dữ liệu runtime.
+- [x] Không còn chuỗi tiếng Việt hardcode trong component hiển thị cho người dùng cuối.
+- [x] Cơ chế fallback khi thiếu bản dịch hiển thị thông điệp thân thiện, không gây vỡ UI.
+- [x] Bộ kiểm tra tự động phát hiện được key thiếu, key dư, placeholder sai và chặn lỗi trước phát hành.
+- [x] Kết quả kiểm thử các luồng quan trọng bằng ngôn ngữ tiếng Việt đạt yêu cầu.

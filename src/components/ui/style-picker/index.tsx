@@ -4,12 +4,11 @@
 "use client";
 
 /**
- * StylePicker - \u7edfmộtTầm nhìn Phong cách\u9009\u62e9\u5668
- * 
- * chức năng：
- * - \u5de6\u4fa7：\u5206\u7c7b\u5c0f\u56fedanh sách，\u53ef\u6eda\u52a8
- * - \u53f3\u4fa7：\u60ac\u505c/\u9009trong\u65f6\u663e\u793a\u5927\u56feXem trước + Mô tả
- * - Hỗ trợ\u4e0b\u62c9\u5f39\u51fachế độvàbên trong\u5d4cchế độ
+ * StylePicker - Bo chon phong cach hinh anh.
+ * Chuc nang:
+ * - Ben trai: danh sach phong cach theo nhom.
+ * - Ben phai: khung preview khi hover/chon.
+ * - Ho tro popover va embedded mode.
  */
 
 import React, { useState, useMemo } from "react";
@@ -30,7 +29,7 @@ import {
 } from "@/lib/constants/visual-styles";
 import { useCustomStyleStore } from "@/stores/custom-style-store";
 
-// Phong cách phân loại\u5bf9\u5e94củaMàu nền（Hình ảnhĐã rồiXóa，sử dụng\u8272\u5757\u5360\u4f4d）
+// Mau nen theo loai phong cach.
 const CATEGORY_COLORS: Record<string, string> = {
   '3d': 'bg-blue-500/20 text-blue-600',
   '2d': 'bg-green-500/20 text-green-600',
@@ -39,24 +38,24 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 interface StylePickerProps {
-  /** hiện tại\u9009trongcủaPhong cách ID */
+  /** ID phong cach dang chon */
   value: string;
-  /** \u9009\u62e9thay đổigọi lại */
+  /** Callback khi doi phong cach */
   onChange: (styleId: VisualStyleId) => void;
-  /** \u662f\u5426sử dụng\u4e0b\u62c9\u5f39\u51fachế độ（Mặc định true） */
+  /** Dung popover mode (mac dinh true) */
   popover?: boolean;
-  /** Tuỳ chỉnhKích hoạt\u5668（\u4ec5 popover chế độ） */
+  /** Trigger tuy chinh (chi popover mode) */
   trigger?: React.ReactNode;
-  /** Tuỳ chỉnh\u7c7btên */
+  /** Class name tuy chinh */
   className?: string;
-  /** \u7981sử dụngTrạng thái */
+  /** Trang thai disabled */
   disabled?: boolean;
-  /** \u672a\u9009\u62e9\u65f6của\u5360\u4f4d\u6587từ */
+  /** Placeholder khi chua chon */
   placeholder?: string;
 }
 
 /**
- * Phong cách\u9009\u62e9\u5668\u7ec4\u4ef6
+ * Component bo chon phong cach.
  */
 export function StylePicker({
   value,
@@ -65,12 +64,12 @@ export function StylePicker({
   trigger,
   className,
   disabled = false,
-  placeholder = "\u9009\u62e9Phong cách",
+  placeholder = "Chon phong cach",
 }: StylePickerProps) {
   const [hoveredStyle, setHoveredStyle] = useState<StylePreset | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Người dùngTuỳ chỉnhPhong cách（Người dùdữ liệu，\u5b58\u50a8\u5728 localStorage）
+  // Danh sach phong cach tuy chinh trong localStorage.
   const customStyles = useCustomStyleStore((s) => s.styles);
   const customAsPresets: StylePreset[] = useMemo(() =>
     customStyles.map((s) => ({
@@ -86,13 +85,13 @@ export function StylePicker({
     [customStyles]
   );
 
-  // \u83b7\u53d6hiện tại\u9009trongcủaPhong cách（bên trong\u7f6e + Tuỳ chỉnh）
+  // Lay phong cach dang chon (preset + custom).
   const selectedStyle = useMemo(() => getStyleById(value), [value]);
 
-  // Xem trướccủaPhong cách（\u60ac\u505cƯu tiên，\u5426\u5219\u663e\u793a\u9009trongcủa）
+  // Preview uu tien item dang hover.
   const previewStyle = hoveredStyle || selectedStyle || VISUAL_STYLE_PRESETS[0];
 
-  // \u5904\u7406\u9009\u62e9
+  // Xu ly chon phong cach.
   const handleSelect = (style: StylePreset) => {
     onChange(style.id as VisualStyleId);
     if (popover) {
@@ -100,19 +99,19 @@ export function StylePicker({
     }
   };
 
-  // bên trong\u5bb9\u9762\u677f
+  // Noi dung picker.
   const pickerContent = (
     <div className={cn("flex", popover ? "w-[520px] h-[400px]" : "w-full h-full", className)}>
-      {/* \u5de6\u4fa7：Phong cáchdanh sách */}
+      {/* Cot trai: danh sach phong cach */}
       <ScrollArea className="w-[240px] border-r border-border">
         <div className="p-2">
           {STYLE_CATEGORIES.map((category) => (
             <div key={category.id} className="mb-4">
-              {/* \u5206\u7c7bTiêu đề */}
+              {/* Tieu de nhom */}
               <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-b border-border/50 mb-2">
                 {category.name}
               </div>
-              {/* Phong cáchdanh sách */}
+              {/* Danh sach item */}
               <div className="space-y-1">
                 {category.styles.map((style) => (
                   <StyleItem
@@ -128,11 +127,11 @@ export function StylePicker({
             </div>
           ))}
 
-          {/* Người dùngTuỳ chỉnhPhong cách（Người dùngmột\u4ebatài sản） */}
+          {/* Nhom phong cach tuy chinh */}
           {customAsPresets.length > 0 && (
             <div className="mb-4">
               <div className="px-2 py-1.5 text-xs font-medium text-primary border-b border-primary/30 mb-2">
-                \u6211củaPhong cách
+                Phong cach cua toi
               </div>
               <div className="space-y-1">
                 {customAsPresets.map((style) => (
@@ -152,9 +151,9 @@ export function StylePicker({
         </div>
       </ScrollArea>
 
-      {/* \u53f3\u4fa7：Xem trướcthông tin */}
+      {/* Cot phai: thong tin preview */}
       <div className="flex-1 p-4 flex flex-col">
-        {/* \u8272\u5757\u5360\u4f4d + Phong cáchTên */}
+        {/* O mau + ten phong cach */}
         <div className={cn(
           "flex-1 flex flex-col items-center justify-center rounded-lg mb-3",
           CATEGORY_COLORS[previewStyle.category] || 'bg-muted/30'
@@ -162,7 +161,7 @@ export function StylePicker({
           <div className="text-2xl font-bold mb-2">{previewStyle.name}</div>
           <div className="text-xs opacity-70">{previewStyle.category.toUpperCase()} · {previewStyle.mediaType}</div>
         </div>
-        {/* Phong cáchthông tin */}
+        {/* Mo ta phong cach */}
         <div className="text-center">
           <div className="font-medium text-sm mb-1">{previewStyle.name}</div>
           <div className="text-xs text-muted-foreground line-clamp-2">
@@ -173,7 +172,7 @@ export function StylePicker({
     </div>
   );
 
-  // \u4e0b\u62c9chế độ
+  // Popover mode.
   if (popover) {
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -197,7 +196,15 @@ export function StylePicker({
                       ? 'bg-primary/20 text-primary'
                       : CATEGORY_COLORS[selectedStyle.category] || 'bg-muted'
                   )}>
-                    {selectedStyle.id.startsWith('custom_style_') ? '★' : selectedStyle.category === '3d' ? '3D' : selectedStyle.category === '2d' ? '2D' : selectedStyle.category === 'real' ? '\u771f' : '\u5b9a'}
+                    {selectedStyle.id.startsWith("custom_style_")
+                      ? "★"
+                      : selectedStyle.category === "3d"
+                      ? "3D"
+                      : selectedStyle.category === "2d"
+                      ? "2D"
+                      : selectedStyle.category === "real"
+                      ? "REAL"
+                      : "STOP"}
                   </span>
                 )}
                 <span className={!selectedStyle ? "text-muted-foreground" : ""}>
@@ -226,12 +233,12 @@ export function StylePicker({
     );
   }
 
-  // bên trong\u5d4cchế độ
+  // Embedded mode.
   return pickerContent;
 }
 
 /**
- * Tiến sĩ đơnong cách\u9879
+ * Mot item phong cach.
  */
 interface StyleItemProps {
   style: StylePreset;
@@ -254,16 +261,24 @@ function StyleItem({ style, isSelected, isCustom, onSelect, onHover, onLeave }: 
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
     >
-      {/* \u8272\u5757\u5360\u4f4d */}
+      {/* O mau */}
       <span className={cn(
         "w-10 h-10 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0",
         isCustom ? 'bg-primary/20 text-primary' : CATEGORY_COLORS[style.category] || 'bg-muted'
       )}>
-        {isCustom ? '★' : style.category === '3d' ? '3D' : style.category === '2d' ? '2D' : style.category === 'real' ? '\u771f' : '\u5b9a'}
+        {isCustom
+          ? "★"
+          : style.category === "3d"
+          ? "3D"
+          : style.category === "2d"
+          ? "2D"
+          : style.category === "real"
+          ? "REAL"
+          : "STOP"}
       </span>
       {/* Tên */}
       <span className="flex-1 text-left text-sm truncate">{style.name}</span>
-      {/* \u9009trong\u6807\u8bb0 */}
+      {/* Dau hieu dang chon */}
       {isSelected && (
         <Check className="w-4 h-4 text-primary flex-shrink-0" />
       )}

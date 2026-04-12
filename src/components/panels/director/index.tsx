@@ -93,9 +93,9 @@ export function DirectorView() {
 
   // Step definitions for navigation
   const STEPS = [
-    { id: 'idle', name: '\u8f93\u5165câu chuyện', storyboardStatus: 'idle' as const },
-    { id: 'preview', name: '\u9884\u89c8câu chuyện\u677f', storyboardStatus: 'preview' as const },
-    { id: 'editing', name: '\u7f16\u8f91\u573a\u666f', storyboardStatus: 'editing' as const },
+    { id: 'idle', name: 'Nhập câu chuyện', storyboardStatus: 'idle' as const },
+    { id: 'preview', name: 'Xem trước storyboard', storyboardStatus: 'preview' as const },
+    { id: 'editing', name: 'Chỉnh sửa cảnh', storyboardStatus: 'editing' as const },
   ];
 
   // Get current step index
@@ -123,11 +123,11 @@ export function DirectorView() {
     if (currentStepIndex >= STEPS.length - 1) return;
     // Can only go forward if conditions are met
     if (currentStepIndex === 0 && !storyboardImage) {
-      toast.error('\u8bf7đầu tiên\u751f\u6210câu chuyện\u677f');
+      toast.error('Vui lòng tạo storyboard trước.');
       return;
     }
     if (currentStepIndex === 1 && splitScenes.length === 0) {
-      toast.error('\u8bf7đầu tiên\u5207\u5272\u573a\u666f');
+      toast.error('Vui lòng tách cảnh trước.');
       return;
     }
     const nextStep = STEPS[currentStepIndex + 1];
@@ -209,27 +209,27 @@ export function DirectorView() {
 
       setStoryboardImage(result.imageUrl, mediaId);
       setStoryboardStatus('preview');
-      toast.success('câu chuyện\u677f\u751f\u6210\u6210\u529f，Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93！');
+      toast.success('Tạo storyboard thành công. Đã lưu vào thư viện tư liệu.');
     } catch (error) {
       const err = error as Error;
       console.error('[DirectorView] Storyboard generation failed:', err);
       setStoryboardError(err.message);
       setStoryboardStatus('error');
-      toast.error(`câu chuyện\u677f\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.error(`Tạo storyboard thất bại: ${err.message}`);
     }
   }, [getApiKey, setStoryboardImage, setStoryboardStatus, setStoryboardError, setStoryboardConfig, getOrCreateCategoryFolder, addMediaFromUrl, activeProjectId]);
 
   // Handle video generation from split scenes
   const handleGenerateVideos = useCallback(async () => {
     if (splitScenes.length === 0) {
-      toast.error('\u6ca1Có\u53ef\u751f\u6210của\u573a\u666f');
+      toast.error('Không có cảnh để tạo video.');
       return;
     }
 
     // từ\u670d\u52a1\u6620\u5c04\u83b7\u53d6\u89c6\u9891\u751f\u6210Cấu hình
     const videoConfig = getFeatureConfig('video_generation');
     if (!videoConfig) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u89c6\u9891\u751f\u6210 API');
+      toast.error('Vui lòng cấu hình API tạo video trong Cài đặt trước.');
       return;
     }
     const apiKey = videoConfig.apiKey;
@@ -239,7 +239,7 @@ export function DirectorView() {
     
     console.log('[DirectorView] Using video generation config:', { provider, model, baseUrl });
 
-    toast.info(`\u5f00\u59cbcho ${splitScenes.length} một\u573a\u666f\u751f\u6210\u89c6\u9891... (sử dụng ${provider} ${model || ''})`);
+    toast.info(`Bắt đầu tạo video cho ${splitScenes.length} cảnh... (dùng ${provider} ${model || ""})`);
 
     await generateSceneVideos(
       splitScenes.map(s => ({
@@ -258,15 +258,15 @@ export function DirectorView() {
         console.log(`[DirectorView] Scene ${sceneId} progress: ${progress}%`);
       },
       (sceneId, videoUrl) => {
-        toast.success(`\u573a\u666f ${sceneId} \u89c6\u9891\u751f\u6210Hoàn thành`);
+        toast.success(`Cảnh ${sceneId} tạo video hoàn thành.`);
         // TODO: Add video to media library
       },
       (sceneId, error) => {
-        toast.error(`\u573a\u666f ${sceneId} \u751f\u6210\u5931\u8d25: ${error}`);
+        toast.error(`Cảnh ${sceneId} tạo thất bại: ${error}`);
       }
     );
 
-    toast.success('\u6240Có\u89c6\u9891\u751f\u6210Hoàn thành！');
+    toast.success('Đã tạo xong toàn bộ video.');
   }, [splitScenes, storyboardConfig]);
 
   // Render based on current status (prioritize storyboard workflow)

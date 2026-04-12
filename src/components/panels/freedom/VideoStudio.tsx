@@ -19,6 +19,7 @@ import {
   getResolutionsForModel,
 } from '@/lib/freedom/model-registry';
 import { resolveVeoUploadCapability, type VeoUploadCapability } from '@/lib/freedom/veo-capability';
+import { t } from '@/lib/i18n';
 
 interface LocalUploadAsset {
   id: string;
@@ -64,7 +65,7 @@ function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('Tệp\u8bfb\u53d6Thất bại'));
+    reader.onerror = () => reject(new Error(t('freedom.video.error.fileRead')));
     reader.readAsDataURL(file);
   });
 }
@@ -80,27 +81,27 @@ function getVeoUploadValidationError(
 
   if (capability.mode === 'single') {
     if (capability.minFiles > 0 && !singleUpload && !firstFrameUpload) {
-      return 'hiện tạiMô hình\u9700\u8981Tải lên 1 \u5f20Hình ảnh';
+      return t('freedom.video.validation.uploadSingleRequired');
     }
     return null;
   }
 
   if (capability.mode === 'first_last') {
     if (capability.minFiles > 0 && !firstFrameUpload) {
-      return 'hiện tạiMô hình\u9700\u8981Tải lênkhung hình đầu tiênHình ảnh';
+      return t('freedom.video.validation.uploadFirstRequired');
     }
     if (!firstFrameUpload && lastFrameUpload) {
-      return '\u8bf7đầu tiênTải lênkhung hình đầu tiêđồ thị n，Một lần nữaTải lên\u5c3e\u5e27\u56fe';
+      return t('freedom.video.validation.uploadFirstBeforeLast');
     }
     return null;
   }
 
   if (capability.mode === 'multi') {
     if (referenceUploads.length < capability.minFiles) {
-      return `hiện tạiMô hình\u81f3\u5c11\u9700\u8981 ${capability.minFiles} \u5f20Hình ảnh tham khảo`;
+      return t('freedom.video.validation.uploadMinRefs', { count: capability.minFiles });
     }
     if (referenceUploads.length > capability.maxFiles) {
-      return `hiện tạiMô hìnhnhấtHỗ trợ ${capability.maxFiles} \u5f20Hình ảnh tham khảo`;
+      return t('freedom.video.validation.uploadMaxRefs', { count: capability.maxFiles });
     }
   }
 
@@ -225,7 +226,7 @@ export function VideoStudio() {
     try {
       setSingleUpload(await toAsset(file));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '\u8bfb\u53d6TệpThất bại';
+      const message = err instanceof Error ? err.message : t('freedom.video.error.fileRead');
       toast.error(message);
     }
   }, [toAsset]);
@@ -237,7 +238,7 @@ export function VideoStudio() {
     try {
       setFirstFrameUpload(await toAsset(file));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '\u8bfb\u53d6TệpThất bại';
+      const message = err instanceof Error ? err.message : t('freedom.video.error.fileRead');
       toast.error(message);
     }
   }, [toAsset]);
@@ -249,7 +250,7 @@ export function VideoStudio() {
     try {
       setLastFrameUpload(await toAsset(file));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '\u8bfb\u53d6TệpThất bại';
+      const message = err instanceof Error ? err.message : t('freedom.video.error.fileRead');
       toast.error(message);
     }
   }, [toAsset]);
@@ -259,14 +260,14 @@ export function VideoStudio() {
     e.target.value = '';
     if (!file) return;
     if (referenceUploads.length >= Math.max(veoCapability.maxFiles, 1)) {
-      toast.error(`hiện tạiMô hìnhnhấtHỗ trợ ${veoCapability.maxFiles} \u5f20Hình ảnh tham khảo`);
+      toast.error(t('freedom.video.validation.uploadMaxRefs', { count: veoCapability.maxFiles }));
       return;
     }
     try {
       const asset = await toAsset(file);
       setReferenceUploads((prev) => [...prev, asset]);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '\u8bfb\u53d6TệpThất bại';
+      const message = err instanceof Error ? err.message : t('freedom.video.error.fileRead');
       toast.error(message);
     }
   }, [referenceUploads.length, toAsset, veoCapability.maxFiles]);
@@ -321,7 +322,7 @@ export function VideoStudio() {
           className="h-24 w-full rounded border border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/40"
         >
           <Upload className="h-4 w-4" />
-          <span className="text-xs">Tải lênHình ảnh</span>
+          <span className="text-xs">{t('freedom.video.upload.uploadImage')}</span>
         </button>
       )}
       {asset && (
@@ -333,7 +334,7 @@ export function VideoStudio() {
           onClick={onPick}
           disabled={videoGenerating}
         >
-          \u66f4\u6362
+          {t('freedom.video.upload.replace')}
         </Button>
       )}
     </div>
@@ -341,7 +342,7 @@ export function VideoStudio() {
 
   const handleGenerate = useCallback(async () => {
     if (!videoPrompt.trim()) {
-      toast.error('Vui lòng nhậpMô tả\u6587từ');
+      toast.error(t('freedom.video.validation.promptRequired'));
       return;
     }
 
@@ -388,10 +389,10 @@ export function VideoStudio() {
         type: 'video',
       });
 
-      toast.success('VideoTạoThành công！Đã LưuĐếnChất liệu\u5e93');
+      toast.success(t('freedom.video.toast.success'));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Không rõLỗi';
-      toast.error(`TạoThất bại: ${message}`);
+      const message = err instanceof Error ? err.message : t('common.unknownError');
+      toast.error(t('freedom.video.toast.failure', { message }));
     } finally {
       setVideoGenerating(false);
     }
@@ -420,7 +421,7 @@ export function VideoStudio() {
           <div className="p-4 space-y-5">
             {/* Model Selection */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Mô hình\u9009\u62e9</Label>
+              <Label className="text-sm font-medium">{t('freedom.video.label.model')}</Label>
               <ModelSelector
                 type="video"
                 value={selectedVideoModel}
@@ -434,7 +435,7 @@ export function VideoStudio() {
             {/* Aspect Ratio */}
             {aspectRatios.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">\u5bbd\u9ad8\u6bd4</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.label.aspectRatio')}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {aspectRatios.map((ratio) => (
                     <Button
@@ -454,7 +455,7 @@ export function VideoStudio() {
             {/* Duration */}
             {durations.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Thời lượng (giây)</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.label.duration')}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {durations.map((d) => (
                     <Button
@@ -474,10 +475,10 @@ export function VideoStudio() {
             {/* Resolution */}
             {resolutions.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Độ phân giải</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.label.resolution')}</Label>
                 <Select value={videoResolution} onValueChange={setVideoResolution}>
                   <SelectTrigger className="h-9">
-                    <SelectValue placeholder="\u9009\u62e9Độ phân giải" />
+                    <SelectValue placeholder={t('freedom.video.placeholder.selectResolution')} />
                   </SelectTrigger>
                   <SelectContent>
                     {resolutions.map((r) => (
@@ -491,15 +492,15 @@ export function VideoStudio() {
             {/* Veo Dynamic Uploads */}
             {veoCapability.isVeo && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Tải lênChất liệu（Veo）</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.label.uploadMaterial')}</Label>
                 {veoCapability.mode === 'none' ? (
                   <p className="text-xs text-muted-foreground rounded-md border px-2 py-2">
-                    hiện tạiMô hình\u4ec5\u6587\u751fVideo，\u4e0d\u9700\u8981Tải lênHình ảnh。
+                    {t('freedom.video.upload.noneNeeded')}
                   </p>
                 ) : (
                   <div className="space-y-2">
                     {veoCapability.mode === 'single' && renderUploadSlot(
-                      'Hình ảnh tham khảo',
+                      t('freedom.video.upload.singleLabel'),
                       singleUpload || firstFrameUpload,
                       () => singleInputRef.current?.click(),
                       () => {
@@ -512,14 +513,14 @@ export function VideoStudio() {
                     {veoCapability.mode === 'first_last' && (
                       <div className="grid grid-cols-2 gap-2">
                         {renderUploadSlot(
-                          'khung hình đầu tiêđồ thị n',
+                          t('freedom.video.upload.firstLabel'),
                           firstFrameUpload,
                           () => firstInputRef.current?.click(),
                           () => setFirstFrameUpload(null),
                           veoCapability.minFiles > 0,
                         )}
                         {renderUploadSlot(
-                          '\u5c3e\u5e27\u56fe',
+                          t('freedom.video.upload.lastLabel'),
                           lastFrameUpload,
                           () => lastInputRef.current?.click(),
                           () => setLastFrameUpload(null),
@@ -535,7 +536,7 @@ export function VideoStudio() {
                             <div key={asset.id} className="relative rounded border overflow-hidden">
                               <img
                                 src={asset.dataUrl}
-                                alt={`Hình ảnh tham khảo ${index + 1}`}
+                                alt={t('freedom.video.upload.referenceAlt', { index: index + 1 })}
                                 className="h-20 w-full object-cover"
                               />
                               <button
@@ -554,12 +555,12 @@ export function VideoStudio() {
                               className="h-20 rounded border border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/40"
                             >
                               <Upload className="h-4 w-4" />
-                              <span className="text-[11px]">Thêm</span>
+                              <span className="text-[11px]">{t('freedom.video.upload.addMore')}</span>
                             </button>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Đã Tải lên {referenceUploads.length}/{veoCapability.maxFiles} \u5f20Hình ảnh tham khảo
+                          {t('freedom.video.upload.count', { current: referenceUploads.length, max: veoCapability.maxFiles })}
                         </p>
                       </div>
                     )}
@@ -570,9 +571,9 @@ export function VideoStudio() {
 
             {/* Prompt */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Mô tả\u6587từ</Label>
+              <Label className="text-sm font-medium">{t('freedom.video.label.prompt')}</Label>
               <Textarea
-                placeholder="Mô tả\u4f60\u60f3TạocủaVideo..."
+                placeholder={t('freedom.video.placeholder.prompt')}
                 value={videoPrompt}
                 onChange={(e) => setVideoPrompt(e.target.value)}
                 className="min-h-[120px] resize-none"
@@ -615,9 +616,9 @@ export function VideoStudio() {
               disabled={videoGenerating || !videoPrompt.trim()}
             >
               {videoGenerating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Tạotrong...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('freedom.video.button.generating')}</>
               ) : (
-                <><Sparkles className="mr-2 h-4 w-4" /> Tạo video</>
+                <><Sparkles className="mr-2 h-4 w-4" /> {t('freedom.video.button.generate')}</>
               )}
             </Button>
           </div>
@@ -629,7 +630,7 @@ export function VideoStudio() {
         {videoGenerating ? (
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">VideoTạotrong，\u8bf7\u7a0d\u5019（\u53ef\u80fd\u9700\u8981 1-4 \u5206\u949f）...</p>
+            <p className="text-sm text-muted-foreground">{t('freedom.video.center.generating')}</p>
           </div>
         ) : videoResult ? (
           <div className="max-w-full max-h-full relative group">
@@ -643,7 +644,7 @@ export function VideoStudio() {
             <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
               <Button size="sm" variant="secondary" asChild>
                 <a href={videoResult} download target="_blank" rel="noopener">
-                  <Download className="h-4 w-4 mr-1" /> Tải xuống
+                  <Download className="h-4 w-4 mr-1" /> {t('freedom.video.button.download')}
                 </a>
               </Button>
             </div>
@@ -651,8 +652,8 @@ export function VideoStudio() {
         ) : (
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <VideoIcon className="h-16 w-16 opacity-20" />
-            <p className="text-lg font-medium">Video\u5de5\u4f5c\u5ba4</p>
-            <p className="text-sm">\u9009\u62e9Mô hình，Đầu vàoMô tả，Tạo\u4f60\u60f3\u8981củaVideo</p>
+            <p className="text-lg font-medium">{t('freedom.video.center.title')}</p>
+            <p className="text-sm">{t('freedom.video.center.subtitle')}</p>
           </div>
         )}
       </div>

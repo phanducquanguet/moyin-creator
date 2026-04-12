@@ -83,7 +83,7 @@ export function ShotListPanel({ onGenerateImage }: ShotListPanelProps) {
   // Batch generate
   const handleBatchGenerate = async () => {
     if (!onGenerateImage) {
-      toast.error("\u56fe\u7247\u751f\u6210\u670d\u52a1Chưa được định cấu hình");
+      toast.error("Dịch vụ tạo ảnh chưa được cấu hình.");
       return;
     }
 
@@ -93,7 +93,7 @@ export function ShotListPanel({ onGenerateImage }: ShotListPanelProps) {
 
     if (shotsToProcess.length === 0) return;
 
-    if (allStartFramesGenerated && !confirm("\u786e\u5b9a\u8981\u91cdmới\u751f\u6210\u6240Cókhung hình đầu tiên\u5417？")) {
+    if (allStartFramesGenerated && !confirm("Bạn có chắc muốn tạo lại tất cả khung hình đầu?")) {
       return;
     }
 
@@ -136,7 +136,7 @@ export function ShotListPanel({ onGenerateImage }: ShotListPanelProps) {
     }
 
     setBatchProgress({ isVisible: false, current: 0, total: 0 });
-    toast.success("lô\u91cf\u751f\u6210Hoàn thành");
+    toast.success("Tạo hàng loạt hoàn thành.");
   };
 
   // Get scene name

@@ -60,9 +60,7 @@ import {
   Check,
   X,
   Loader2,
-  MessageSquare,
   Zap,
-  ScanEye,
   Info,
   Image,
   RotateCcw,
@@ -83,6 +81,7 @@ import { uploadToImageHost } from "@/lib/image-host";
 import { UpdateDialog } from "@/components/UpdateDialog";
 import type { AvailableUpdateInfo } from "@/types/update";
 import packageJson from "../../../package.json";
+import { t } from "@/lib/i18n";
 
 // Platform icon mapping
 const PLATFORM_ICONS: Record<string, React.ReactNode> = {
@@ -159,7 +158,6 @@ export function SettingsPanel() {
     if (!mf || parseApiKeys(mf.apiKey).length === 0) return;
 
     const pid = mf.id;
-    const models = mf.model || [];
     const defaults: Record<string, string> = {
       script_analysis: `${pid}:deepseek-v3.2`,
       character_generation: `${pid}:gemini-3-pro-image-preview`,
@@ -242,7 +240,7 @@ export function SettingsPanel() {
   // Delete provider
   const handleDelete = (id: string) => {
     removeProvider(id);
-    toast.success("Đã rồi\u5220\u9664\u4f9b\u5e94\u5546");
+    toast.success(t("settings.toast.providerDeleted"));
   };
 
   const handleEditImageHost = (provider: ImageHostProvider) => {
@@ -252,7 +250,7 @@ export function SettingsPanel() {
 
   const handleDeleteImageHost = (id: string) => {
     removeImageHostProvider(id);
-    toast.success("Đã rồi\u5220\u9664\u56fegiường");
+    toast.success(t("settings.toast.imageHostDeleted"));
   };
 
   const handleTestImageHost = async (provider: ImageHostProvider) => {
@@ -264,12 +262,12 @@ export function SettingsPanel() {
         providerId: provider.id,
       });
       if (result.success) {
-        toast.success(`\u56fegiường ${provider.name} \u8fde\u63a5\u6d4b\u8bd5\u6210\u529f`);
+        toast.success(t("settings.toast.imageHostConnectionTestSuccess", { name: provider.name }));
       } else {
-        toast.error(`\u6d4b\u8bd5\u5931\u8d25: ${result.error || '\u672a\u77e5\u9519\u8bef'}`);
+        toast.error(t("settings.toast.testFailedWithError", { message: result.error || t("common.unknownError") }));
       }
     } catch (error) {
-      toast.error('\u8fde\u63a5\u6d4b\u8bd5\u5931\u8d25，Vui lòng kiểm tra mạng');
+      toast.error(t("settings.toast.connectionTestFailedCheckNetwork"));
     } finally {
       setTestingImageHostId(null);
     }
@@ -279,7 +277,7 @@ export function SettingsPanel() {
   const testConnection = async (provider: IProvider) => {
     const keys = parseApiKeys(provider.apiKey);
     if (keys.length === 0) {
-      toast.error("Vui lòng định cấu hình Khóa API trước");
+      toast.error(t("settings.toast.configureApiKeyFirst"));
       return;
     }
 
@@ -297,7 +295,7 @@ export function SettingsPanel() {
 
       if (provider.platform === "runninghub") {
         if (!normalizedBaseUrl) {
-          toast.error("\u8bf7đầu tiênCấu hình Base URL");
+          toast.error(t("settings.toast.configureBaseUrlFirst"));
           setTestingProvider(null);
           return;
         }
@@ -315,7 +313,7 @@ export function SettingsPanel() {
         // For RunningHub, 400/404 means auth is OK (task doesn't exist)
         if (response.status === 400 || response.status === 404) {
           setTestResults((prev) => ({ ...prev, [provider.id]: true }));
-          toast.success("\u8fde\u63a5\u6d4b\u8bd5\u6210\u529f");
+          toast.success(t("settings.toast.connectionTestSuccess"));
           setTestingProvider(null);
           return;
         }
@@ -337,7 +335,7 @@ export function SettingsPanel() {
       } else {
         // For providers without chat endpoint info, just mark as configured
         setTestResults((prev) => ({ ...prev, [provider.id]: true }));
-        toast.success(`${provider.name} được cấu hình`);
+        toast.success(t("settings.toast.providerConfigured", { name: provider.name }));
         setTestingProvider(null);
         return;
       }
@@ -346,16 +344,16 @@ export function SettingsPanel() {
       setTestResults((prev) => ({ ...prev, [provider.id]: success }));
 
       if (success) {
-        toast.success("\u8fde\u63a5\u6d4b\u8bd5\u6210\u529f");
+        toast.success(t("settings.toast.connectionTestSuccess"));
       } else {
         const errorData = await response.text();
         console.error("API test error:", response.status, errorData);
-        toast.error(`\u8fde\u63a5\u6d4b\u8bd5\u5931\u8d25 (${response.status})`);
+        toast.error(t("settings.toast.connectionTestFailedWithStatus", { status: response.status }));
       }
     } catch (error) {
       console.error("Connection test error:", error);
       setTestResults((prev) => ({ ...prev, [provider.id]: false }));
-      toast.error("\u8fde\u63a5\u6d4b\u8bd5\u5931\u8d25，Vui lòng kiểm tra mạng");
+      toast.error(t("settings.toast.connectionTestFailedCheckNetwork"));
     } finally {
       setTestingProvider(null);
     }
@@ -448,7 +446,7 @@ export function SettingsPanel() {
   // Unified storage handlers
   const handleSelectStoragePath = async () => {
     if (!window.storageManager) {
-      toast.error("\u8bf7\u5728\u684c\u9762\u5e94sử dụngtrongsử dụng\u6b64chức năng");
+      toast.error(t("settings.toast.desktopOnlyFeature"));
       return;
     }
     const dir = await window.storageManager.selectDirectory();
@@ -477,10 +475,10 @@ export function SettingsPanel() {
         console.warn('Failed to clear IndexedDB:', e);
       }
       
-      toast.success("\u5b58\u50a8\u4f4d\u7f6eĐã rồi\u66f4mới，\u6b63\u5728\u5237mới...");
+      toast.success(t("settings.toast.storagePathUpdatedReloading"));
       setTimeout(() => window.location.reload(), 500);
     } else {
-      toast.error(`\u79fb\u52a8\u5931\u8d25: ${result.error || "\u672a\u77e5\u9519\u8bef"}`);
+      toast.error(t("settings.toast.moveFailed", { message: result.error || t("common.unknownError") }));
     }
   };
 
@@ -490,9 +488,9 @@ export function SettingsPanel() {
     if (!dir) return;
     const result = await window.storageManager.exportData(dir);
     if (result.success) {
-      toast.success("\u6570\u636eĐã rồi\u5bfc\u51fa");
+      toast.success(t("settings.toast.dataExported"));
     } else {
-      toast.error(`\u5bfc\u51fa\u5931\u8d25: ${result.error || "\u672a\u77e5\u9519\u8bef"}`);
+      toast.error(t("settings.toast.exportFailed", { message: result.error || t("common.unknownError") }));
     }
   };
 
@@ -500,7 +498,7 @@ export function SettingsPanel() {
     if (!window.storageManager) return;
     const dir = await window.storageManager.selectDirectory();
     if (!dir) return;
-    if (!confirm("\u5bfc\u5165\u5c06\u8986\u76d6hiện tại\u6570\u636e，ĐúngKHÔNGtiếp tục？")) return;
+    if (!confirm(t("settings.confirm.importOverwrite"))) return;
     const result = await window.storageManager.importData(dir);
     if (result.success) {
       // \u6e05\u9664 localStorage trongcủabộ nhớ đệm，\u9632\u6b62\u65e7\u6570\u636e\u8986\u76d6\u5bfc\u5165của\u6570\u636e
@@ -523,17 +521,17 @@ export function SettingsPanel() {
         console.warn('Failed to clear IndexedDB:', e);
       }
       
-      toast.success("\u6570\u636eĐã rồi\u5bfc\u5165，\u6b63\u5728\u5237mới...");
+      toast.success(t("settings.toast.dataImportedReloading"));
       // \u5ef6\u8fdf\u5237mới\u9875\u9762\u4ee5\u786e\u4fddbộ nhớ đệmdọn dẹpHoàn thành
       setTimeout(() => window.location.reload(), 500);
     } else {
-      toast.error(`\u5bfc\u5165\u5931\u8d25: ${result.error || "\u672a\u77e5\u9519\u8bef"}`);
+      toast.error(t("settings.toast.importFailed", { message: result.error || t("common.unknownError") }));
     }
   };
 
   const handleLinkData = async () => {
     if (!window.storageManager) {
-      toast.error("\u8bf7\u5728\u684c\u9762\u5e94sử dụngtrongsử dụng\u6b64chức năng");
+      toast.error(t("settings.toast.desktopOnlyFeature"));
       return;
     }
     const dir = await window.storageManager.selectDirectory();
@@ -542,12 +540,15 @@ export function SettingsPanel() {
     // Validate the directory first
     const validation = await window.storageManager.validateDataDir(dir);
     if (!validation.valid) {
-      toast.error(validation.error || "không có\u6548của\u6570\u636e\u76ee\u5f55");
+      toast.error(validation.error || t("settings.toast.invalidDataDirectory"));
       return;
     }
     
     // Confirm with user
-    const confirmMsg = `Phát hiệnĐến ${validation.projectCount || 0} một\u9879\u76ee\u6587\u4ef6，${validation.mediaCount || 0} Chất liệu\u6587\u4ef6。\n\nĐúngKHÔNGchỉ vào\u6b64\u76ee\u5f55？\u64cd\u4f5c\u540e\u5efa\u8bae\u91cd\u542f\u5e94sử dụng。`;
+    const confirmMsg = t("settings.confirm.linkDataDirectory", {
+      projectCount: validation.projectCount || 0,
+      mediaCount: validation.mediaCount || 0,
+    });
     if (!confirm(confirmMsg)) return;
     
     const result = await window.storageManager.linkData(dir);
@@ -574,10 +575,10 @@ export function SettingsPanel() {
         console.warn('Failed to clear IndexedDB:', e);
       }
       
-      toast.success("Đã rồichỉ vào\u6570\u636e\u76ee\u5f55，\u6b63\u5728\u5237mới...");
+      toast.success(t("settings.toast.dataDirectoryLinkedReloading"));
       setTimeout(() => window.location.reload(), 500);
     } else {
-      toast.error(`\u64cd\u4f5c\u5931\u8d25: ${result.error || "\u672a\u77e5\u9519\u8bef"}`);
+      toast.error(t("settings.toast.operationFailed", { message: result.error || t("common.unknownError") }));
     }
   };
 
@@ -587,10 +588,10 @@ export function SettingsPanel() {
     try {
       const result = await window.storageManager.clearCache();
       if (result.success) {
-        toast.success("bộ nhớ đệmĐã rồidọn dẹp");
+        toast.success(t("settings.toast.cacheCleared"));
         refreshCacheSize();
       } else {
-        toast.error(`dọn dẹp\u5931\u8d25: ${result.error || "\u672a\u77e5\u9519\u8bef"}`);
+        toast.error(t("settings.toast.clearFailed", { message: result.error || t("common.unknownError") }));
       }
     } finally {
       setIsClearingCache(false);
@@ -599,7 +600,7 @@ export function SettingsPanel() {
 
   const handleCheckForUpdates = async () => {
     if (!window.appUpdater) {
-      toast.error("\u8bf7\u5728\u684c\u9762\u5e94sử dụngtrongsử dụng\u6b64chức năng");
+      toast.error(t("settings.toast.desktopOnlyFeature"));
       return;
     }
 
@@ -607,7 +608,7 @@ export function SettingsPanel() {
     try {
       const result = await window.appUpdater.checkForUpdates();
       if (!result.success) {
-        toast.error(`\u68c0\u67e5\u66f4mới\u5931\u8d25: ${result.error || "\u672a\u77e5\u9519\u8bef"}`);
+        toast.error(t("settings.toast.updateCheckFailed", { message: result.error || t("common.unknownError") }));
         return;
       }
 
@@ -618,10 +619,10 @@ export function SettingsPanel() {
       }
 
       setAvailableUpdate(null);
-      toast.success(`hiện tạiĐã rồiĐúng\u6700mới\u7248\u672c v${result.currentVersion}`);
+      toast.success(t("settings.toast.alreadyLatestVersion", { version: result.currentVersion }));
     } catch (error) {
       console.error("[SettingsPanel] Failed to check updates:", error);
-      toast.error("\u68c0\u67e5\u66f4mới\u5931\u8d25，\u8bf7\u7a0d\u540e\u91cd\u8bd5");
+      toast.error(t("settings.toast.updateCheckRetryLater"));
     } finally {
       setIsCheckingForUpdates(false);
     }
@@ -629,7 +630,7 @@ export function SettingsPanel() {
 
   const handleClearIgnoredVersion = () => {
     setUpdateSettings({ ignoredVersion: "" });
-    toast.success("Đã rồi\u6062\u590d\u66f4mới\u63d0\u9192");
+    toast.success(t("settings.toast.updateReminderRestored"));
   };
 
   return (
@@ -639,17 +640,17 @@ export function SettingsPanel() {
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
             <Settings className="w-5 h-5 text-primary" />
-            \u8bbe\u7f6e
+            {t("settings.title")}
           </h2>
         </div>
         {activeTab === "api" && (
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground font-mono bg-muted border border-border px-2 py-1 rounded">
-              được cấu hình: {configuredCount}/{providers.length}
+              {t("settings.api.configuredCount", { configured: configuredCount, total: providers.length })}
             </span>
             <Button onClick={() => setAddDialogOpen(true)} size="sm">
               <Plus className="h-4 w-4 mr-1" />
-              \u6dfb\u52a0\u4f9b\u5e94\u5546
+              {t("settings.api.addProvider")}
             </Button>
           </div>
         )}
@@ -663,21 +664,21 @@ export function SettingsPanel() {
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 h-12"
             >
               <Key className="h-4 w-4 mr-2" />
-              API \u7ba1\u7406
+              {t("settings.tabs.api")}
             </TabsTrigger>
             <TabsTrigger 
               value="advanced" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 h-12"
             >
               <Layers className="h-4 w-4 mr-2" />
-              \u9ad8\u7ea7\u9009\u9879
+              {t("settings.tabs.advanced")}
             </TabsTrigger>
             <TabsTrigger 
               value="imagehost" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 h-12"
             >
               <Upload className="h-4 w-4 mr-2" />
-              \u56fegiườngCấu hình
+              {t("settings.tabs.imageHost")}
               {isImageHostConfigured() && (
                 <span className="ml-1 w-2 h-2 bg-green-500 rounded-full" />
               )}
@@ -687,7 +688,7 @@ export function SettingsPanel() {
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 h-12"
             >
               <HardDrive className="h-4 w-4 mr-2" />
-              \u5b58\u50a8
+              {t("settings.tabs.storage")}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -700,9 +701,9 @@ export function SettingsPanel() {
           <div className="flex items-start gap-3 p-4 bg-muted/50 border border-border rounded-lg">
             <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
-              <h3 className="font-medium text-foreground text-sm">\u5b89\u5168nói\u660e</h3>
+              <h3 className="font-medium text-foreground text-sm">{t("settings.api.securityTitle")}</h3>
               <p className="text-xs text-muted-foreground mt-1">
-                \u6240Có API Key \u4ec5\u5b58\u50a8\u5728\u60a8của\u6d4f\u89c8\u5668\u672c\u5730\u5b58\u50a8trong，sẽ không\u4e0a\u4f20Đến\u4efb\u4f55\u670d\u52a1\u5668。\u652f\u6301Nhiều phím \u8f6e\u6362，\u5931\u8d25\u65f6\u81ea\u52a8\u5207\u6362。
+                {t("settings.api.securityDesc")}
               </p>
             </div>
           </div>
@@ -719,17 +720,17 @@ export function SettingsPanel() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-foreground text-sm flex items-center gap-2">
-                API ma thuật
+                {t("settings.api.memefastTitle")}
                 <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded">
-                  \u63a8\u8350
+                  {t("settings.common.recommended")}
                 </span>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                543+ AI \u6a21\u578bmột\u7ad9\u5f0f\u63a5\u5165，\u652f\u6301 GPT / Claude / Gemini / DeepSeek / Sora Đợi đã
+                {t("settings.api.memefastDesc")}
               </p>
             </div>
             <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-primary group-hover:underline">
-              \u83b7\u53d6 API Key
+              {t("settings.api.getApiKey")}
               <ExternalLink className="h-3.5 w-3.5" />
             </span>
           </a>
@@ -741,17 +742,17 @@ export function SettingsPanel() {
           <div className="space-y-4">
             <h3 className="font-bold text-foreground flex items-center gap-2">
               <Key className="h-4 w-4" />
-              API \u4f9b\u5e94\u5546
+              {t("settings.api.providers")}
             </h3>
 
             {providers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 border border-dashed border-border rounded-xl">
                 <Info className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
-                  \u5c1aChưa được định cấu hình\u4efb\u4f55\u4f9b\u5e94\u5546
+                  {t("settings.api.emptyTitle")}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  \u63a8\u8350sử dụngAPI ma thuật，\u652f\u6301 543+ \u6a21\u578bmột\u7ad9\u5f0f\u63a5\u5165
+                  {t("settings.api.emptyDesc")}
                 </p>
                 <a
                   href="https://memefast.top"
@@ -760,11 +761,11 @@ export function SettingsPanel() {
                   className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  \u524d\u5f80API ma thuật\u83b7\u53d6 Key
+                  {t("settings.api.goGetApiKey")}
                 </a>
                 <Button onClick={() => setAddDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-1" />
-                  \u6dfb\u52a0\u4f9b\u5e94\u5546
+                  {t("settings.api.addProvider")}
                 </Button>
               </div>
             ) : (
@@ -811,12 +812,12 @@ export function SettingsPanel() {
                                   {provider.name}
                                   {provider.platform === 'memefast' && (
                                     <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded font-normal">
-                                      \u63a8\u8350
+                                      {t("settings.common.recommended")}
                                     </span>
                                   )}
                                   {configured && (
                                     <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded font-normal">
-                                      được cấu hình
+                                      {t("settings.common.configured")}
                                     </span>
                                   )}
                                 </h4>
@@ -835,7 +836,7 @@ export function SettingsPanel() {
                                     toggleExpanded(provider.id);
                                   }}
                                 >
-                                  \u6a21\u578b ({provider.model.length})
+                                  {t("settings.api.modelsCount", { count: provider.model.length })}
                                 </span>
                                 <span>|</span>
                                 <span
@@ -857,15 +858,15 @@ export function SettingsPanel() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  title="\u540c\u6b65\u6a21\u578bdanh sách"
+                                  title={t("settings.actions.syncModels")}
                                   onClick={async () => {
                                     setSyncingProvider(provider.id);
                                     const result = await syncProviderModels(provider.id);
                                     setSyncingProvider(null);
                                     if (result.success) {
-                                      toast.success(`Đã rồi\u540c\u6b65 ${result.count} một\u6a21\u578b`);
+                                      toast.success(t("settings.toast.syncedModels", { count: result.count }));
                                     } else {
-                                      toast.error(result.error || '\u540c\u6b65\u5931\u8d25');
+                                      toast.error(result.error || t("settings.toast.syncFailed"));
                                     }
                                   }}
                                   disabled={!configured || syncingProvider === provider.id}
@@ -881,7 +882,7 @@ export function SettingsPanel() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  title="\u6d4b\u8bd5\u8fde\u63a5"
+                                  title={t("settings.actions.testConnection")}
                                   onClick={() => testConnection(provider)}
                                   disabled={!configured || isTesting}
                                 >
@@ -900,7 +901,7 @@ export function SettingsPanel() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  title="\u7f16\u8f91"
+                                  title={t("settings.actions.edit")}
                                   onClick={() => handleEdit(provider)}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -919,19 +920,19 @@ export function SettingsPanel() {
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>
-                                        \u786e\u8ba4\u5220\u9664
+                                        {t("settings.dialog.confirmDelete")}
                                       </AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        \u786e\u5b9a\u8981\u5220\u9664 {provider.name} \u5417？\u6b64\u64cd\u4f5ckhông có\u6cd5\u64a4\u9500。
+                                        {t("settings.dialog.deleteProviderDesc", { name: provider.name })}
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>\u53d6\u6d88</AlertDialogCancel>
+                                      <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                       <AlertDialogAction
                                         onClick={() => handleDelete(provider.id)}
                                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                       >
-                                        \u5220\u9664
+                                        {t("settings.actions.delete")}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -957,7 +958,7 @@ export function SettingsPanel() {
                               className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
                             >
                               <ExternalLink className="h-3 w-3" />
-                              \u524d\u5f80API ma thuật\u83b7\u53d6 Key →
+                              {t("settings.api.goGetApiKey")} →
                             </a>
                           </div>
                         )}
@@ -969,7 +970,7 @@ export function SettingsPanel() {
                             {provider.baseUrl && (
                               <div className="text-xs">
                                 <span className="text-muted-foreground">
-                                  Base URL:{" "}
+                                  {t("settings.api.baseUrl")}:{" "}
                                 </span>
                                 <span className="font-mono text-foreground">
                                   {provider.baseUrl}
@@ -995,14 +996,14 @@ export function SettingsPanel() {
                             {configured && (
                               <div className="text-xs">
                                 <span className="text-muted-foreground">
-                                  API Key:{" "}
+                                  {t("settings.api.apiKey")}{" "}
                                 </span>
                                 <span className="font-mono text-foreground">
                                   {maskApiKey(parseApiKeys(provider.apiKey)[0])}
                                   {keyCount > 1 && (
                                     <span className="text-muted-foreground">
                                       {" "}
-                                      (+{keyCount - 1} một)
+                                      ({t("settings.api.moreKeys", { count: keyCount - 1 })})
                                     </span>
                                   )}
                                 </span>
@@ -1022,12 +1023,12 @@ export function SettingsPanel() {
           <div className="p-6 border border-border rounded-xl bg-card space-y-6">
             <h3 className="font-bold text-foreground flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              tình hình chung\u8bbe\u7f6e
+              {t("settings.global.title")}
             </h3>
 
             {/* Concurrency */}
             <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Đồng thời\u751f\u6210\u6570</Label>
+              <Label className="text-xs text-muted-foreground">{t("settings.global.concurrencyLabel")}</Label>
               <div className="flex items-center gap-3">
                 <Input
                   type="number"
@@ -1040,7 +1041,7 @@ export function SettingsPanel() {
                   className="w-24"
                 />
                 <span className="text-xs text-muted-foreground">
-                  \u540c\u65f6\u751f\u6210củaNhiệm vụ\u6570\u91cf（Nhiều phím \u65f6\u53ef\u8bbe\u7f6e\u66f4\u9ad8，\u5efa\u8bae\u4e0d\u8d85\u8fc7 Key \u6570\u91cf）
+                  {t("settings.global.concurrencyHint")}
                 </span>
               </div>
             </div>
@@ -1048,8 +1049,8 @@ export function SettingsPanel() {
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">Sáng tạo truyện tranh Mo Yin Moyin Creator</p>
-                <p className="text-xs mt-1">v{appVersion} · Hoạt hình do AI điều khiển\u89c6\u9891\u521b\u4f5c\u5de5\u5177</p>
+                <p className="text-sm font-medium">{t("settings.about.appName")}</p>
+                <p className="text-xs mt-1">{t("settings.about.versionTagline", { version: appVersion })}</p>
               </div>
             </div>
           </ScrollArea>
@@ -1064,10 +1065,10 @@ export function SettingsPanel() {
                 <div>
                   <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                     <Layers className="h-5 w-5" />
-                    \u9ad8\u7ea7\u751f\u6210\u9009\u9879
+                    {t("settings.advanced.title")}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    \u8fd9\u4e9b\u9009\u9879\u5f71\u54cd AI giám đốc\u677f\u5757của\u89c6\u9891\u751f\u6210hành vi
+                    {t("settings.advanced.subtitle")}
                   </p>
                 </div>
                 <Button 
@@ -1075,11 +1076,11 @@ export function SettingsPanel() {
                   size="sm"
                   onClick={() => {
                     resetAdvancedOptions();
-                    toast.success("Đã rồi\u6062\u590d\u9ed8\u8ba4\u8bbe\u7f6e");
+                    toast.success(t("settings.toast.resetDefaultSettings"));
                   }}
                 >
                   <RotateCcw className="h-4 w-4 mr-1" />
-                  \u6062\u590d\u9ed8\u8ba4
+                  {t("settings.actions.resetDefault")}
                 </Button>
               </div>
 
@@ -1093,12 +1094,12 @@ export function SettingsPanel() {
                         <Link2 className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">tính liên tục về mặt thị giác</h4>
+                        <h4 className="font-medium text-foreground">{t("settings.advanced.visualContinuity.title")}</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          \u81ea\u52a8\u5c06\u4e0amột\u5206\u955ccủa\u5c3e\u5e27\u4f20\u9012\u7ed9\u4e0bmột\u5206\u955c\u4f5cchoHình ảnh tham khảo，giữ\u89c6\u89c9gió\u683cvà\u89d2\u8272Bên ngoài\u89c2củamột\u81f4\u6027
+                          {t("settings.advanced.visualContinuity.desc")}
                         </p>
                         <p className="text-xs text-muted-foreground/70 mt-1">
-                          \u63a8\u8350\u5f00\u542f · \u9002\u5408\u8fde\u7eed\u53d9\u4e8bvà\u957f\u89c6\u9891\u521b\u4f5c
+                          {t("settings.advanced.visualContinuity.hint")}
                         </p>
                       </div>
                     </div>
@@ -1117,12 +1118,12 @@ export function SettingsPanel() {
                         <Play className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">\u65ad\u70b9\u7eed\u4f20</h4>
+                        <h4 className="font-medium text-foreground">{t("settings.advanced.resumeGeneration.title")}</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          lô\u91cf\u751f\u6210trong\u65ad\u540e\u53eftừ\u4e0alần\u4f4d\u7f6etiếp tục，\u4e0d\u9700\u8981\u91cdmới\u5f00\u59cb
+                          {t("settings.advanced.resumeGeneration.desc")}
                         </p>
                         <p className="text-xs text-muted-foreground/70 mt-1">
-                          \u63a8\u8350\u5f00\u542f · \u9632\u6b62\u7f51\u7edctrong\u65adhoặc API \u8d85\u65f6\u5bfc\u81f4\u8fdb\u5ea6\u4e22\u5931
+                          {t("settings.advanced.resumeGeneration.hint")}
                         </p>
                       </div>
                     </div>
@@ -1141,12 +1142,12 @@ export function SettingsPanel() {
                         <ShieldAlert className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">bên trong\u5bb9\u5ba1\u6838\u5bb9\u9519</h4>
+                        <h4 className="font-medium text-foreground">{t("settings.advanced.contentModeration.title")}</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          \u9047Đến\u654f\u611fbên trong\u5bb9\u65f6\u81ea\u52a8bỏ qua\u8be5\u5206\u955c，tiếp tục\u751f\u6210\u5176\u4ed6\u5206\u955c
+                          {t("settings.advanced.contentModeration.desc")}
                         </p>
                         <p className="text-xs text-muted-foreground/70 mt-1">
-                          \u63a8\u8350\u5f00\u542f · \u907f\u514d\u5355một\u5206\u955c\u5931\u8d25\u5bfc\u81f4\u6574mộtquá trìnhtrong\u65ad
+                          {t("settings.advanced.contentModeration.hint")}
                         </p>
                       </div>
                     </div>
@@ -1165,12 +1166,12 @@ export function SettingsPanel() {
                         <Zap className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">\u591a\u6a21\u578b\u81ea\u52a8\u5207\u6362</h4>
+                        <h4 className="font-medium text-foreground">{t("settings.advanced.autoModelSwitch.title")}</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          \u9996\u5206\u955csử dụng\u6587\u751f\u89c6\u9891 (t2v)，\u540e\u7eed\u5206\u955csử dụng\u56fe\u751f\u89c6\u9891 (i2v)
+                          {t("settings.advanced.autoModelSwitch.desc")}
                         </p>
                         <p className="text-xs text-muted-foreground/70 mt-1">
-                          \u9ed8\u8ba4\u5173\u95ed · \u9700\u8981Cấu hình\u591amột\u6a21\u578b\u624d\u80fdsử dụng
+                          {t("settings.advanced.autoModelSwitch.hint")}
                         </p>
                       </div>
                     </div>
@@ -1187,15 +1188,15 @@ export function SettingsPanel() {
                 <Info className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    \u8fd9\u4e9b\u9009\u9879\u4f1a\u5f71\u54cd AI giám đốc\u677f\u5757của\u89c6\u9891\u751f\u6210hành vi。Chẳng hạn như\u679c\u4f60\u4e0d\u786e\u5b9a\u67d0một\u9009\u9879của\u4f5csử dụng，\u5efa\u8baegiữ\u9ed8\u8ba4\u8bbe\u7f6e。
+                    {t("settings.advanced.notice")}
                   </p>
                 </div>
               </div>
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">Sáng tạo truyện tranh Mo Yin Moyin Creator</p>
-                <p className="text-xs mt-1">v{appVersion} · Hoạt hình do AI điều khiển\u89c6\u9891\u521b\u4f5c\u5de5\u5177</p>
+                <p className="text-sm font-medium">{t("settings.about.appName")}</p>
+                <p className="text-xs mt-1">{t("settings.about.versionTagline", { version: appVersion })}</p>
               </div>
             </div>
           </ScrollArea>
@@ -1209,25 +1210,25 @@ export function SettingsPanel() {
               <div>
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <Upload className="h-5 w-5" />
-                  \u56fegiườngCấu hình
+                  {t("settings.imageHost.title")}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  \u56fegiườngsử dụng\u4e8e\u5b58\u50a8\u89c6\u9891\u751f\u6210\u8fc7\u7a0btrongcủa\u4e34\u65f6\u56fe\u7247（Chẳng hạn như\u5c3e\u5e27Trích xuất、\u5e27\u4f20\u9012Đợi đã）
+                  {t("settings.imageHost.subtitle")}
                 </p>
               </div>
 
               {/* Image Host Providers */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">\u56fegiường\u670d\u52a1\u5546</Label>
+                  <Label className="text-sm font-medium">{t("settings.imageHost.providersLabel")}</Label>
                   <Button size="sm" variant="outline" onClick={() => setImageHostAddOpen(true)}>
                     <Plus className="h-4 w-4 mr-1" />
-                    \u6dfb\u52a0
+                    {t("settings.actions.add")}
                   </Button>
                 </div>
 
                 {visibleImageHostProviders.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">\u6682không có\u56fegiườngCấu hình</div>
+                  <div className="text-sm text-muted-foreground">{t("settings.imageHost.empty")}</div>
                 ) : (
                   <div className="space-y-3">
                     {visibleImageHostProviders.map((provider) => {
@@ -1242,21 +1243,21 @@ export function SettingsPanel() {
                                 <span className="font-medium text-foreground">{provider.name}</span>
                                 {configured ? (
                                   <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded">
-                                    được cấu hình
+                                    {t("settings.common.configured")}
                                   </span>
                                 ) : (
                                   <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded">
-                                    Chưa được định cấu hình
+                                    {t("settings.common.notConfigured")}
                                   </span>
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                {provider.platform} · {endpoint || '\u672a\u8bbe\u7f6e\u5730\u5740'}
+                                {provider.platform} · {endpoint || t("settings.common.notSetAddress")}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {provider.apiKeyOptional && keyCount === 0
-                                  ? "\u6e38\u5ba2\u4e0a\u4f20（không có\u9700 Key）"
-                                  : `${keyCount} một Key`}
+                                  ? t("settings.imageHost.guestUploadNoKey")
+                                  : t("settings.imageHost.keyCount", { count: keyCount })}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -1279,14 +1280,14 @@ export function SettingsPanel() {
                               {testingImageHostId === provider.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                "\u6d4b\u8bd5\u8fde\u63a5"
+                                t("settings.actions.testConnection")
                               )}
                             </Button>
                             <Button size="sm" variant="outline" onClick={() => handleEditImageHost(provider)}>
-                              \u7f16\u8f91
+                              {t("settings.actions.edit")}
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => handleDeleteImageHost(provider.id)}>
-                              \u5220\u9664
+                              {t("settings.actions.delete")}
                             </Button>
                           </div>
                         </div>
@@ -1301,21 +1302,18 @@ export function SettingsPanel() {
                 <Info className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    \u56fegiườngsử dụng\u4e8e\u5b58\u50a8\u89c6\u9891\u751f\u6210\u8fc7\u7a0btrongcủa\u4e34\u65f6\u56fe\u7247，chínhsử dụng\u4e8e「tính liên tục về mặt thị giác」chức năng。
-                    Chẳng hạn như\u679c\u4e0dCấu hình\u56fegiường，\u8de8\u5206\u955ccủa\u5e27\u4f20\u9012chức năng\u5c06\u53d7\u9650。
-                    \u542fsử dụng\u591amột\u56fegiường\u4f1atheo thứ tự\u8f6e\u6d41sử dụng，\u5931\u8d25\u81ea\u52a8\u5207\u6362。
+                    {t("settings.imageHost.notice1")}
                   </p>
                   <p className="text-sm">
-                    \u9ed8\u8ba4Đã rồi\u542fsử dụng SCDN \u56fegiường，\u4e0d\u9700\u8981\u586b\u5199KEY；
-                    ImgBB \u9ed8\u8ba4giữ\u5173\u95ed，Chẳng hạn như\u9700sử dụng\u8bf7tay\u52a8\u5f00\u542f\u5e76\u81eađược rồi\u6d4b\u8bd5Có sẵn\u6027。
+                    {t("settings.imageHost.notice2")}
                   </p>
                 </div>
               </div>
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">Sáng tạo truyện tranh Mo Yin Moyin Creator</p>
-                <p className="text-xs mt-1">v{appVersion} · Hoạt hình do AI điều khiển\u89c6\u9891\u521b\u4f5c\u5de5\u5177</p>
+                <p className="text-sm font-medium">{t("settings.about.appName")}</p>
+                <p className="text-xs mt-1">{t("settings.about.versionTagline", { version: appVersion })}</p>
               </div>
             </div>
           </ScrollArea>
@@ -1329,10 +1327,10 @@ export function SettingsPanel() {
               <div>
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <HardDrive className="h-5 w-5" />
-                  \u5b58\u50a8\u8bbe\u7f6e
+                  {t("settings.storage.title")}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  \u8bbe\u7f6e\u8d44\u6e90tổng cộng\u4eabChiến lược、\u5b58\u50a8\u4f4d\u7f6evớibộ nhớ đệm\u7ba1\u7406
+                  {t("settings.storage.subtitle")}
                 </p>
               </div>
 
@@ -1341,7 +1339,7 @@ export function SettingsPanel() {
                   <Info className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      \u5b58\u50a8\u8bbe\u7f6e\u4ec5\u5728\u684c\u9762\u7248trongCó sẵn。
+                      {t("settings.storage.desktopOnly")}
                     </p>
                   </div>
                 </div>
@@ -1351,13 +1349,13 @@ export function SettingsPanel() {
               <div className="p-6 border border-border rounded-xl bg-card space-y-4">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <Folder className="h-4 w-4" />
-                  \u8d44\u6e90tổng cộng\u4eab
+                  {t("settings.storage.resourceSharing")}
                 </h4>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">\u89d2\u8272\u5e93\u8de8\u9879\u76eetổng cộng\u4eab</p>
-                    <p className="text-xs text-muted-foreground">\u5173\u95ed\u540e，\u4ec5hiện tại\u9879\u76ee\u53ef\u89c1</p>
+                    <p className="text-sm font-medium">{t("settings.storage.shareCharactersTitle")}</p>
+                    <p className="text-xs text-muted-foreground">{t("settings.storage.shareOffHint")}</p>
                   </div>
                   <Switch
                     checked={resourceSharing.shareCharacters}
@@ -1368,8 +1366,8 @@ export function SettingsPanel() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">\u573a\u666f\u5e93\u8de8\u9879\u76eetổng cộng\u4eab</p>
-                    <p className="text-xs text-muted-foreground">\u5173\u95ed\u540e，\u4ec5hiện tại\u9879\u76ee\u53ef\u89c1</p>
+                    <p className="text-sm font-medium">{t("settings.storage.shareScenesTitle")}</p>
+                    <p className="text-xs text-muted-foreground">{t("settings.storage.shareOffHint")}</p>
                   </div>
                   <Switch
                     checked={resourceSharing.shareScenes}
@@ -1380,8 +1378,8 @@ export function SettingsPanel() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Chất liệu\u5e93\u8de8\u9879\u76eetổng cộng\u4eab</p>
-                    <p className="text-xs text-muted-foreground">\u5173\u95ed\u540e，\u4ec5hiện tại\u9879\u76ee\u53ef\u89c1</p>
+                    <p className="text-sm font-medium">{t("settings.storage.shareMediaTitle")}</p>
+                    <p className="text-xs text-muted-foreground">{t("settings.storage.shareOffHint")}</p>
                   </div>
                   <Switch
                     checked={resourceSharing.shareMedia}
@@ -1395,35 +1393,35 @@ export function SettingsPanel() {
               <div className="p-6 border border-border rounded-xl bg-card space-y-5">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <HardDrive className="h-4 w-4" />
-                  \u5b58\u50a8\u4f4d\u7f6e
+                  {t("settings.storage.pathTitle")}
                 </h4>
 
                 <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">\u6570\u636e\u5b58\u50a8\u4f4d\u7f6e（chứa\u9879\u76eevàChất liệu）</Label>
+                  <Label className="text-xs text-muted-foreground">{t("settings.storage.pathLabel")}</Label>
                   <div className="flex items-center gap-2">
                     <Input
-                      value={storagePaths.basePath || '\u9ed8\u8ba4\u4f4d\u7f6e'}
-                      placeholder="\u9ed8\u8ba4\u4f4d\u7f6e"
+                      value={storagePaths.basePath || t("settings.storage.defaultLocation")}
+                      placeholder={t("settings.storage.defaultLocation")}
                       readOnly
                       className="font-mono text-xs"
                     />
                     <Button size="sm" onClick={handleSelectStoragePath} disabled={!hasStorageManager}>
-                      \u9009\u62e9
+                      {t("settings.actions.select")}
                     </Button>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleExportData} disabled={!hasStorageManager}>
                       <Download className="h-3.5 w-3.5 mr-1" />
-                      \u5bfc\u51fa
+                      {t("settings.actions.export")}
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleImportData} disabled={!hasStorageManager}>
-                      \u5bfc\u5165
+                      {t("settings.actions.import")}
                     </Button>
                   </div>
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ \u66f4\u6539\u4f4d\u7f6e\u4f1a\u79fb\u52a8\u73b0Có\u6570\u636eĐếnmới\u76ee\u5f55（\u81ea\u52a8\u521b\u5efa projects/ và media/ \u5b50\u76ee\u5f55）
+                  {t("settings.storage.pathWarning")}
                 </p>
               </div>
 
@@ -1431,10 +1429,10 @@ export function SettingsPanel() {
               <div className="p-6 border border-border rounded-xl bg-card space-y-4">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
-                  \u6570\u636e\u6062\u590d
+                  {t("settings.storage.recoveryTitle")}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  \u6362\u8bbe\u5907hoặc\u91cd\u88c5\u7cfb\u7edf\u540e，chỉ vàoĐã rồiCó\u6570\u636e\u76ee\u5f55\u5373\u53ef\u6062\u590d\u6240CóCấu hìnhvà\u9879\u76ee
+                  {t("settings.storage.recoveryDesc")}
                 </p>
 
                 <div className="space-y-3">
@@ -1446,10 +1444,10 @@ export function SettingsPanel() {
                     className="w-full"
                   >
                     <Folder className="h-3.5 w-3.5 mr-1" />
-                    chỉ vàoĐã rồiCó\u6570\u636e\u76ee\u5f55
+                    {t("settings.storage.linkDataDirectory")}
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    💡 \u9009\u62e9chứa projects/ và media/ \u5b50\u76ee\u5f55của\u6570\u636e\u76ee\u5f55，\u64cd\u4f5c\u540e\u91cd\u542f\u5e94sử dụng。
+                    {t("settings.storage.linkHint")}
                   </p>
                 </div>
               </div>
@@ -1458,14 +1456,14 @@ export function SettingsPanel() {
               <div className="p-6 border border-border rounded-xl bg-card space-y-4">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <HardDrive className="h-4 w-4" />
-                  bộ nhớ đệm\u7ba1\u7406
+                  {t("settings.cache.title")}
                 </h4>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">bộ nhớ đệm\u5927\u5c0f</p>
+                    <p className="text-sm font-medium">{t("settings.cache.size")}</p>
                     <p className="text-xs text-muted-foreground">
-                      {isCacheLoading ? "Tính toántrong..." : formatBytes(cacheSize)}
+                      {isCacheLoading ? t("settings.cache.calculating") : formatBytes(cacheSize)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1486,7 +1484,7 @@ export function SettingsPanel() {
                       {isClearingCache ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        "dọn dẹp"
+                        t("settings.actions.clear")
                       )}
                     </Button>
                   </div>
@@ -1494,8 +1492,8 @@ export function SettingsPanel() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">\u81ea\u52a8dọn dẹp</p>
-                    <p className="text-xs text-muted-foreground">\u9ed8\u8ba4\u5173\u95ed</p>
+                    <p className="text-sm font-medium">{t("settings.cache.autoClean")}</p>
+                    <p className="text-xs text-muted-foreground">{t("settings.cache.defaultOff")}</p>
                   </div>
                   <Switch
                     checked={cacheSettings.autoCleanEnabled}
@@ -1505,7 +1503,7 @@ export function SettingsPanel() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground">dọn dẹp</Label>
+                  <Label className="text-xs text-muted-foreground">{t("settings.actions.clear")}</Label>
                   <Input
                     type="number"
                     min={1}
@@ -1516,19 +1514,19 @@ export function SettingsPanel() {
                     className="w-20"
                     disabled={!cacheSettings.autoCleanEnabled}
                   />
-                  <span className="text-xs text-muted-foreground">\u5929\u524dcủabộ nhớ đệm\u6587\u4ef6</span>
+                  <span className="text-xs text-muted-foreground">{t("settings.cache.daysOldSuffix")}</span>
                 </div>
               </div>
 
               <div className="p-6 border border-border rounded-xl bg-card space-y-5">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <Download className="h-4 w-4" />
-                  \u5e94sử dụng\u66f4mới
+                  {t("settings.update.title")}
                 </h4>
 
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium">hiện tại\u7248\u672c</p>
+                    <p className="text-sm font-medium">{t("settings.update.currentVersion")}</p>
                     <p className="text-xs text-muted-foreground font-mono mt-1">v{appVersion}</p>
                   </div>
                   <Button
@@ -1542,15 +1540,15 @@ export function SettingsPanel() {
                     ) : (
                       <RefreshCw className="h-4 w-4 mr-1" />
                     )}
-                    \u68c0\u67e5\u66f4mới
+                    {t("settings.update.checkNow")}
                   </Button>
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium">\u542f\u52a8\u65f6\u81ea\u52a8\u68c0\u67e5\u66f4mới</p>
+                    <p className="text-sm font-medium">{t("settings.update.autoCheckOnStartup")}</p>
                     <p className="text-xs text-muted-foreground">
-                      \u5f00\u542f\u540e，\u684c\u9762\u7248\u542f\u52a8\u65f6\u4f1a\u81ea\u52a8\u68c0\u67e5xa\u7a0b\u7248\u672c\u6e05\u5355\u5e76\u63d0\u793amới\u7248\u672c
+                      {t("settings.update.autoCheckDesc")}
                     </p>
                   </div>
                   <Switch
@@ -1563,28 +1561,28 @@ export function SettingsPanel() {
                 {updateSettings.ignoredVersion && (
                   <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/30 px-3 py-2">
                     <div>
-                      <p className="text-sm font-medium">Đã rồi\u5ffd\u7565\u7248\u672c</p>
+                      <p className="text-sm font-medium">{t("settings.update.ignoredVersion")}</p>
                       <p className="text-xs text-muted-foreground font-mono mt-1">
                         v{updateSettings.ignoredVersion}
                       </p>
                     </div>
                     <Button variant="ghost" size="sm" onClick={handleClearIgnoredVersion}>
-                      \u6062\u590d\u63d0\u9192
+                      {t("settings.update.restoreReminder")}
                     </Button>
                   </div>
                 )}
 
                 {!hasAppUpdater && (
                   <p className="text-xs text-muted-foreground">
-                    \u6b64chức năng\u4ec5\u5728\u684c\u9762\u6253\u5305\u7248trongCó sẵn。
+                    {t("settings.storage.desktopOnly")}
                   </p>
                 )}
               </div>
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">Sáng tạo truyện tranh Mo Yin Moyin Creator</p>
-                <p className="text-xs mt-1">v{appVersion} · Hoạt hình do AI điều khiển\u89c6\u9891\u521b\u4f5c\u5de5\u5177</p>
+                <p className="text-sm font-medium">{t("settings.about.appName")}</p>
+                <p className="text-xs mt-1">{t("settings.about.versionTagline", { version: appVersion })}</p>
               </div>
             </div>
           </ScrollArea>
@@ -1652,9 +1650,9 @@ export function SettingsPanel() {
             syncProviderModels(finalProviderId).then(result => {
               setSyncingProvider(null);
               if (result.success) {
-                toast.success(`Đã rồi\u81ea\u52a8\u540c\u6b65 ${result.count} một\u6a21\u578b`);
+                toast.success(t("settings.toast.autoSyncedModels", { count: result.count }));
               } else if (result.error) {
-                toast.error(`\u6a21\u578b\u540c\u6b65\u5931\u8d25: ${result.error}`);
+                toast.error(t("settings.toast.modelSyncFailedWithError", { message: result.error }));
               }
             });
           }
@@ -1709,9 +1707,9 @@ export function SettingsPanel() {
             syncProviderModels(provider.id).then(result => {
               setSyncingProvider(null);
               if (result.success) {
-                toast.success(`Đã rồi\u81ea\u52a8\u540c\u6b65 ${result.count} một\u6a21\u578b`);
+                toast.success(t("settings.toast.autoSyncedModels", { count: result.count }));
               } else if (result.error) {
-                toast.error(`\u6a21\u578b\u540c\u6b65\u5931\u8d25: ${result.error}`);
+                toast.error(t("settings.toast.modelSyncFailedWithError", { message: result.error }));
               }
             });
           }

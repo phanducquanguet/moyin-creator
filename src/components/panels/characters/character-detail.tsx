@@ -36,30 +36,37 @@ import { toast } from "sonner";
 import { WardrobeModal } from "./wardrobe-modal";
 import { LocalImage } from "@/components/ui/local-image";
 import { ImagePreviewModal } from "@/components/panels/director/media-preview-modal";
+import { t } from "@/lib/i18n";
 
 // View type labels
 const VIEW_LABELS: Record<string, string> = {
-  front: "phía trước",
-  side: "\u4fa7\u9762",
-  back: "mặt sau",
-  "three-quarter": "bốn\u5206\u4e4bba",
+  front: "characters.detail.view.front",
+  side: "characters.detail.view.side",
+  back: "characters.detail.view.back",
+  "three-quarter": "characters.detail.view.threeQuarter",
 };
 
 // Gender labels
 const GENDER_LABELS: Record<string, string> = {
-  male: "\u7537",
-  female: "\u5973",
-  other: "\u5176\u4ed6",
+  male: "characters.detail.gender.male",
+  female: "characters.detail.gender.female",
+  other: "characters.detail.gender.other",
 };
 
 // Age labels
 const AGE_LABELS: Record<string, string> = {
-  child: "\u513f\u7ae5",
-  teen: "\u9752vị thành niên",
-  "young-adult": "tuổi trẻ",
-  adult: "tuổi trung niên",
-  senior: "tuổi già",
+  child: "characters.detail.age.child",
+  teen: "characters.detail.age.teen",
+  "young-adult": "characters.detail.age.youngAdult",
+  adult: "characters.detail.age.adult",
+  senior: "characters.detail.age.senior",
 };
+
+function getMappedLabel(map: Record<string, string>, value?: string): string {
+  if (!value) return "";
+  const key = map[value];
+  return key ? t(key) : value;
+}
 
 interface CharacterDetailProps {
   character: Character | null;
@@ -84,7 +91,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
           <User className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          \u9009\u62e9mộtmột\u89d2\u8272\u67e5\u770b\u8be6\u60c5
+          {t('characters.detail.empty.selectCharacter')}
         </p>
       </div>
     );
@@ -93,23 +100,23 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
   const handleSaveName = () => {
     if (editName.trim() && editName.trim() !== character.name) {
       updateCharacter(character.id, { name: editName.trim() });
-      toast.success("tên\u79f0Đã rồi\u66f4mới");
+      toast.success(t('characters.detail.toast.nameUpdated'));
     }
     setIsEditingName(false);
   };
 
   const handleDelete = () => {
-    if (confirm(`\u786e\u5b9a\u8981\u5220\u9664\u89d2\u8272 "${character.name}" \u5417？`)) {
+    if (confirm(t('characters.detail.confirm.deleteCharacter', { name: character.name }))) {
       deleteCharacter(character.id);
       selectCharacter(null);
-      toast.success("\u89d2\u8272Đã rồi\u5220\u9664");
+      toast.success(t('characters.detail.toast.characterDeleted'));
     }
   };
 
   const handleSaveNotes = () => {
     updateCharacter(character.id, { notes: editNotes.trim() || undefined });
     setIsEditingNotes(false);
-    toast.success("Bình luậnha\u66f4mới");
+    toast.success(t('characters.detail.toast.notesUpdated'));
   };
 
   const handleAddTag = () => {
@@ -118,7 +125,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
     const currentTags = character.tags || [];
     if (!currentTags.includes(tag)) {
       updateCharacter(character.id, { tags: [...currentTags, tag] });
-      toast.success("nhãnha\u6dfb\u52a0");
+      toast.success(t('characters.detail.toast.tagAdded'));
     }
     setNewTag("");
   };
@@ -159,10 +166,10 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success(`${name}.png \u5bfc\u51fa\u6210\u529f`);
+      toast.success(t('characters.detail.toast.exportSuccess', { name }));
     } catch (err) {
       console.error('Export image failed:', err);
-      toast.error('\u5bfc\u51fa\u5931\u8d25');
+      toast.error(t('characters.detail.toast.exportFailed'));
     }
   };
 
@@ -216,7 +223,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
           <div className="space-y-2">
             <div 
               className="aspect-square rounded-lg bg-muted overflow-hidden border relative cursor-zoom-in"
-              title="\u53cc\u51fb\u67e5\u770b\u5b8c\u6574\u56fe\u7247"
+              title={t('characters.detail.tooltip.doubleClickPreview')}
               draggable
               onDoubleClick={() => {
                 const url = currentView?.imageUrl || character.thumbnailUrl;
@@ -236,7 +243,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {currentView ? (
                 <LocalImage 
                   src={currentView.imageUrl} 
-                  alt={`${character.name} - ${VIEW_LABELS[currentView.viewType] || currentView.viewType}`}
+                  alt={`${character.name} - ${getMappedLabel(VIEW_LABELS, currentView.viewType)}`}
                   className="w-full h-full object-contain"
                 />
               ) : character.thumbnailUrl ? (
@@ -272,7 +279,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                   >
                     <LocalImage 
                       src={view.imageUrl} 
-                      alt={VIEW_LABELS[view.viewType] || view.viewType}
+                      alt={getMappedLabel(VIEW_LABELS, view.viewType)}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -285,18 +292,18 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
 
           {/* Character info */}
           <div className="space-y-3">
-            <div className="text-xs font-medium text-muted-foreground">\u89d2\u8272thông tin</div>
+            <div className="text-xs font-medium text-muted-foreground">{t('characters.detail.section.info')}</div>
             
             {/* Basic info badges */}
             <div className="flex flex-wrap gap-1.5">
               {character.gender && (
                 <Badge variant="secondary" className="text-xs">
-                  {GENDER_LABELS[character.gender] || character.gender}
+                  {getMappedLabel(GENDER_LABELS, character.gender)}
                 </Badge>
               )}
               {character.age && (
                 <Badge variant="secondary" className="text-xs">
-                  {AGE_LABELS[character.age] || character.age}
+                  {getMappedLabel(AGE_LABELS, character.age)}
                 </Badge>
               )}
               {character.personality && (
@@ -309,7 +316,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Description */}
             {character.description && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">\u63cf\u8ff0</Label>
+                <Label className="text-xs text-muted-foreground">{t('characters.detail.section.description')}</Label>
                 <p className="text-xs whitespace-pre-wrap bg-muted rounded p-2 max-h-[120px] overflow-y-auto">
                   {character.description}
                 </p>
@@ -319,19 +326,19 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Visual traits */}
             {character.visualTraits && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">\u89c6\u89c9\u7279\u5f81</Label>
+                <Label className="text-xs text-muted-foreground">{t('characters.detail.section.visualTraits')}</Label>
                 <p className="text-xs text-muted-foreground bg-muted rounded p-2">
                   {character.visualTraits}
                 </p>
               </div>
             )}
 
-            {/* Notes / \u89d2\u8272Bình luận */}
+            {/* Notes */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <StickyNote className="h-3 w-3" />
-                  \u89d2\u8272Bình luận
+                  {t('characters.detail.section.notes')}
                 </Label>
                 {!isEditingNotes && (
                   <Button
@@ -352,33 +359,33 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
-                    placeholder="\u6dfb\u52a0\u5267\u60c5\u76f8\u5173củaBình luận..."
+                    placeholder={t('characters.detail.placeholder.notes')}
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <Button size="sm" className="h-6 text-xs" onClick={handleSaveNotes}>
-                      \u4fdd\u5b58
+                      {t('common.save')}
                     </Button>
                     <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setIsEditingNotes(false)}>
-                      \u53d6\u6d88
+                      {t('common.cancel')}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded p-2 text-indigo-800 dark:text-indigo-200">
-                  {character.notes || '\u70b9\u51fb\u7f16\u8f91\u6dfb\u52a0Bình luận...'}
+                  {character.notes || t('characters.detail.notesEmpty')}
                 </p>
               )}
             </div>
 
             <Separator />
 
-            {/* Tags / nhãn */}
+            {/* Tags */}
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Tag className="h-3 w-3" />
-                \u89d2\u8272nhãn
+                {t('characters.detail.section.tags')}
               </Label>
               <div className="flex flex-wrap gap-1">
                 {(character.tags || []).map((tag) => (
@@ -397,7 +404,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                 <Input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="\u6dfb\u52a0nhãn..."
+                  placeholder={t('characters.detail.placeholder.tag')}
                   className="h-7 text-xs"
                   onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
                 />
@@ -410,13 +417,13 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Reference images */}
             {character.referenceImages && character.referenceImages.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Hình ảnh tham khảo\u7247</Label>
+                <Label className="text-xs text-muted-foreground">{t('characters.detail.section.referenceImages')}</Label>
                 <div className="flex gap-1.5">
                   {character.referenceImages.map((img, i) => (
                     <img
                       key={i}
                       src={img}
-                      alt={`Hình ảnh tham khảo ${i + 1}`}
+                      alt={t('characters.detail.reference.alt', { index: i + 1 })}
                       className="w-10 h-10 object-cover rounded border"
                     />
                   ))}
@@ -436,7 +443,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               onClick={() => setShowWardrobe(true)}
             >
               <Shirt className="h-4 w-4 mr-2" />
-              \u8863\u6a71 ({variationCount})
+              {t('characters.detail.button.wardrobe', { count: variationCount })}
             </Button>
 
             {currentView && (
@@ -447,7 +454,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                 onClick={() => handleExportImage(currentView.imageUrl, `${character.name}-${currentView.viewType}`)}
               >
                 <Download className="h-4 w-4 mr-2" />
-                \u5bfc\u51fahiện tại\u89c6\u56fe
+                {t('characters.detail.button.exportCurrentView')}
               </Button>
             )}
 
@@ -458,13 +465,13 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               onClick={handleDelete}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              \u5220\u9664\u89d2\u8272
+              {t('characters.detail.button.deleteCharacter')}
             </Button>
           </div>
 
           {/* Tips */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>💡 \u62d6\u62fd\u89d2\u8272\u56fe\u7247Đến AI giám đốc\u9762\u677fsử dụng</p>
+            <p>{t('characters.detail.tip.dragToDirector')}</p>
           </div>
         </div>
       </ScrollArea>

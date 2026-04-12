@@ -107,13 +107,13 @@ export async function convertToHttpUrl(
   
   // For base64/local data URLs, upload to image host
   if (!isImageHostConfigured()) {
-    throw new Error('\u56fegiườngChưa được định cấu hình，\u8bf7\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fegiường API Key');
+    throw new Error('Host ảnh chưa được cấu hình. Vui lòng vào Cài đặt để thêm API Key host ảnh.');
   }
 
   let imageData = url;
   if (url.startsWith('local-image://')) {
     const base64 = await readImageAsBase64(url);
-    if (!base64) throw new Error(`không có\u6cd5\u8bfb\u53d6\u672c\u5730\u6587\u4ef6: ${url.substring(0, 40)}`);
+    if (!base64) throw new Error(`Không thể đọc tệp cục bộ: ${url.substring(0, 40)}`);
     imageData = base64;
   }
 
@@ -122,7 +122,7 @@ export async function convertToHttpUrl(
     expiration: 15552000,
   });
   if (!result.success || !result.url) {
-    throw new Error(result.error || '\u56fegiường\u4f20\u5931\u8d25');
+    throw new Error(result.error || 'Tải ảnh lên host thất bại');
   }
   return result.url;
 }

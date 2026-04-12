@@ -178,10 +178,10 @@ export function CameraControls({
 }: CameraControlsProps) {
   return (
     <div className={cn('flex gap-2', className)}>
-      <ScrollColumn items={CAMERA_OPTIONS} value={camera} onChange={onCameraChange} label="\u673a\u8eab" />
-      <ScrollColumn items={LENS_OPTIONS} value={lens} onChange={onLensChange} label="\u955c\u5934" />
+      <ScrollColumn items={CAMERA_OPTIONS} value={camera} onChange={onCameraChange} label="Thân máy" />
+      <ScrollColumn items={LENS_OPTIONS} value={lens} onChange={onLensChange} label="Ống kính" />
       <ScrollColumn items={FOCAL_OPTIONS} value={focalLength} onChange={onFocalLengthChange} label="tiêu cự" />
-      <ScrollColumn items={APERTURE_OPTIONS} value={aperture} onChange={onApertureChange} label="\u5149\u5708" />
+      <ScrollColumn items={APERTURE_OPTIONS} value={aperture} onChange={onApertureChange} label="Khẩu độ" />
     </div>
   );
 }

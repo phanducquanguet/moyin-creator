@@ -40,6 +40,7 @@ import { StylePicker } from "@/components/ui/style-picker";
 import type { VisualStyleId } from "@/lib/constants/visual-styles";
 import type { PromptLanguage } from "@/types/script";
 import { useScriptStore } from "@/stores/script-store";
+import { t } from "@/lib/i18n";
 
 const PROMPT_LANGUAGE_OPTIONS = [
   { value: "zh", label: "\u4ec5Tiếng Trung" },
@@ -236,11 +237,11 @@ export function ScriptInput({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="import" className="text-xs">
             <FileText className="h-3 w-3 mr-1" />
-            Nhập
+            {t("script.input.mode.import")}
           </TabsTrigger>
           <TabsTrigger value="create" className="text-xs">
             <Sparkles className="h-3 w-3 mr-1" />
-            \u521b\u4f5c
+            {t("script.input.mode.create")}
           </TabsTrigger>
         </TabsList>
 
@@ -248,10 +249,10 @@ export function ScriptInput({
         <TabsContent value="import" className="flex-1 mt-3 overflow-y-auto">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">
-              \u7c98\u8d34\u5b8c\u6574Kịch bản（Chứa một phác thảo、Tiểu sử、\u5404đặt nội dung）
+              {t("script.input.import.label")}
             </Label>
             <Textarea
-              placeholder="Hỗ trợcủaĐịnh dạng：\n• Tập X（đặt\u6807\u8bb0）\n• **1-1ngày bên trong vị trí**（Cảnh đầu）\n• nhân vật：Nhân vậtA、Nhân vậtB\n• Nhân vậtên t：（Hành động）dòng\n• △Hành động mô tả\n• 【phụ đề】【hồi tưởng】Đợi đã"
+              placeholder={t("script.input.import.placeholder")}
               value={rawScript}
               onChange={(e) => onRawScriptChange(e.target.value)}
               className="min-h-[200px] max-h-[40vh] resize-none text-sm overflow-y-auto"
@@ -260,7 +261,7 @@ export function ScriptInput({
             {/* NhậpTrạng tháiGợi ý */}
             {importStatus === "ready" && (
               <div className="space-y-1">
-                <p className="text-xs text-green-600">✓ NhậpThành công！\u53ef\u5728\u53f3\u4fa7\u70b9\u51fbđặttênTạoPhân cảnh</p>
+                <p className="text-xs text-green-600">✓ {t("script.input.import.success")}</p>
                 {(missingTitleCount ?? 0) > 0 && (
                   <p className="text-xs text-amber-600">
                     ⚠ {missingTitleCount} đặtthiếu\u5c11Tiêu đề，\u53efsử dụngHiệu chuẩn AITạo
@@ -269,7 +270,7 @@ export function ScriptInput({
               </div>
             )}
             {importStatus === "error" && importError && (
-              <p className="text-xs text-destructive">NhậpThất bại：{importError}</p>
+              <p className="text-xs text-destructive">{t("script.input.import.error", { message: importError })}</p>
             )}
             
             {/* \u6301\u4e45Tiến độTrạng thái\u663e\u793a - \u5728\u6267được rồi\u8fc7\u7a0btrong\u59cb\u7ec8\u53ef\u89c1 */}
@@ -284,7 +285,7 @@ export function ScriptInput({
                 <div className="flex items-center gap-3 text-primary">
                   <Loader2 className="h-6 w-6 animate-spin" />
                   <span className="text-lg font-bold">
-                    {secondPassTypes && secondPassTypes.size > 0 ? '🔄 Hailần\u6821\u51c6trong...' : '\u6b63\u5728Đang xử lý...'}
+                    {secondPassTypes && secondPassTypes.size > 0 ? "🔄 Đang hiệu chuẩn lần 2..." : t("script.input.processing")}
                   </span>
                 </div>
                 <div className="space-y-2">
@@ -497,7 +498,7 @@ export function ScriptInput({
         {mode === "import" && (
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">Kịch bảnngôn ngữ</Label>
+              <Label className="text-xs">{t("script.input.language")}</Label>
               <Select
                 value={language}
                 onValueChange={onLanguageChange}
@@ -515,7 +516,7 @@ export function ScriptInput({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Promptngôn ngữ</Label>
+              <Label className="text-xs">{t("script.input.promptLanguage")}</Label>
               <Select
                 value={promptLanguage || "zh"}
                 onValueChange={(v) => onPromptLanguageChange?.(v as PromptLanguage)}
@@ -533,13 +534,13 @@ export function ScriptInput({
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                \u63a7\u5236Hiệu chuẩn AITạotrong/Tiếng AnhNhắc，Mặc định\u4ec5Tiếng Trung\u53ef\u51cf\u5c11Tạo\u538b\u529b
+                {t("script.input.promptLanguageHint")}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">Cảnh số lượng（Tùy chọn）</Label>
+                <Label className="text-xs">{t("script.input.sceneCountOptional")}</Label>
                 <Select
                   value={sceneCount || ""}
                   onValueChange={(v) => onSceneCountChange?.(v)}
@@ -560,7 +561,7 @@ export function ScriptInput({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">Phân cảnh số lượng（Tùy chọn）</Label>
+                <Label className="text-xs">{t("script.input.shotCountOptional")}</Label>
                 {showCustomShotInput ? (
                   <div className="flex gap-1">
                     <Input
@@ -628,7 +629,7 @@ export function ScriptInput({
             <div className="space-y-1">
               <Label className="text-xs flex items-center gap-1">
                 <Palette className="h-3 w-3" />
-                Tầm nhìn Phong cách
+                {t("script.input.visualStyle")}
               </Label>
               <StylePicker
                 value={styleId}
@@ -636,7 +637,7 @@ export function ScriptInput({
                 disabled={parseStatus === "parsing"}
               />
               <p className="text-[10px] text-muted-foreground">
-                \u6b64Phong cách\u5c06sử dụng\u4e8eAI hiệu chuẩn Phân cảnh thời gianTạoVisual Mô tả
+                {t("script.input.visualStyleHint")}
               </p>
             </div>
           </div>
@@ -646,7 +647,7 @@ export function ScriptInput({
         {mode === "create" && (
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">Promptngôn ngữ</Label>
+              <Label className="text-xs">{t("script.input.promptLanguage")}</Label>
               <Select
                 value={promptLanguage || "zh"}
                 onValueChange={(v) => onPromptLanguageChange?.(v as PromptLanguage)}
@@ -664,7 +665,7 @@ export function ScriptInput({
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                \u63a7\u5236AITạotrong/Tiếng AnhNhắc，Mặc định\u4ec5Tiếng Trung\u53ef\u51cf\u5c11Tạo\u538b\u529b
+                {t("script.input.promptLanguageHint")}
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -718,7 +719,7 @@ export function ScriptInput({
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">Cảnh số lượng（Tùy chọn）</Label>
+                <Label className="text-xs">{t("script.input.sceneCountOptional")}</Label>
                 <Select
                   value={sceneCount || ""}
                   onValueChange={(v) => onSceneCountChange?.(v)}
@@ -739,7 +740,7 @@ export function ScriptInput({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">Phân cảnh số lượng（Tùy chọn）</Label>
+                <Label className="text-xs">{t("script.input.shotCountOptional")}</Label>
                 {showCustomShotInput ? (
                   <div className="flex gap-1">
                     <Input
@@ -829,12 +830,12 @@ export function ScriptInput({
               {isImporting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Nhậptrong...
+                  {t("script.input.generating")}
                 </>
               ) : (
                 <>
                   <FileText className="h-4 w-4 mr-2" />
-                  Nhậhoàn thànhKịch bản
+                  {t("script.input.generateButton")}
                 </>
               )}
             </Button>

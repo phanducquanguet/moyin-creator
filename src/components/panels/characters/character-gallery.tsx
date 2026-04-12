@@ -51,6 +51,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ImagePreviewModal } from "@/components/panels/director/media-preview-modal";
+import { t } from "@/lib/i18n";
 
 type ViewMode = "grid" | "list";
 
@@ -160,14 +161,14 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) {
-      toast.error("\u8bf7\u8f93\u5165\u6587\u4ef6\u5939tên\u79f0");
+      toast.error(t('characters.gallery.toast.folderNameRequired'));
       return;
     }
     const projectId = resourceSharing.shareCharacters ? undefined : activeProjectId || undefined;
     addFolder(newFolderName.trim(), currentFolderId, projectId);
     setNewFolderName("");
     setShowNewFolderDialog(false);
-    toast.success("\u6587\u4ef6\u5939Đã rồi\u521b\u5efa");
+    toast.success(t('characters.gallery.toast.folderCreated'));
   };
 
   const handleRenameFolder = () => {
@@ -175,23 +176,23 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
     renameFolder(renamingFolder.id, renameValue.trim());
     setRenamingFolder(null);
     setRenameValue("");
-    toast.success("\u6587\u4ef6\u5939Đã rồi\u91cd\u547dtên");
+    toast.success(t('characters.gallery.toast.folderRenamed'));
   };
 
   const handleDeleteFolder = (id: string) => {
-    if (confirm("\u786e\u5b9a\u8981\u5220\u9664\u6b64\u6587\u4ef6\u5939\u5417？\u6587\u4ef6\u5939bên trongcủa\u89d2\u8272\u5c06\u79fb\u52a8Đến\u4e0a\u7ea7\u76ee\u5f55。")) {
+    if (confirm(t('characters.gallery.confirm.deleteFolder'))) {
       deleteFolder(id);
-      toast.success("\u6587\u4ef6\u5939Đã rồi\u5220\u9664");
+      toast.success(t('characters.gallery.toast.folderDeleted'));
     }
   };
 
   const handleDeleteCharacter = (char: Character) => {
-    if (confirm(`\u786e\u5b9a\u8981\u5220\u9664\u89d2\u8272 "${char.name}" \u5417？`)) {
+    if (confirm(t('characters.gallery.confirm.deleteCharacter', { name: char.name }))) {
       deleteCharacter(char.id);
       if (selectedCharacterId === char.id) {
         onCharacterSelect(null);
       }
-      toast.success("\u89d2\u8272Đã rồi\u5220\u9664");
+      toast.success(t('characters.gallery.toast.characterDeleted'));
     }
   };
 
@@ -218,7 +219,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
             onClick={() => setCurrentFolder(null)}
           >
             <Home className="h-3.5 w-3.5" />
-            \u89d2\u8272\u5e93
+            {t('characters.gallery.header.library')}
           </Button>
           {breadcrumbPath.map((folder) => (
             <div key={folder.id} className="flex items-center">
@@ -242,7 +243,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="\u641c\u7d22\u89d2\u8272..."
+              placeholder={t('characters.gallery.searchPlaceholder')}
               className="h-8 pl-7 text-sm"
             />
           </div>
@@ -255,7 +256,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                 className="h-8 px-2 rounded-r-none text-xs"
                 onClick={() => setEpisodeViewScope('episode')}
               >
-                \u672cđặt
+                {t('characters.gallery.scope.episode')}
               </Button>
               <Button
                 variant={episodeViewScope === 'all' ? 'secondary' : 'ghost'}
@@ -263,7 +264,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                 className="h-8 px-2 rounded-l-none text-xs"
                 onClick={() => setEpisodeViewScope('all')}
               >
-                \u5168\u5267
+                {t('characters.gallery.scope.all')}
               </Button>
             </div>
           )}
@@ -274,7 +275,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
             onClick={() => setShowNewFolderDialog(true)}
           >
             <FolderPlus className="h-3.5 w-3.5 mr-1" />
-            mới\u5efa
+            {t('characters.gallery.button.newFolder')}
           </Button>
           <div className="flex border rounded-md">
             <Button
@@ -302,7 +303,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
         {/* Folders */}
         {subFolders.length > 0 && (
           <div className="mb-4">
-            <div className="text-xs text-muted-foreground mb-2">\u6587\u4ef6\u5939</div>
+            <div className="text-xs text-muted-foreground mb-2">{t('characters.gallery.section.folders')}</div>
             <div className={cn(
               viewMode === "grid" 
                 ? "grid grid-cols-3 gap-2" 
@@ -347,7 +348,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
         {currentCharacters.length > 0 ? (
           <div>
             <div className="text-xs text-muted-foreground mb-2">
-              \u89d2\u8272 ({currentCharacters.length})
+              {t('characters.gallery.section.characters', { count: currentCharacters.length })}
             </div>
             <div className={cn(
               viewMode === "grid" 
@@ -362,7 +363,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                   onDelete={() => handleDeleteCharacter(char)}
                   onMove={(folderId) => {
                     moveToFolder(char.id, folderId);
-                    toast.success("\u89d2\u8272Đã rồi\u79fb\u52a8");
+                    toast.success(t('characters.gallery.toast.characterMoved'));
                   }}
                 >
                   <div
@@ -379,7 +380,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                         {/* Grid view */}
                         <div
                           className="aspect-square rounded bg-muted flex items-center justify-center overflow-hidden mb-2 cursor-zoom-in"
-                          title="\u53cc\u51fb\u67e5\u770b\u5927\u56fe"
+                          title={t('characters.gallery.tooltip.doubleClickPreview')}
                           onDoubleClick={(e) => {
                             e.stopPropagation();
                             if (char.thumbnailUrl) setPreviewImageUrl(char.thumbnailUrl);
@@ -398,7 +399,9 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                         <div className="text-center">
                           <p className="text-sm font-medium truncate">{char.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {char.views.length > 0 ? `${char.views.length} \u89c6\u56fe` : "\u672a\u751f\u6210"}
+                            {char.views.length > 0
+                              ? t('characters.gallery.viewCount', { count: char.views.length })
+                              : t('characters.gallery.viewNotGenerated')}
                           </p>
                         </div>
                       </>
@@ -419,7 +422,7 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{char.name}</p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {char.description || "\u6682không có\u63cf\u8ff0"}
+                            {char.description || t('characters.gallery.noDescription')}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -440,10 +443,10 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
                 <User className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground">
-                {searchQuery ? "\u6ca1Cótìm thấytrận đấucủa\u89d2\u8272" : "\u8fd8\u6ca1Có\u89d2\u8272"}
+                {searchQuery ? t('characters.gallery.empty.noSearchResult') : t('characters.gallery.empty.noCharacter')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                sử dụng\u5de6\u4fa7\u63a7\u5236\u53f0\u521b\u5efa\u89d2\u8272
+                {t('characters.gallery.empty.hint')}
               </p>
             </div>
           )
@@ -463,20 +466,20 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>mới\u5efa\u6587\u4ef6\u5939</DialogTitle>
+            <DialogTitle>{t('characters.gallery.dialog.newFolder.title')}</DialogTitle>
           </DialogHeader>
           <Input
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            placeholder="\u6587\u4ef6\u5939tên\u79f0"
+            placeholder={t('characters.gallery.dialog.folderNamePlaceholder')}
             onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
             autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewFolderDialog(false)}>
-              \u53d6\u6d88
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleCreateFolder}>\u521b\u5efa</Button>
+            <Button onClick={handleCreateFolder}>{t('common.create')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -485,20 +488,20 @@ export function CharacterGallery({ onCharacterSelect, selectedCharacterId }: Cha
       <Dialog open={!!renamingFolder} onOpenChange={(open) => !open && setRenamingFolder(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>\u91cd\u547dtên\u6587\u4ef6\u5939</DialogTitle>
+            <DialogTitle>{t('characters.gallery.dialog.renameFolder.title')}</DialogTitle>
           </DialogHeader>
           <Input
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
-            placeholder="\u6587\u4ef6\u5939tên\u79f0"
+            placeholder={t('characters.gallery.dialog.folderNamePlaceholder')}
             onKeyDown={(e) => e.key === "Enter" && handleRenameFolder()}
             autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenamingFolder(null)}>
-              \u53d6\u6d88
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleRenameFolder}>\u4fdd\u5b58</Button>
+            <Button onClick={handleRenameFolder}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -524,12 +527,12 @@ function FolderContextMenu({
       <ContextMenuContent>
         <ContextMenuItem onClick={onRename}>
           <Pencil className="h-4 w-4 mr-2" />
-          \u91cd\u547dtên
+          {t('common.rename')}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem className="text-destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4 mr-2" />
-          \u5220\u9664\u6587\u4ef6\u5939
+          {t('characters.gallery.contextMenu.deleteFolder')}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -557,12 +560,12 @@ function CharacterContextMenu({
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <FolderInput className="h-4 w-4 mr-2" />
-            \u79fb\u52a8Đến
+            {t('characters.gallery.contextMenu.moveTo')}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onClick={() => onMove(null)}>
               <Home className="h-4 w-4 mr-2" />
-              \u6839\u76ee\u5f55
+              {t('characters.gallery.contextMenu.root')}
             </ContextMenuItem>
             {folders.map((f) => (
               <ContextMenuItem key={f.id} onClick={() => onMove(f.id)}>
@@ -575,7 +578,7 @@ function CharacterContextMenu({
         <ContextMenuSeparator />
         <ContextMenuItem className="text-destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4 mr-2" />
-          \u5220\u9664\u89d2\u8272
+          {t('characters.gallery.contextMenu.deleteCharacter')}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
