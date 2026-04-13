@@ -188,7 +188,7 @@ export async function importSingleEpisodeContent(
     const store = useScriptStore.getState();
     const project = store.projects[projectId];
     if (!project?.scriptData) {
-      return { success: false, sceneCount: 0, error: 'Dự án hoặc Kịch bảndata không tồn tại' };
+      return { success: false, sceneCount: 0, error: 'Dự án hoặc Dữ liệu kịch bản không tồn tại' };
     }
 
     const scriptData = project.scriptData;
@@ -405,7 +405,7 @@ export async function generateEpisodeShots(
     // Lấy C tương ứng với bộ nàyảnh
     const scriptData = project.scriptData;
     if (!scriptData) {
-      throw new Error("Kịch bảndata không tồn tại");
+      throw new Error("Dữ liệu kịch bản không tồn tại");
     }
     
     const episode = scriptData.episodes.find((ep) => ep.index === episodeIndex);
@@ -1134,7 +1134,7 @@ export async function calibrateEpisodeTitles(
   // Nhận N toàn cầuềthông tin
   const background = project.projectBackground;
   const globalContext = {
-    title: background?.title || project.scriptData?.title || 'Không tênKịch bản',
+    title: background?.title || project.scriptData?.title || 'Không tên kịch bản',
     outline: background?.outline || project.scriptData?.logline || '',
     characterBios: background?.characterBios || '',
     totalEpisodes: project.episodeRawScripts.length,
@@ -1234,7 +1234,7 @@ Vui lòng sử dụng JSONĐịnh dạngQuay lại，Định dạng là：
     }
     
     if (failedBatches > 0) {
-      console.warn(`[Đặt hiệu chỉnh tiêu đề] ${failedBatches}/${totalBatches} đợt thứất bại`);
+      console.warn(`[Đặt hiệu chỉnh tiêu đề] ${failedBatches}/${totalBatches} batch thất bại`);
     }
     
     onProgress?.(calibratedCount, totalMissing, `đã hiệu chuẩn ${calibratedCount}/${totalMissing} đặt`);
@@ -1345,7 +1345,7 @@ export async function calibrateEpisodeShots(
   // Tìm Ph của tập phimân cảnh
   const scriptData = project.scriptData;
   if (!scriptData) {
-    return { success: false, calibratedCount: 0, totalShots: 0, error: 'Kịch bảndata không tồn tại' };
+    return { success: false, calibratedCount: 0, totalShots: 0, error: 'Dữ liệu kịch bản không tồn tại' };
   }
   
   const episode = scriptData.episodes.find(ep => ep.index === episodeIndex);
@@ -1377,7 +1377,7 @@ export async function calibrateEpisodeShots(
   const seriesContextSummary = buildSeriesContextSummary(project.seriesMeta || null);
   
   const globalContext = {
-    title: background?.title || project.scriptData?.title || 'Không tênKịch bản',
+    title: background?.title || project.scriptData?.title || 'Không tên kịch bản',
     genre: background?.genre || '',
     era: background?.era || '',
     outline: background?.outline || '',
@@ -1604,7 +1604,7 @@ export async function calibrateSingleShot(
   
   const scriptData = project.scriptData;
   if (!scriptData) {
-    return { success: false, calibratedCount: 0, totalShots: 1, error: 'Kịch bảndata không tồn tại' };
+    return { success: false, calibratedCount: 0, totalShots: 1, error: 'Dữ liệu kịch bản không tồn tại' };
   }
   
   // tìm thấyĐíchPhân cảnh
@@ -1626,7 +1626,7 @@ export async function calibrateSingleShot(
   const episodeRawContent = episodeScript?.rawContent || '';
   
   const globalContext = {
-    title: background?.title || scriptData?.title || 'Không tênKịch bản',
+    title: background?.title || scriptData?.title || 'Không tên kịch bản',
     genre: background?.genre || '',
     era: background?.era || '',
     outline: background?.outline || '',
@@ -1878,7 +1878,7 @@ khả năng chuyên môn của bạn：
 - Thành thạo Cảnh quayngôn ngữ：Có thể phán đoán chính xác từng CảC của nh quayỡ cảnh、Phong cách chuyển động、thiết kế ánh sáng
 - **thiết kế theo hướng tường thuật**：Hiểu mọi Cảnh quay V trong truyện full tậpị trívà chức năng，Đảm bảo C.ảnh quay thiết kế phục vụ tường thuật
 - mise-en-scène：Sử dụng nguyên lý tam giác、Sử dụng các kỹ thuật như quay ngược bên trong và bên ngoài để xử lý các cảnh đối thoại
-- Chụp chuyển đ���ng：Có thể phán đoán chính xác CảBắt đầu Tr của nh quayạng thátôi và Kết thúcTrạng tháCó sự khác biệt đáng kể trong tôi
+- Chuyen dong may quay: Co the phan doan chinh xac trang thai bat dau va ket thuc cua canh quay, va su thay doi giua hai moc nay
 - AIVideoTạoKinh nghiệm：Hiểu về hạt giống、Sora、Runway và cộng sự AI VideoMô hìNH hoạt động như thế nào?
 
 Nhiệm vụ của bạn là đi theo Kịch bảnglobalNền và phân cảnh thông tin，cho mỗi tiến sĩân cảnhTạoHình ảnh chuyên nghiệp Mô tảvà ba lớp lời nhắc。
@@ -2280,7 +2280,7 @@ export async function generateEpisodeSynopses(
   // Nhận N toàn cầuền
   const background = project.projectBackground;
   const globalContext = {
-    title: background?.title || project.scriptData?.title || 'Không tênKịch bản',
+    title: background?.title || project.scriptData?.title || 'Không tên kịch bản',
     genre: background?.genre || '',
     era: background?.era || '',
     worldSetting: background?.worldSetting || '',
@@ -2394,7 +2394,7 @@ Vui lòng sử dụng JSONĐịnh dạngQuay lại：
     }
     
     if (failedBatches > 0) {
-      console.warn(`[Đặt phác thảo Tạo] ${failedBatches}/${totalBatches} đợt thứất bại`);
+      console.warn(`[Đặt phác thảo Tạo] ${failedBatches}/${totalBatches} batch thất bại`);
     }
     
     onProgress?.(generatedCount, totalEpisodes, `Đã Tạo ${generatedCount}/${totalEpisodes} Tóm tắt tập`);
@@ -2442,7 +2442,7 @@ export function exportProjectMetadata(projectId: string): string {
   const sections: string[] = [];
   
   // Tiêu đề
-  const title = meta?.title || background?.title || scriptData?.title || 'Không tênKịch bản';
+  const title = meta?.title || background?.title || scriptData?.title || 'Không tên kịch bản';
   sections.push(`# 《${title}》`);
   sections.push('');
   

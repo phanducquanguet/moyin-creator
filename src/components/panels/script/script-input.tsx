@@ -340,7 +340,7 @@ export function ScriptInput({
                   ) : (
                     /* === \u9996lần pipeline chế độ：\u5b8c\u6574 6 \u6b65\u9aa4 === */
                     <>
-                      {/* NhậpKịch bản */}
+                      {/* Nhập kịch bản */}
                       <div className={`flex items-center gap-3 py-1 ${importStatus === 'importing' ? 'text-primary font-bold' : importStatus === 'ready' ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
                         {importStatus === 'importing' ? (
                           <Loader2 className="h-5 w-5 animate-spin" />
@@ -349,7 +349,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">NhậpKịch bản</span>
+                        <span className="text-base">Nhập kịch bản</span>
                       </div>
                       
                       {/* Hiệu chỉnh tiêu đề */}
@@ -424,7 +424,7 @@ export function ScriptInput({
           <div className="space-y-3">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">
-                Đầu vàocâu chuyện\u521b\u610f，AI\u5e2e\u4f60TạoKịch bản
+                Nhập ý tưởng câu chuyện, AI sẽ giúp bạn tạo kịch bản
               </Label>
               <Textarea
                 placeholder="Ví dụ：mộtmộtbên trong\u5411\u7a0b\u5e8f\u5458\u5728\u5496\u5561cửa tiệm\u9082\u9005\u5f00\u6717Nữ\u5b69củaấm ápcâu chuyện..."
@@ -448,7 +448,7 @@ export function ScriptInput({
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  AITạoKịch bản
+                  AI tạo kịch bản
                 </>
               )}
             </Button>
@@ -457,7 +457,7 @@ export function ScriptInput({
             {rawScript && (
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  TạocủaKịch bản（Cán Chỉnh sửa）
+                  Kịch bản đã tạo (có thể chỉnh sửa)
                 </Label>
                 <Textarea
                   value={rawScript}
@@ -471,7 +471,7 @@ export function ScriptInput({
             {/* chế độ sáng tạo\u5de5\u4f5c\u6d41\u5f15\u5bfc */}
             {parseStatus === "ready" && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
-                <div className="text-xs font-medium text-primary">✨ Kịch bảnĐã Tạo，\u4e0bmột\u6b65</div>
+                <div className="text-xs font-medium text-primary">✨ Kịch bản đã tạo, bước tiếp theo</div>
                 <div className="space-y-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
@@ -812,7 +812,7 @@ export function ScriptInput({
             <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
             <div className="text-xs text-yellow-600 dark:text-yellow-400">
               <p className="font-medium">API Chưa được định cấu hình</p>
-              <p className="opacity-80">Làm ơn Cài đặtTrung bình Cấu hìnhAPI\u5bc6\u94a5</p>
+              <p className="opacity-80">Vui lòng vào Cài đặt để cấu hình API key</p>
             </div>
           </div>
         )}
@@ -904,7 +904,7 @@ export function ScriptInput({
               ) : (
                 <>
                   <Wand2 className="h-4 w-4 mr-2" />
-                  AIphân tích cú phápKịch bản
+                  AI phân tích cú pháp kịch bản
                 </>
               )}
             </Button>

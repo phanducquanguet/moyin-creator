@@ -2,28 +2,26 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Dịch vụ Trailer - AI Trailer Phân cảdịch vụ tuyển chọn nh
- * 
- * chức năng：Từ Ph hiện cóân cảLựa chọn phím Ph thông minh trong nhân cảnh，TạoTrailer
- * Tiêu chí lựa chọn：
- * - Chức năng tường thuật là"đỉnh điểm/bước ngoặt"ưu tiên
- * - Ưu tiên người có cảm xúc mạnh
- * - C có tác động trực quanảnh ưu tiên
- * - Key Nhân vật xuất hiện đầu tiên
+ * Dịch vụ trailer - AI chọn các phân cảnh trailer.
+ *
+ * Chức năng:
+ * - Chọn thông minh các phân cảnh nổi bật từ danh sách có sẵn
+ * - Ưu tiên cảnh có vai trò tường thuật mạnh (cao trao/buoc ngoat/xung dot)
+ * - Ưu tiên cảnh có cảm xúc mạnh và tác động thị giác cao
  */
 
 import type { Shot, ProjectBackground } from '@/types/script';
 import type { SplitScene, TrailerDuration } from '@/stores/director-store';
 import { callFeatureAPI } from '@/lib/ai/feature-router';
 
-// Thời lượPh tương ứng với ngân cảnh số lượng
+// Mapping thời lượng trailer -> số phân cảnh mục tiêu
 const DURATION_TO_SHOT_COUNT: Record<TrailerDuration, number> = {
-  10: 2,   // 10 giây：2-3 phân cảnh
-  30: 6,   // 30 giây：5-6 độân cảnh
-  60: 12,  // 1 phút：10-12 giờân cảnh
+  10: 2,   // 10 giây: 2-3 phân cảnh
+  30: 6,   // 30 giây: 5-6 phân cảnh
+  60: 12,  // 1 phút: 10-12 phân cảnh
 };
 
-/** @không được dùng nữa không cần phải chuyển thủ công nữa，Tự động thu được từ bản đồ dịch vụ */
+/** @deprecated Khong can truyen thu cong nua, cau hinh duoc lay tu service map */
 export interface TrailerGenerationOptions {
   apiKey?: string;
   provider?: string;
@@ -38,18 +36,18 @@ export interface TrailerGenerationResult {
 }
 
 /**
- * Đoạn giới thiệu AI Picks Phân cảnh
- * 
- * @param shots Tất cảPh có sẵnân cảnh
- * @param background Dự ánNềthông tin
- * @đoạn giới thiệu thời lượng thông số Thời lượng
- * @cấu hình API tùy chọn param
+ * AI chon phan canh cho trailer.
+ *
+ * @param shots Tat ca phan canh hien co
+ * @param background Thong tin nen du an
+ * @param duration Thoi luong trailer
+ * @param _options Cau hinh API (giu lai de tuong thich nguoc)
  */
 export async function selectTrailerShots(
   shots: Shot[],
   background: ProjectBackground | null,
   duration: TrailerDuration,
-  _options?: TrailerGenerationOptions // không còn cần thiết nữa，dành riêng cho khả năng tương thích
+  _options?: TrailerGenerationOptions // Khong con can thiet, chi giu cho backward compatibility
 ): Promise<TrailerGenerationResult> {
   if (shots.length === 0) {
     return {
@@ -62,7 +60,7 @@ export async function selectTrailerShots(
 
   const targetCount = DURATION_TO_SHOT_COUNT[duration];
   
-  // Nếu Phân cảnh số lượng ít hơnĐích số lượng，Quay trực tiếp lạiTất cảPhân cảnh
+  // Neu so phan canh nho hon muc tieu thi tra ve tat ca
   if (shots.length <= targetCount) {
     return {
       success: true,
@@ -72,7 +70,7 @@ export async function selectTrailerShots(
   }
 
   try {
-    // xây dựng tiến sĩân cảnh tóm tắt cho AI Phân tích
+    // Tao ban tom tat phan canh de AI phan tich
     const shotSummaries = shots.map((shot, index) => ({
       index: index + 1,
       id: shot.id,
@@ -86,52 +84,52 @@ export async function selectTrailerShots(
       shotSize: shot.shotSize || '',
     }));
 
-    const systemPrompt = `Bạn là người biên tập trailer phim chuyên nghiệp，Giỏi lựa chọn C hấp dẫn nhất từ ​​một số lượng lớn vật liệuảnh quay để làm trailer。
+    const systemPrompt = `Ban la bien tap vien trailer chuyen nghiep, gioi chon cac canh hap dan nhat tu mot tap lon du lieu.
 
-Nhiệm vụ của bạn là bắt đầu từ Ph đã choân cảChọn trailer phù hợp nhất từ danh sách nh ${targetCount} Phân cảnh。
+Nhiem vu: tu danh sach phan canh da cho, chon ${targetCount} phan canh phu hop nhat de dung lam trailer.
 
-【Nguyên tắc cấu trúc trailer】
-1. **khai mạc**：Tạo bầu không khí，Thu hút Lưu ý（1-2 Cảnh quay）
-2. **Xung đột leo thang**：Chứng minh xung đột trung tâm của câu chuyện（2-4 Cảnh quay）
-3. **hồi hộp cao trào**：Hình ảnh mãnh liệt nhất，để lại sự hồi hộp（1-2 Cảnh quay）
+[Nguyen tac cau truc trailer]
+1. Mo dau: tao bau khong khi, thu hut su chu y (1-2 canh)
+2. Leo thang xung dot: the hien xung dot trung tam (2-4 canh)
+3. Cao trao gay hoi hop: hinh anh manh nhat, de lai su to mo (1-2 canh)
 
-【Tiêu chí lựa chọn】
-- Ưu tiên chức năng tường thuật như"đỉnh điểm"、"bước ngoặt"、"xung đột"Cảnh quay
-- Ưu tiên những người có cảm xúc mạnh（tense, excited, mysterious）Cảnh quay
-- Ưu tiên hình ảnh có tác động trực quan（Hành độcảnh tượng、Đặc tả、Đối đầu）
-- Ưu tiên chuyên ngành Nhân vậThời điểm quan trọng của sự xuất hiện của t
-- Bao gồm số tập khác nhau，Hi��n thị khoảng câu chuyện
-- Tránh tiết lộ kết thúc quan trọng
+[Tieu chi lua chon]
+- Uu tien canh co chuc nang tuong thuat nhu "dinh diem", "buoc ngoat", "xung dot"
+- Uu tien canh co cam xuc manh (tense, excited, mysterious)
+- Uu tien canh co tac dong thi giac (hanh dong, can canh, doi dau)
+- Uu tien khoanh khac quan trong cua nhan vat chinh
+- Co su da dang giua cac tap de the hien pham vi cau chuyen
+- Tranh tiet lo ket thuc quan trong
 
-【Đầbạn yêu cầu】
-Xin hãy quay lạiạmảng JSON iA，Chứa Ph bạn chọnân cảsố sê-ri（index），báo chí trailer pháđặt hàng。
-Định dạng：{ "selectedIndices": [1, 5, 12, 23, 45, 60] }`;
+[Dau ra bat buoc]
+Tra ve dung JSON, chi gom cac chi so phan canh duoc chon theo thu tu trailer.
+Dinh dang: { "selectedIndices": [1, 5, 12, 23, 45, 60] }`;
 
-    const userPrompt = `【Dự áthông tin】
-${background?.title ? `Tiêu đề phim truyền hình：《${background.title}》` : ''}
-${background?.outline ? `phác thảo：${background.outline.slice(0, 500)}` : ''}
+    const userPrompt = `[Thong tin du an]
+${background?.title ? `Tieu de: ${background.title}` : ''}
+${background?.outline ? `Phac thao: ${background.outline.slice(0, 500)}` : ''}
 
-【Phân cảnh danh sách】（tổng cộng ${shots.length} Phân cảnh）
+[Danh sach phan canh] (tong cong ${shots.length} phan canh)
 ${shotSummaries.map(s => 
   `[${s.index}] ${s.id}
-   Hành động：${s.actionSummary.slice(0, 100)}
-   Mô tả：${s.visualDescription.slice(0, 100)}
-   Nhân vật：${s.characterNames.join('、') || 'không có'}
-   chức năng tường thuật：${s.narrativeFunction || 'Không rõ'}
-   cảm xúc：${Array.isArray(s.emotionTags) ? s.emotionTags.join(', ') : 'không có'}`
+   Hanh dong: ${s.actionSummary.slice(0, 100)}
+   Mo ta: ${s.visualDescription.slice(0, 100)}
+   Nhan vat: ${s.characterNames.join(', ') || 'khong co'}
+   Chuc nang tuong thuat: ${s.narrativeFunction || 'khong ro'}
+   Cam xuc: ${Array.isArray(s.emotionTags) ? s.emotionTags.join(', ') : 'khong co'}`
 ).join('\n\n')}
 
-Hãy bắt đầu từ Ph trênân cảChọn từ nh ${targetCount} C tốt nhất cho xe kéoảnh quay，Quay lại JSON Định dạdanh sách số sê-ri。`;
+Hay chon ${targetCount} phan canh tot nhat va tra ve danh sach chi so dung dinh dang JSON.`;
 
-    // Thống nhất có được cấu hình từ ánh xạ dịch vụ
+    // Lay cau hinh thong nhat tu service mapping
     const result = await callFeatureAPI('script_analysis', systemPrompt, userPrompt);
 
-    // Phân tích AI Quay lạtôi JSON-Hỗ trợkhác nhauĐịnh dạng
+    // Phan tich JSON tra ve tu AI (ho tro nhieu dinh dang)
     let selectedIndices: number[] = [];
     
     console.log('[TrailerService] AI raw response (first 1000 chars):', result.slice(0, 1000));
     
-    // cố gắng để phù hợp { "selectedIndices": [...] } Định dạng
+    // Thu parse theo dinh dang { "selectedIndices": [...] }
     const jsonMatch = result.match(/\{[\s\S]*?"selectedIndices"\s*:\s*\[[\d,\s]*\][\s\S]*?\}/);
     if (jsonMatch) {
       try {
@@ -142,7 +140,7 @@ Hãy bắt đầu từ Ph trênân cảChọn từ nh ${targetCount} C tốt nh�
       }
     }
     
-    // Nếu như trên Thất bại，Cố gắng khớp trực tiếp một dãy số [1, 2, 3, ...]
+    // Neu that bai thi thu match truc tiep mang so [1, 2, 3, ...]
     if (selectedIndices.length === 0) {
       const arrayMatch = result.match(/\[\s*\d+(?:\s*,\s*\d+)*\s*\]/);
       if (arrayMatch) {
@@ -154,7 +152,7 @@ Hãy bắt đầu từ Ph trênân cảChọn từ nh ${targetCount} C tốt nh�
       }
     }
     
-    // Nếu vẫn là Thất bại，Cố gắng giải nén Tất cảcon số
+    // Neu van that bai thi thu bo tat ca so trong chuoi phan hoi
     if (selectedIndices.length === 0) {
       const numbers = result.match(/\b(\d{1,3})\b/g);
       if (numbers) {
@@ -166,12 +164,12 @@ Hãy bắt đầu từ Ph trênân cảChọn từ nh ${targetCount} C tốt nh�
     }
     
     if (selectedIndices.length === 0) {
-      throw new Error('AI Quay lạiĐịnh dạngLỗi，Không thể phân tích số thứ tự');
+      throw new Error('Dinh dang AI tra ve khong hop le, khong the phan tich chi so');
     }
     
     console.log('[TrailerService] Parsed selectedIndices:', selectedIndices);
 
-    // Lấy Ph tương ứng theo số serialân cảnh
+    // Lay cac phan canh theo chi so da chon
     const selectedShots = selectedIndices
       .filter(idx => idx >= 1 && idx <= shots.length)
       .map(idx => shots[idx - 1]);
@@ -184,61 +182,61 @@ Hãy bắt đầu từ Ph trênân cảChọn từ nh ${targetCount} C tốt nh�
   } catch (error) {
     console.error('[TrailerService] AI selection failed:', error);
     
-    // Kế hoạch dự phòng：Sử dụng quy tắc để chọn
+    // Phuong an du phong: chon bang rule-based
     const fallbackShots = selectTrailerShotsByRules(shots, targetCount);
     return {
       success: true,
       selectedShots: fallbackShots,
       shotIds: fallbackShots.map(s => s.id),
-      error: 'AI chọn Thất bại，Sử dụng quy tắc để chọn',
+      error: 'AI chon that bai, da chuyen sang rule-based',
     };
   }
 }
 
 /**
- * Lựa chọn quy tắc（AI Thất bạKế hoạch dự phòng cho lần thứ i）
+ * Chon phan canh bang rule-based (du phong khi AI that bai).
  */
 function selectTrailerShotsByRules(shots: Shot[], targetCount: number): Shot[] {
-  // Chức năng chấm điểm
+  // Ham cham diem
   const scoreShot = (shot: Shot): number => {
     let score = 0;
     
-    // Điểm chức năng tường thuật
+    // Diem theo vai tro tuong thuat
     const narrativeFunction = (shot as any).narrativeFunction || '';
     if (narrativeFunction.includes('đỉnh điểm')) score += 10;
     if (narrativeFunction.includes('bước ngoặt')) score += 8;
     if (narrativeFunction.includes('xung đột')) score += 6;
     if (narrativeFunction.includes('Nâng cấp')) score += 4;
     
-    // điểm tình cảm
+    // Diem theo cam xuc
     const emotionTags = (shot as any).emotionTags || [];
     if (emotionTags.includes('tense')) score += 5;
     if (emotionTags.includes('excited')) score += 5;
     if (emotionTags.includes('mysterious')) score += 4;
     if (emotionTags.includes('touching')) score += 3;
     
-    // C với đoạn hội thoạiảnh quay hấp dẫn hơn
+    // Canh co hoi thoai thuong hap dan hon
     if (shot.dialogue) score += 2;
     
-    // Có nhiều Nhân vật là Cảnh quay kịch tính hơn
+    // Canh co nhieu nhan vat thuong kich tinh hon
     if (shot.characterNames && shot.characterNames.length >= 2) score += 2;
     
     return score;
   };
 
-  // theo phân số Sắp xếp
+  // Sap xep theo diem giam dan
   const scoredShots = shots.map(shot => ({
     shot,
     score: scoreShot(shot),
   })).sort((a, b) => b.score - a.score);
 
-  // Chọn đồng đều từ các bộ khác nhau
+  // Co gang phan bo deu giua cac tap
   const episodeIds = shots.map(s => s.episodeId).filter((id): id is string => !!id);
   const episodeSet = new Set(episodeIds);
   const episodeCount = episodeSet.size;
   
   if (episodeCount > 1) {
-    // nhiều tập：Chọn một phần của mỗi tập phim
+    // Nhieu tap: lay mot so canh moi tap
     const perEpisode = Math.ceil(targetCount / episodeCount);
     const selected: Shot[] = [];
     const episodeSelected = new Map<string, number>();
@@ -253,20 +251,20 @@ function selectTrailerShotsByRules(shots: Shot[], targetCount: number): Shot[] {
       }
     }
     
-    // Theo thứ tự ban đầu Sắp xếp（Trailer Báo chí Thờtôi gian dòng）
+    // Sap xep lai theo thu tu goc de trailer mach lac theo thoi gian
     return selected.sort((a, b) => {
       const idxA = shots.findIndex(s => s.id === a.id);
       const idxB = shots.findIndex(s => s.id === b.id);
       return idxA - idxB;
     });
   } else {
-    // tập duy nhất：Lấy trực tiếp người có số điểm cao nhất
+    // Mot tap duy nhat: lay truc tiep cac canh diem cao nhat
     return scoredShots.slice(0, targetCount).map(s => s.shot);
   }
 }
 
 /**
- * Chuyển đổi ảnh đã chọn thành SplitScene Định dạng（Dành cho Giám đốc AI Phân cảnhChỉnh sửa）
+ * Chuyen shot da chon sang dinh dang SplitScene (de dua vao Director panel).
  */
 export function convertShotsToSplitScenes(
   shots: Shot[],
@@ -274,7 +272,7 @@ export function convertShotsToSplitScenes(
 ): SplitScene[] {
   return shots.map((shot, index) => ({
     id: index,
-    sceneName: sceneName || `xe kéo #${index + 1}`,
+    sceneName: sceneName || `Trailer #${index + 1}`,
     sceneLocation: '',
     imageDataUrl: '',
     imageHttpUrl: null,
@@ -296,7 +294,7 @@ export function convertShotsToSplitScenes(
     characterIds: [],
     emotionTags: (shot.emotionTags || []) as any,
     shotSize: shot.shotSize as any || null,
-    // Seedance 1.5 Pro cần 4-12 giây，Giới hạn bắt buộc
+    // Seedance 1.5 Pro yeu cau 4-12 giay
     duration: Math.max(4, Math.min(12, shot.duration || 5)),
     ambientSound: shot.ambientSound || '',
     soundEffects: [],
@@ -304,7 +302,7 @@ export function convertShotsToSplitScenes(
     dialogue: shot.dialogue || '',
     actionSummary: shot.actionSummary || '',
     cameraMovement: shot.cameraMovement || '',
-    // lĩnh vực dẫn dắt câu chuyện
+    // Nhom truong tuong thuat
     narrativeFunction: (shot as any).narrativeFunction || '',
     shotPurpose: (shot as any).shotPurpose || '',
     visualFocus: (shot as any).visualFocus || '',
@@ -312,24 +310,24 @@ export function convertShotsToSplitScenes(
     characterBlocking: (shot as any).characterBlocking || '',
     rhythm: (shot as any).rhythm || '',
     visualDescription: shot.visualDescription || '',
-    // kỹ sư chiếu sáng
+    // Nhom truong anh sang
     lightingStyle: shot.lightingStyle,
     lightingDirection: shot.lightingDirection,
     colorTemperature: shot.colorTemperature,
     lightingNotes: shot.lightingNotes,
-    // dụng cụ kéo tiêu điểm
+    // Nhom truong focus
     depthOfField: shot.depthOfField,
     focusTarget: shot.focusTarget,
     focusTransition: shot.focusTransition,
     // Nhóm thiết bị
     cameraRig: shot.cameraRig,
     movementSpeed: shot.movementSpeed,
-    // Hiệu ứphân chia
+    // Nhom truong hieu ung
     atmosphericEffects: shot.atmosphericEffects,
     effectIntensity: shot.effectIntensity,
-    // kiểm soát tốc độ
+    // Kiem soat toc do
     playbackSpeed: shot.playbackSpeed,
-    // Chơi liên tục
+    // Lien tuc canh
     continuityRef: shot.continuityRef,
     imageStatus: 'idle' as const,
     imageProgress: 0,

@@ -490,7 +490,7 @@ ngôn ngữ：${options.language || 'Tiếng Trung'}${sceneCountHint}`;
     const scenes = (parsed.scenes || []).map((s: any, i: number) => ({
       id: s.id || `scene_${i + 1}`,
       name: s.name || s.location || `Cảnh${i + 1}`,
-      location: s.location || 'Không rõvị trí',
+      location: s.location || 'Không rõ vị trí',
       time: normalizeTimeValue(s.time),
       atmosphere: s.atmosphere || '',
       visualPrompt: s.visualPrompt || '', // cho Cảnh bản đồ khái niệm Tạo
@@ -545,7 +545,7 @@ ngôn ngữ：${options.language || 'Tiếng Trung'}${sceneCountHint}`;
     }
 
     const scriptData: ScriptData = {
-      title: parsed.title || 'Không tênKịch bản',
+      title: parsed.title || 'Không tên kịch bản',
       genre: parsed.genre,
       logline: parsed.logline,
       language: options.language || 'Tiếng Trung',

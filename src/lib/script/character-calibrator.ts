@@ -584,7 +584,7 @@ ${batchDialogues.slice(0, 100).join('\n')}
     });
     
     if (failedBatches > 0) {
-      console.warn(`[CharacterCalibrator] ${failedBatches} đợt thứất bại，Sử dụng kết quả một phần`);
+      console.warn(`[CharacterCalibrator] ${failedBatches} batch thất bại, sử dụng kết quả một phần`);
     }
     
     parsed = {

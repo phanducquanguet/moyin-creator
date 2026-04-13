@@ -974,13 +974,13 @@ export function ScriptView() {
     const background = scriptProject?.projectBackground;
     
     if (!background) {
-      toast.error('thiếu\u5c11Kịch bảnNềthông tin');
+      toast.error('Thiếu thông tin nền kịch bản');
       return;
     }
     
     // \u68c0\u67e5 episodeRawScripts tồn tại
     if (!episodeRawScripts || episodeRawScripts.length === 0) {
-      toast.error('thiếu\u5c11\u5206đặtKịch bảdữ liệu，\u8bf7\u91cd\u65b0NhậpKịch bảnhoặcsử dụng\u65b0\u7248Nhậpchức năng');
+      toast.error('Thiếu dữ liệu phân tập kịch bản, vui lòng nhập lại kịch bản hoặc dùng chức năng nhập mới');
       console.error('[handleCalibrateCharacters] episodeRawScripts cho\u7a7ahoặc không tồn tại');
       return;
     }
@@ -989,7 +989,7 @@ export function ScriptView() {
     const rawCharacters = extractAllCharactersFromEpisodes(episodeRawScripts);
     
     if (rawCharacters.length === 0) {
-      toast.error('\u672a\u80fdtừKịch bảntrongTrích xuấtĐếnNhân vật');
+      toast.error('Không thể trích xuất nhân vật từ kịch bản');
       return;
     }
     
@@ -1051,7 +1051,7 @@ export function ScriptView() {
         });
         newCharacters = resolvedCalibrationCharacters.characters;
         console.warn(`[handleCalibrateCharacters] AI character calibration returned empty result, recovered characters from ${resolvedCalibrationCharacters.source}.`);
-        toast.warning('AI Nhân vật\u6821\u51c6Quay lại\u7a7akết quả，Đã rồi\u56de\u9000Đến\u73b0CóNhân vậdanh sách t，\u8bf7Xác nhận\u540eLưu');
+        toast.warning('AI hiệu chuẩn nhân vật trả về rỗng, đã quay về danh sách nhân vật hiện có. Vui lòng xác nhận trước khi lưu');
       }
       
       console.log('[ScriptView] Nhân vậtKết quả hiệu chuẩn:', calibResult.analysisNotes);
@@ -1344,8 +1344,8 @@ export function ScriptView() {
       const model = featureConfig.models?.[0];
       
       if (!baseUrl || !model) {
-        toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hình「Kịch bảnPhân tích」của Base URL vàMô hình');
-        setParseStatus(projectId, "error", "thiếu\u5c11 Base URL hoặcMô hình cấu hình");
+        toast.error('Vui lòng vào Cài đặt để cấu hình Base URL và mô hình cho "Phân tích kịch bản"');
+        setParseStatus(projectId, "error", "Thiếu cấu hình Base URL hoặc mô hình");
         return;
       }
 
@@ -1367,7 +1367,7 @@ export function ScriptView() {
       // LưuTạocủaKịch bảnĐến rawScript（\u65b9\u4fbfNgười dùng\u67e5\u770b/Chỉnh sửa）
       setRawScript(projectId, generatedScript);
       setParseStatus(projectId, "idle");
-      toast.success('Kịch bảnTạoThành công！\u6b63\u5728\u81ea\u52a8Nhập...');
+      toast.success('Kịch bản tạo thành công! Đang tự động nhập...');
 
       // Không.Hai\u6b65：\u81ea\u52a8\u8c03sử dụngNhậpquá trình（\u590dsử dụngNhậpTất cả\u540e\u7eed\u903b\u8f91）
       await handleImportFullScript(generatedScript);
@@ -1376,14 +1376,14 @@ export function ScriptView() {
       const err = error as Error;
       console.error("[ScriptView] Script generation failed:", err);
       setParseStatus(projectId, "error", err.message);
-      toast.error(`Kịch bảnTạoThất bại: ${err.message}`);
+      toast.error(`Kịch bản tạo thất bại: ${err.message}`);
     }
   }, [projectId, language, targetDuration, sceneCount, shotCount, styleId, setRawScript, setParseStatus, handleImportFullScript]);
 
   // Parse screenplay (AIphân tích cú pháp)
   const handleParse = useCallback(async () => {
     if (!rawScript.trim()) {
-      toast.error("Vui lòng nhậpKịch bảnNội dung");
+      toast.error("Vui lòng nhập nội dung kịch bản");
       return;
     }
 
@@ -1406,8 +1406,8 @@ export function ScriptView() {
       const baseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
       const model = featureConfig.models?.[0];
       if (!baseUrl || !model) {
-        toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hình「Kịch bảnPhân tích」của Base URL vàMô hình');
-        setParseStatus(projectId, "error", "thiếu\u5c11 Base URL hoặcMô hình cấu hình");
+        toast.error('Vui lòng vào Cài đặt để cấu hình Base URL và mô hình cho "Phân tích kịch bản"');
+        setParseStatus(projectId, "error", "Thiếu cấu hình Base URL hoặc mô hình");
         return;
       }
 
@@ -1519,8 +1519,8 @@ export function ScriptView() {
         const baseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
         const model = featureConfig.models?.[0];
         if (!baseUrl || !model) {
-          toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hình「Kịch bảnPhân tích」của Base URL vàMô hình');
-          setShotStatus(projectId, "error", "thiếu\u5c11 Base URL hoặcMô hình cấu hình");
+        toast.error('Vui lòng vào Cài đặt để cấu hình Base URL và mô hình cho "Phân tích kịch bản"');
+          setShotStatus(projectId, "error", "Thiếu cấu hình Base URL hoặc mô hình");
           return;
         }
 
@@ -1915,7 +1915,7 @@ export function ScriptView() {
       return {
         found: false,
         name: '',
-        message: '\u8bf7đầu tiênCấu hình AI \u63a5\u53e3',
+        message: 'Vui lòng cấu hình API AI trước',
       };
     }
     
@@ -1924,7 +1924,7 @@ export function ScriptView() {
       return {
         found: false,
         name: '',
-        message: '\u8bf7đầu tiênNhậpKịch bản',
+        message: 'Vui lòng nhập kịch bản trước',
       };
     }
     
@@ -1954,7 +1954,7 @@ export function ScriptView() {
       return {
         found: false,
         name: '',
-        message: '\u67e5\u627eThất bại，Xin vui lòng Thử lại',
+        message: 'Tìm kiếm thất bại, vui lòng thử lại',
       };
     }
   }, [scriptProject?.projectBackground, episodeRawScripts, scriptData?.characters]);
@@ -1965,7 +1965,7 @@ export function ScriptView() {
     if (!featureConfig) {
       return {
         found: false,
-        message: '\u8bf7đầu tiênCấu hình AI \u63a5\u53e3',
+        message: 'Vui lòng cấu hình API AI trước',
       };
     }
     
@@ -1973,7 +1973,7 @@ export function ScriptView() {
     if (!background) {
       return {
         found: false,
-        message: '\u8bf7đầu tiênNhậpKịch bản',
+        message: 'Vui lòng nhập kịch bản trước',
       };
     }
     
@@ -2001,7 +2001,7 @@ export function ScriptView() {
       console.error('[handleAIFindScene] Lỗi:', error);
       return {
         found: false,
-        message: '\u67e5\u627eThất bại，Xin vui lòng Thử lại',
+        message: 'Tìm kiếm thất bại, vui lòng thử lại',
       };
     }
   }, [scriptProject?.projectBackground, episodeRawScripts, scriptData?.scenes]);
@@ -2016,12 +2016,12 @@ export function ScriptView() {
     
     const background = scriptProject?.projectBackground;
     if (!background) {
-      toast.error('\u8bf7đầu tiênNhậpKịch bản');
+      toast.error('Vui lòng nhập kịch bản trước');
       return;
     }
     
     if (!episodeRawScripts || episodeRawScripts.length === 0) {
-      toast.error('thiếu\u5c11\u5206đặtKịch bảdữ liệu');
+      toast.error('Thiếu dữ liệu phân tập kịch bản');
       return;
     }
     
@@ -2131,7 +2131,7 @@ export function ScriptView() {
     
     const background = scriptProject?.projectBackground;
     if (!background) {
-      toast.error('\u8bf7đầu tiênNhậpKịch bản');
+      toast.error('Vui lòng nhập kịch bản trước');
       return;
     }
     
@@ -2191,7 +2191,7 @@ export function ScriptView() {
     }
     
     if (shots.length === 0) {
-      toast.error('\u8bf7đầu tiênTạoPhân cảnh');
+      toast.error('Vui lòng tạo phân cảnh trước');
       return;
     }
     

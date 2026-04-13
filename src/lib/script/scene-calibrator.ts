@@ -447,7 +447,7 @@ Xin hãy quay lạiạiJSONĐịnh dạng：
     });
     
     if (failedBatches > 0) {
-      console.warn(`[SceneCalibrator] ${failedBatches} đợt thứất bại，Sử dụng kết quả một phần`);
+      console.warn(`[SceneCalibrator] ${failedBatches} batch thất bại, sử dụng kết quả một phần`);
     }
     
     console.log('[calibrateScenes] AI Quay lại', sceneResults.size, 'Cảnh kết quả');

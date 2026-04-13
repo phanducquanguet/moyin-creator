@@ -220,7 +220,7 @@ export function isFeatureReady(feature: AIFeature): boolean {
 export function getFeatureNotConfiguredMessage(feature: AIFeature): string {
   const featureInfo = AI_FEATURES.find(f => f.key === feature);
   const featureName = featureInfo?.name || feature;
-  return `\u8bf7đầu tiên\u5728Cài đặttrongcho「${featureName}」chức năngên kết API Nhà cung cấp`;
+  return `Vui lòng vào Cài đặt để liên kết nhà cung cấp API cho tính năng "${featureName}".`;
 }
 
 // ==================== \u7edfmột API \u8c03sử dụnglối vào ====================
@@ -267,10 +267,10 @@ export async function callFeatureAPI(
   const model = options?.modelOverride || config.model || config.models?.[0];
   const baseUrl = config.baseUrl?.replace(/\/+$/, '');
   if (!baseUrl) {
-    throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hình Base URL');
+    throw new Error('Vui lòng cấu hình Base URL trong Cài đặt trước.');
   }
   if (!model) {
-    throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhMô hình');
+    throw new Error('Vui lòng cấu hình model trong Cài đặt trước.');
   }
   
   console.log(`[callFeatureAPI] chức năng: ${feature}`);

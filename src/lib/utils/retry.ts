@@ -70,7 +70,7 @@ export async function retryOperation<T>(
   
   let lastError: Error | undefined;
 
-  // maxRetries có nghĩa là"Thất bạSau tôi nhiều nhất là Thử lạtôi đã bao nhiêu lần"，Lần thử ��ầu tiên không được tính vào Thử lại
+  // maxRetries la so lan thu lai toi da sau lan thu dau tien
   // Tổng số lần thử 1 + số lần thử lại tối đa
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

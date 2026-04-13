@@ -486,7 +486,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const sceneIndex = splitScenes.findIndex(s => s.id === sceneId);
     const scene = splitScenes[sceneIndex];
     if (!scene || !scene.videoUrl) {
-      toast.error('\u8bf7đầu tiênTạo video');
+      toast.error('Vui lòng tạo video trước');
       return;
     }
 
@@ -601,7 +601,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const runninghubBaseUrl = runninghubProvider?.baseUrl?.trim();
     const runninghubAppId = runninghubProvider?.model?.[0];
     if (!runninghubKey || !runninghubBaseUrl || !runninghubAppId) {
-      toast.error("\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hình RunningHub（API Key / Base URL / Mô hìnhAppId）");
+      toast.error("Vui lòng vào Cài đặt để cấu hình RunningHub (API Key / Base URL / Model AppId)");
       setAngleSwitchOpen(false);
       return;
     }
@@ -659,7 +659,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       setAngleSwitchOpen(false);
       setAngleSwitchResultOpen(true);
 
-      toast.success("Góc nhìnChuyển đổiTạoHoàn thành");
+      toast.success("Tạo chuyển đổi góc nhìn thành công");
     } catch (error) {
       toast.error(`Góc nhìnChuyển đổiThất bại: ${(error as Error).message}`);
     } finally {
@@ -726,7 +726,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       ? (scene.imageDataUrl || scene.imageHttpUrl)
       : (scene.endFrameImageUrl || scene.endFrameHttpUrl);
     if (!imageUrl) {
-      toast.error(`\u8bf7đầu tiênTạo${type === "start" ? "khung hình đầu tiên" : "\u5c3e\u5e27"}`);
+      toast.error(`Vui lòng tạo ${type === "start" ? "khung hình đầu tiên" : "khung hình cuối"} trước`);
       return;
     }
 
@@ -752,7 +752,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // Get API key - sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạo API');
+      toast.error('Vui lòng vào Cài đặt để cấu hình API tạo ảnh');
       setQuadGridOpen(false);
       return;
     }
@@ -760,20 +760,20 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       setQuadGridOpen(false);
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoMô hình');
+      toast.error('Vui lòng vào Cài đặt để cấu hình mô hình tạo ảnh');
       setQuadGridOpen(false);
       return;
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       setQuadGridOpen(false);
       return;
     }
@@ -1225,7 +1225,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     const provider = featureConfig.platform;
@@ -1329,7 +1329,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
               videoProgress: 100,
               videoUrl: submitData.videoUrl,
             });
-            toast.success(`Phân cảnh ${scene.id + 1} VideoTạoHoàn thành`);
+            toast.success(`Phân cảnh ${scene.id + 1} tạo video hoàn thành`);
             return;
           }
 
@@ -1362,7 +1362,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   videoProgress: 100,
                   videoUrl,
                 });
-                toast.success(`Phân cảnh ${scene.id + 1} VideoTạoHoàn thành`);
+                toast.success(`Phân cảnh ${scene.id + 1} tạo video hoàn thành`);
                 return;
               }
 
@@ -1373,7 +1373,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
               await new Promise(r => setTimeout(r, pollInterval));
             }
 
-            throw new Error('VideoTạo\u8d85\u65f6');
+            throw new Error('Tạo video quá thời gian chờ');
           }
 
           throw new Error('Invalid API response');
@@ -1396,7 +1396,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     
     const completedCount = splitScenes.filter(s => s.videoStatus === 'completed').length;
     if (completedCount === splitScenes.length) {
-      toast.success("Tất cảVideoTạoHoàn thành！");
+      toast.success("Tất cả video đã tạo xong!");
     }
   }, [splitScenes, storyboardConfig, getApiKey, concurrency, updateSplitSceneVideo]);
 
@@ -1433,12 +1433,12 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhVideoTạoMô hình');
+      toast.error('Vui lòng vào Cài đặt để cấu hình mô hình tạo video');
       return;
     }
     const videoBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!videoBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhVideoTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo video');
       return;
     }
     
@@ -1448,7 +1448,7 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error(`\u8bf7đầu tiênCấu hình ${platform} API Key`);
+      toast.error(`Vui lòng cấu hình API Key cho ${platform} trước`);
       return;
     }
     
@@ -1705,26 +1705,26 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // sử dụng\u670d\u52a1\u6620\u5c04Cấu hình - \u4e0dMột lần nữa fallback Đến\u786c\u7f16\u7801
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoMô hình');
+      toast.error('Vui lòng vào Cài đặt để cấu hình mô hình tạo ảnh');
       return;
     }
     
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     
@@ -2016,25 +2016,25 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // \u83b7\u53d6\u56fe\u50cfTạoKhả năng - sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoMô hình');
+      toast.error('Vui lòng vào Cài đặt để cấu hình mô hình tạo ảnh');
       return;
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     
@@ -2617,20 +2617,20 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      throw new Error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoMô hình');
+      throw new Error('Vui lòng vào Cài đặt để cấu hình mô hình tạo ảnh');
     }
     const apiKeyToUse = apiKey || featureConfig.keyManager.getCurrentKey() || '';
     if (!apiKeyToUse) {
-      throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      throw new Error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      throw new Error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      throw new Error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
     }
 
     // Call image generation API with smart routing
@@ -2720,24 +2720,24 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoMô hình');
+      toast.error('Vui lòng vào Cài đặt để cấu hình mô hình tạo ảnh');
       return;
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728Cài đặtTrung bình Cấu hìnhHình ảnhTạoDịch vụ\u6620\u5c04');
+      toast.error('Vui lòng vào Cài đặt để cấu hình ánh xạ dịch vụ tạo ảnh');
       return;
     }
     

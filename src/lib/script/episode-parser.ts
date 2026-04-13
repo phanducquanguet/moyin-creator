@@ -54,7 +54,7 @@ export function parseFullScript(fullText: string): {
   
   // 1. Trích xuất tiêu đề
   const titleMatch = fullText.match(/[《「]([^》」]+)[》」]/);
-  const title = titleMatch ? titleMatch[1] : 'Không tênKịch bản';
+  const title = titleMatch ? titleMatch[1] : 'Không tên kịch bản';
   
   // 2. Trích xuất phác thảo（từ"phác thảo："Đến"Tiểu sử："nội dung giữa）
   // Hỗ trợ Markdown Định dạng：**phác thảo：** hoặc phác thảo： hoặc 【phác thảo】
@@ -381,12 +381,12 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
         const sceneNumber = match[1]; // Chẳng hạn như "1-1"
         const rawDesc = match[2].replace(/\*{1,2}/g, '').trim(); // Chẳng hạn như "Thế giới của những quy luật kỳ lạ，Quảng trường hội，ngày"
         
-        // Từ Mô tảKhai thác thông minh của Thời gian（ngày/đêm/buổi sáng/Chạng vạng và những người khác），thường ở cuối
+        // Trich xuat thoi diem (ngay/dem/buoi sang/chang vang...) thuong nam o cuoi mo ta
         const timeWords = ['ngày', 'đêm', 'buổi sáng', 'chạng vạng', 'Hoàng hôn', 'Bình minh', 'sáng sớm', 'buổi tối'];
-        let timeOfDay = 'ngày'; // Mặc địgiá trị nh
+        let timeOfDay = 'ngày'; // Gia tri mac dinh
         let locationDesc = rawDesc;
         
-        // Kiểm tra Mô tảNó có kết thúc bằng chữ Th không?ờtôi gian từ kết thúc（Có thể dùng dấu phẩy、không gian tách biệt）
+        // Kiem tra mo ta co ket thuc bang tu khoa thoi gian khong
         for (const tw of timeWords) {
           const endPattern = new RegExp(`[，,\\s]${tw}\\s*$`);
           if (endPattern.test(rawDesc)) {
@@ -394,15 +394,15 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
             locationDesc = rawDesc.replace(endPattern, '').trim();
             break;
           }
-          // Cũng xử lý toàn bộ Mô tảĐó là Thờtôi gian từ tình hình
+          // Cung xu ly truong hop toan bo mo ta chi la tu khoa thoi gian
           if (rawDesc === tw) {
             timeOfDay = tw;
-            locationDesc = 'Không rõvị trí';
+            locationDesc = 'Không rõ vị trí';
             break;
           }
         }
         
-        // Hãy thử từ Mô tảchiết xuất bên trong/dấu bên ngoài
+        // Thu trich xuat thong tin noi/ngoai canh
         let interior = '';
         const interiorMatch = locationDesc.match(/[，,\s](trong|Bên ngoài|bên trong\/bên ngoài)\s*/);
         if (interiorMatch) {
@@ -410,15 +410,15 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
           locationDesc = locationDesc.replace(interiorMatch[0], '').trim();
         }
         
-        // Nối các vị trí được phân cách bằng dấu phẩy của Trung Quốc thành một vị trí có thể đọc đượcĐịnh dạng
-        const location = locationDesc.replace(/[，,]/g, ' ').replace(/\s+/g, ' ').trim() || 'Không rõvị trí';
+        // Chuan hoa dia diem, thay dau phay thanh khoang trang
+        const location = locationDesc.replace(/[，,]/g, ' ').replace(/\s+/g, ' ').trim() || 'Không rõ vị trí';
         
-        // Xây dựng tiêu chuẩnĐịnh dạng's Cảnh đầu，Để sử dụng bởi mã xuôi dòng
+        // Tao scene header chuan de cac buoc sau su dung
         const sceneHeader = interior 
           ? `${sceneNumber} ${timeOfDay} ${interior} ${location}`
           : `${sceneNumber} ${timeOfDay} ${location}`;
         
-        // GetCảnh nội dung
+        // Lay noi dung canh
         const startIndex = match.index! + match[0].length;
         const endIndex = i < looseMatches.length - 1 ? looseMatches[i + 1].index! : episodeText.length;
         const content = episodeText.slice(startIndex, endIndex).trim();
@@ -444,7 +444,7 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
       return scenes;
     }
     
-    // lỏng lẻoĐịnh dạng cũng không khớp，Hãy thử các lựa chọn thay thế kh��cĐịnh dạng
+    // Neu dinh dang long cung khong khop, thu dinh dang thay the
     return parseAlternativeSceneFormat(episodeText);
   }
   
@@ -452,11 +452,11 @@ export function parseScenes(episodeText: string): SceneRawContent[] {
     const match = sceneMatches[i];
     const sceneHeader = match[0].replace(/\*{1,2}/g, '').trim();
     const sceneNumber = match[1]; // Chẳng hạn như "1-1"
-    const timeOfDay = match[2];   // Chẳng hạn như "ngày"、"đêm"
-    const interior = match[3];    // Chẳng hạn như "bên trong"、"Bên ngoài"
-    const location = match[4]?.trim() || 'Không rõvị trí';
+    const timeOfDay = match[2];   // Vi du: "ngày", "đêm"
+    const interior = match[3];    // Vi du: "bên trong", "bên ngoài"
+    const location = match[4]?.trim() || 'Không rõ vị trí';
     
-    // GetCảnh nội dung（từ C hiện tạiảnh đi tới C tiếp theoảgiữa nh đầu）
+    // Lay noi dung canh (tu canh hien tai den truoc canh tiep theo)
     const startIndex = match.index! + match[0].length;
     const endIndex = i < sceneMatches.length - 1 ? sceneMatches[i + 1].index! : episodeText.length;
     const content = episodeText.slice(startIndex, endIndex).trim();

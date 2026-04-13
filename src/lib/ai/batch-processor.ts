@@ -9,7 +9,7 @@
  * cốt lõi\u7279\u6027：
  *   - \u53cc\u91cdkhoảng\u675f\u5206lô（input token + output token）
  *   - 60K token Hard Cap（\u9632\u6b62\u8d85\u957f\u4e0a\u4e0b\u6587Mô hình TTFT \u8fc7\u9ad8 / Lost in the middle）
- *   - \u5bb9\u9519\u9694\u79bb（\u5355đợt thứất bại\u4e0d\u5f71\u54cd\u5176\u4ed6lô，một phầnThành công\u4e5fQuay lạkết quả của tôi）
+ *   - \u5bb9\u9519\u9694\u79bb（\u5355batch thất bại\u4e0d\u5f71\u54cd\u5176\u4ed6lô，một phầnThành công\u4e5fQuay lạkết quả của tôi）
  *   - \u5355đợt thứử lại（\u6307\u6570\u9000\u907f，nhất 2 lần）
  *   - Đồng thờiđặt\u6210（\u590dsử dụng runStaggered + Người dùng concurrency Cài đặt）
  *   - Tiến độgọi lại
@@ -173,7 +173,7 @@ export async function processBatched<TItem, TResult>(
       onProgress?.(1, 1, 'Hoàn thành');
       return { results: result, failedBatches: 0, totalBatches: 1 };
     } catch (err) {
-      console.error('[BatchProcessor] \u552fmộtđợt thứất bại:', err);
+      console.error('[BatchProcessor] Batch đơn thất bại:', err);
       onProgress?.(1, 1, 'Thất bại');
       return { results: new Map(), failedBatches: 1, totalBatches: 1 };
     }
@@ -185,12 +185,12 @@ export async function processBatched<TItem, TResult>(
 
   const batchTasks = batches.map((batch, idx) => {
     return async () => {
-      onProgress?.(completedCount, batches.length, `xử lý hàng loạt ${idx + 1}/${batches.length}...`);
+      onProgress?.(completedCount, batches.length, `Đang xử lý batch ${idx + 1}/${batches.length}...`);
       const result = await executeBatchWithRetry(
         batch, feature, buildPrompts, parseResult, apiOptions,
       );
       completedCount++;
-      onProgress?.(completedCount, batches.length, `lô ${idx + 1} Hoàn thành`);
+      onProgress?.(completedCount, batches.length, `Batch ${idx + 1} hoàn thành`);
       return result;
     };
   });
@@ -206,12 +206,12 @@ export async function processBatched<TItem, TResult>(
       successResults.push(result.value);
     } else {
       failedBatches++;
-      console.error('[BatchProcessor] đợt thứất bại:', result.reason);
+      console.error('[BatchProcessor] Batch thất bại:', result.reason);
     }
   }
 
   if (failedBatches > 0) {
-    console.warn(`[BatchProcessor] ${failedBatches}/${batches.length} đợt thứất bại，Quay lạimột phầnkết quả`);
+    console.warn(`[BatchProcessor] ${failedBatches}/${batches.length} batch thất bại, trả về kết quả một phần`);
   }
 
   // \u5408\u5e76
@@ -227,7 +227,7 @@ export async function processBatched<TItem, TResult>(
     }
   }
 
-  onProgress?.(batches.length, batches.length, `Hoàn thành (${failedBatches > 0 ? `${failedBatches} lôThất bại` : 'Tất cảThành công'})`);
+  onProgress?.(batches.length, batches.length, `Hoàn thành (${failedBatches > 0 ? `${failedBatches} batch thất bại` : 'Tất cả thành công'})`);
 
   return { results: finalResults, failedBatches, totalBatches: batches.length };
 }

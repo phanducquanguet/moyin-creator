@@ -91,13 +91,13 @@ export async function generateCharacterDesign(
   
   const scriptData = project.scriptData;
   if (!scriptData) {
-    throw new Error('Kịch bảndata không tồn tại');
+    throw new Error('Dữ liệu kịch bản không tồn tại');
   }
   
   // tìm thấyĐíchNhân vật
   const character = scriptData.characters.find(c => c.id === characterId);
   if (!character) {
-    throw new Error('Nhân vật\u4e0d\u5b58\u5728');
+    throw new Error('Nhân vật không tồn tại');
   }
   
   // Thu thập Nhân vật\u76f8\u5173của\u4e0a\u4e0b\u6587thông tin
@@ -171,18 +171,18 @@ function buildCharacterContext(project: any, character: any): {
   // \u6784\u5efaNhân vật\u4f20\u8bb0
   const characterBio = [
     character.name,
-    character.gender ? `giới tính：${character.gender}` : '',
-    character.age ? `tuổi tác：${character.age}` : '',
-    character.personality ? `nhân vật：${character.personality}` : '',
-    character.role ? `danh tính：${character.role}` : '',
-    character.traits ? `\u7279\u8d28：${character.traits}` : '',
-    character.appearance ? `Bên ngoài\u8c8c：${character.appearance}` : '',
-    character.relationships ? `mối quan hệ：${character.relationships}` : '',
-    character.keyActions ? `việc làm quan trọng：${character.keyActions}` : '',
+    character.gender ? `Giới tính: ${character.gender}` : '',
+    character.age ? `Tuổi: ${character.age}` : '',
+    character.personality ? `Tính cách: ${character.personality}` : '',
+    character.role ? `Vai trò: ${character.role}` : '',
+    character.traits ? `Đặc điểm: ${character.traits}` : '',
+    character.appearance ? `Ngoại hình: ${character.appearance}` : '',
+    character.relationships ? `Quan hệ: ${character.relationships}` : '',
+    character.keyActions ? `Hành động quan trọng: ${character.keyActions}` : '',
   ].filter(Boolean).join('\n');
   
   return {
-    projectTitle: background?.title || project.scriptData?.title || 'Không tênKịch bản',
+    projectTitle: background?.title || project.scriptData?.title || 'Kịch bản chưa đặt tên',
     genre: background?.genre || '',
     era: background?.era || '',
     outline: background?.outline || '',
@@ -200,82 +200,73 @@ async function callAIForCharacterDesign(
   context: any
 ): Promise<CharacterDesign> {
   
-  const systemPrompt = `\u4f60\u662f\u597d\u83b1\u575e\u9876\u7ea7Nhân vật\u8bbe\u8ba1\u5927phép chia，một lần cho\u6f2b\u5a01、\u8fea\u58eb\u5c3c、\u76ae\u514b\u65af\u8bbe\u8ba1\u8fc7không có\u6570\u7ecf\u5178Nhân vật。
+  const systemPrompt = `Bạn là chuyên gia thiết kế nhân vật điện ảnh cấp cao.
 
-khả năng chuyên môn của bạn：
-- **Nhân vật\u89c6\u89c9\u8bbe\u8ba1**：\u80fd\u51c6\u786e\u6355\u6349Nhân vậtcủaBên ngoài\u5728\u5f62\u8c61、quần áoPhong cách、\u80a2\u4f53ngôn ngữ
-- **Nhân vậtphát triển\u5f27\u7ebf**：\u7406\u89e3Nhân vật\u5728\u4e0d\u540c\u5267\u60c5\u9636\u6bb5của\u5f62\u8c61thay đổi（từvị thành niênĐếnngười lớn、từ\u666e\u901a\u4ebaĐến\u82f1\u96c4Đợi đã）
-- **Hình ảnh AI TạoKinh nghiệm**：Biết giữa hành trình、DALL-E、Stable Diffusion Đợi đã AI \u7ed8\u56feMô hìNH hoạt động như thế nào?，\u80fd\u5199\u51fa\u9ad8\u8d28\u91cfcủaPrompt
-- **một\u81f4\u6027giữ**：\u77e5\u9053Chẳng hạn như\u4f55Mô tảđặc điểm khuôn mặt、\u4f53\u578bĐợi đãkhông thay đổiphần tử，\u786e\u4fddNhân vật\u5728\u4e0d\u540c\u9636\u6bb5\u4ecd\u53ef\u8fa8\u8ba4
+Nhiệm vụ của bạn:
+- Phân tích thông tin kịch bản để nhận diện tiến trình phát triển của nhân vật.
+- Thiết kế hình tượng theo nhiều giai đoạn (nếu có thay đổi rõ ràng theo thời gian/cốt truyện).
+- Giữ các yếu tố nhận diện cốt lõi để nhân vật nhất quán giữa các giai đoạn.
+- Xuất prompt chất lượng cao cho AI tạo ảnh.
 
-Nhiệm vụ của bạn là đi theo Kịch bảthông tin，choNhân vật\u8bbe\u8ba1**\u591a\u9636\u6bb5\u89c6\u89c9\u5f62\u8c61**。
+Thông tin kịch bản:
+- Tiêu đề: ${context.projectTitle}
+- Thể loại: ${context.genre || 'Không rõ'}
+- Bối cảnh thời đại: ${context.era || 'Hiện đại'}
+- Tổng số tập: ${context.totalEpisodes}
 
-【Kịch bảthông tin】
-Tiêu đề phim truyền hình：《${context.projectTitle}》
-Loại：${context.genre || 'Không rõ'}
-thời đại：${context.era || 'hiện đại'}
-tổng số tập：${context.totalEpisodes}đặt
+Tóm tắt:
+${context.outline?.slice(0, 800) || 'Không có'}
 
-【Tóm tắt】
-${context.outline?.slice(0, 800) || 'không có'}
-
-【Nhân vậthông tin t】
+Thông tin nhân vật:
 ${context.characterBio}
 
-【Nhân vậtNgoại hìnhống kê】
-${context.characterAppearances.length > 0 
-  ? context.characterAppearances.map((a: any) => 
-      `Không.${a.episodeIndex}đặt「${a.episodeTitle}」: xuất hiện${a.actions.length}lần`
+Thống kê xuất hiện:
+${context.characterAppearances.length > 0
+  ? context.characterAppearances.map((a: any) =>
+      `Tập ${a.episodeIndex} - "${a.episodeTitle}": xuất hiện ${a.actions.length} lần`
     ).join('\n')
-  : '\u6682không cóxuất hiệdữ liệu'
+  : 'Chưa có dữ liệu xuất hiện'
 }
 
-【Nhiệm vụyêu cầu】
-1. **Phân tíchNhân vậtphát triển\u5f27\u7ebf**：\u6839\u636e\u5267\u60c5\u5224\u65adNhân vật\u662f\u5426Có\u660e\u663ecủa\u9636\u6bb5thay đổi
-   - tuổtôi thay đổi：\u5c0f\u5b69→vị thành niên→người lớn→tuổi già
-   - Danh tínhthay đổi：\u666e\u901a\u4eba→Kinh doanh\u5927\u4ea8、\u5b66\u5f92→vũ lâm\u9ad8tay
-   - Trạng thátôi thay đổi：\u5065\u5eb7→\u53d7\u4f24、\u666e\u901a→trồng trọt\u540e\u5f62\u6001
-   
-2. **\u8bbe\u8ba1\u591a\u9636\u6bb5\u5f62\u8c61**：cho\u6bcfGiai đoạn Tạođộc lậpcủaLời nhắc trực quan
-   - Chẳng hạn như\u679cNhân vật\u6ca1Có\u660e\u663e\u9636\u6bb5thay đổi，\u53ea\u9700\u8bbe\u8ba11một\u9636\u6bb5
-   - nếu cóthay đổi，\u8bbe\u8ba12-4một\u9636\u6bb5
+Yêu cầu:
+1. Phân tích cung phát triển nhân vật:
+   - Thay đổi tuổi tác, địa vị, trạng thái thể chất/tâm lý.
+   - Xác định có cần nhiều giai đoạn hay chỉ 1 giai đoạn.
+2. Thiết kế 1-4 giai đoạn hình tượng:
+   - Mỗi giai đoạn phải có mô tả rõ ràng và prompt riêng.
+3. Giữ tính nhất quán:
+   - Đặc điểm khuôn mặt, vóc dáng, dấu hiệu nhận diện.
+4. Chuẩn prompt:
+   - visualPromptEn: tiếng Anh, 40-60 từ, tối ưu cho AI tạo ảnh.
+   - visualPromptZh: tiếng Trung, mô tả chi tiết tương ứng.
 
-3. **giữyếu tố nhất quán**：\u8bc6\u522bNhân vậtcủakhông thay đổi\u7279\u5f81
-   - đặc điểm khuôn mặt（hình dạng mắt、Đặc điểm khuôn mặt hình chữ Tỷ lệ）
-   - Đặc điểm vật lý（chiều cao、vóc dáng）
-   - dấu ấn độc đáo（vết bớt、vết sẹo、Tính năng mang tính biểu tượng）
-
-4. **Promptyêu cầu**：
-   - Tiếng AnhNhắc：40-60\u8bcd，Phù hợp với hình ảnh AI Tạo
-   - Lời nhắc tiếng Trung：Chi tiếtMô tả，chứaChi tiết
-
-Vui lòng sử dụng JSONĐịnh dạngQuay lại：
+Trả về đúng JSON (không markdown):
 {
-  "characterName": "Nhân vậtên t",
-  "baseDescription": "Nhân vậtCơ bảnMô tả（một\u53e5\u8bdd）",
-  "baseVisualPromptEn": "Cơ bảnTiếng AnhNhắc",
-  "baseVisualPromptZh": "Cơ bảnLời nhắc tiếng Trung",
+  "characterName": "Tên nhân vật",
+  "baseDescription": "Mô tả nền của nhân vật (1 câu)",
+  "baseVisualPromptEn": "Prompt tiếng Anh nền",
+  "baseVisualPromptZh": "Prompt tiếng Trung nền",
   "consistencyElements": {
-    "facialFeatures": "đặc điểm khuôn mặtMô tả（Tiếng Anh）",
-    "bodyType": "\u4f53\u578bMô tả（Tiếng Anh）",
-    "uniqueMarks": "dấu ấn độc đáoMô tả（Tiếng Anh，Chẳng hạn nhưkhông có\u5219cho\u7a7a）"
+    "facialFeatures": "Mô tả đặc điểm khuôn mặt (EN)",
+    "bodyType": "Mô tả vóc dáng (EN)",
+    "uniqueMarks": "Mô tả dấu hiệu nhận diện độc đáo (EN, nếu không có để chuỗi rỗng)"
   },
   "stages": [
     {
       "stageId": "stage_1",
-      "stageName": "Giai đoạn Tên（Chẳng hạn như：vị thành niênthời kỳ）",
+      "stageName": "Tên giai đoạn (ví dụ: Tuổi thiếu niên)",
       "episodeRange": "1-5",
-      "description": "Giai đoạn Nhân vậtTrạng tháiMô tả",
-      "visualPromptEn": "\u8be5\u9636\u6bb5Lời nhắc trực quan bằng tiếng Anh",
-      "visualPromptZh": "\u8be5\u9636\u6bb5Lời nhắc trực quan của Trung Quốc",
-      "ageDescription": "tuổi tácMô tả",
-      "clothingStyle": "quần áoPhong cách",
-      "keyChanges": "với\u4e0amột\u9636\u6bb5củathay đổi（Không.một\u9636\u6bb5cho\u7a7a）"
+      "description": "Mô tả trạng thái nhân vật ở giai đoạn này",
+      "visualPromptEn": "Prompt tiếng Anh cho giai đoạn này",
+      "visualPromptZh": "Prompt tiếng Trung cho giai đoạn này",
+      "ageDescription": "Mô tả tuổi tác",
+      "clothingStyle": "Phong cách trang phục",
+      "keyChanges": "Thay đổi chính so với giai đoạn trước (giai đoạn đầu để chuỗi rỗng)"
     }
   ]
 }`;
 
-  const userPrompt = `\u8bf7choNhân vật「${character.name}」\u8bbe\u8ba1\u591a\u9636\u6bb5\u89c6\u89c9\u5f62\u8c61。`;
+  const userPrompt = `Hãy thiết kế hình tượng nhiều giai đoạn cho nhân vật "${character.name}".`;
   
   // Thống nhất có được cấu hình từ ánh xạ dịch vụ
   const result = await callFeatureAPI('script_analysis', systemPrompt, userPrompt);
@@ -308,7 +299,7 @@ Vui lòng sử dụng JSONĐịnh dạngQuay lại：
     };
   } catch (e) {
     console.error('[CharacterDesign] Failed to parse AI response:', result);
-    throw new Error('phân tích cú phápNhân vật\u8bbe\u8ba1Thất bại');
+    throw new Error('Không thể phân tích kết quả thiết kế nhân vật từ AI');
   }
 }
 

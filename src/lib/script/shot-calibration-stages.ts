@@ -167,7 +167,7 @@ export async function calibrateShotsMultiStage(
       }
     }
     if (failedBatches > 0) {
-      console.warn(`[MultiStage] ${stageName}: ${failedBatches} đợt thứất bại`);
+      console.warn(`[MultiStage] ${stageName}: ${failedBatches} batch thất bại`);
     }
   }
 

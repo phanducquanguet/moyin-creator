@@ -2,11 +2,11 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 /**
- * Phong cádịch vụ hiệu chỉnh lại switch ch
- * 
- * Khi Người dùng đang chỉ đạo/Bảng điều khiển chuyển mạch trực quan S-class Phong cákhi ch，Tách SplitScene hiện có[] nạp lại
- * Quy trình hiệu chuẩn 5 giai đoạn（calibrateShotsMultiStage），Sử dụng Phong c mớiách ghi đè Nhắc và lấy Tham số，
- * Cũng giữ chữ Tạo Hình ảnh/URL video không thay đổi。
+ * Dich vu hieu chinh lai phan canh khi doi phong cach.
+ *
+ * Khi nguoi dung doi style trong Director/Storyboard panel, he thong se chay lai
+ * quy trinh hieu chuan 5 giai doan (calibrateShotsMultiStage) de cap nhat prompt/tham so,
+ * dong thoi giu nguyen anh/video URL da tao truoc do.
  */
 
 import type { SplitScene } from '@/stores/director-store';
@@ -14,26 +14,26 @@ import { useScriptStore } from '@/stores/script-store';
 import { calibrateShotsMultiStage, type ShotInputData, type GlobalContext, type CalibrationOptions } from './shot-calibration-stages';
 
 /**
- * Tách cảnh[] Chuyển đổi sang ShotInputData[] Định dạng
- * （Tái sử dụng logic ánh xạ của calibrateEpisodeShots）
+ * Chuyen SplitScene[] sang ShotInputData[].
+ * Tai su dung logic mapping tu calibrateEpisodeShots.
  */
 function toShotInputData(scenes: SplitScene[]): ShotInputData[] {
   return scenes.map(scene => {
     let sourceText = scene.actionSummary || '';
     if (scene.dialogue) {
-      sourceText += `\đối thoại：「${scene.dialogue}」`;
+      sourceText += `\nĐối thoại: "${scene.dialogue}"`;
     }
     return {
       shotId: scene.id.toString(),
       sourceText,
       actionSummary: scene.actionSummary || '',
       dialogue: scene.dialogue || '',
-      characterNames: [],  // SplitScene không có tên nhân vật，Nhưng có các ký tự
+      characterNames: [],  // SplitScene khong co danh sach ten nhan vat day du
       sceneLocation: scene.sceneLocation || '',
       sceneAtmosphere: '',
       sceneTime: 'day',
       sceneWeather: '',
-      // Các trường này không thể lấy được từ SplitScene，Truyền chuỗi trống（Giai đoạn 3 chỉ mang tính chất tham khảo）
+      // Cac truong duoi day khong lay truc tiep tu SplitScene, nen de rong
       architectureStyle: '',
       colorPalette: '',
       eraDetails: '',
@@ -51,14 +51,14 @@ function toShotInputData(scenes: SplitScene[]): ShotInputData[] {
 function buildGlobalContext(scriptProjectId?: string): GlobalContext {
   const store = useScriptStore.getState();
   
-  // Tìm dự án tập lệnh đang hoạt động
+  // Tim du an script dang active
   const projectId = scriptProjectId || store.activeProjectId;
   const project = projectId ? store.projects[projectId] : null;
   
   if (!project) {
-    // Hãy ghi nhớ mọi thứ：Quay lạtôi đã giảm thiểu bối cảnh
+    // Khong tim thay du an: tra ve context toi thieu
     return {
-      title: 'Không tênDự án',
+      title: 'Không tên dự án',
       outline: '',
       characterBios: '',
       episodeTitle: '',
@@ -71,7 +71,7 @@ function buildGlobalContext(scriptProjectId?: string): GlobalContext {
   const episode = scriptData?.episodes?.[0];
 
   return {
-    title: background?.title || scriptData?.title || 'Không tênKịch bản',
+    title: background?.title || scriptData?.title || 'Không tên kịch bản',
     genre: background?.genre || '',
     era: background?.era || '',
     outline: background?.outline || '',
@@ -89,8 +89,8 @@ function buildGlobalContext(scriptProjectId?: string): GlobalContext {
 }
 
 /**
- * Ghi kết quả hiệu chuẩn trở lại SplitScene（Căn chỉÁnh xạ của nh full-script-service.ts:1265-1305）
- * Đã đặt trướcạo Hình ảnh/URL video không thay đổi
+ * Ghi ket qua hieu chuan tro lai SplitScene.
+ * Giu nguyen image/video URL da co.
  */
 function applyCalibrationToScene(
   scene: SplitScene,
@@ -98,7 +98,7 @@ function applyCalibrationToScene(
 ): SplitScene {
   return {
     ...scene,
-    // bộ xương tường thuật
+    // Truong tuong thuat
     visualDescription: calibration.visualDescription || scene.visualDescription,
     shotSize: calibration.shotSize || scene.shotSize,
     cameraMovement: calibration.cameraMovement || scene.cameraMovement,
@@ -113,14 +113,14 @@ function applyCalibrationToScene(
     endFramePrompt: calibration.endFramePrompt || scene.endFramePrompt,
     endFramePromptZh: calibration.endFramePromptZh || scene.endFramePromptZh,
     needsEndFrame: calibration.needsEndFrame ?? scene.needsEndFrame,
-    // thiết kế tường thuật
+    // Thiet ke tuong thuat
     narrativeFunction: calibration.narrativeFunction || scene.narrativeFunction,
     shotPurpose: calibration.shotPurpose || scene.shotPurpose,
     visualFocus: calibration.visualFocus || scene.visualFocus,
     cameraPosition: calibration.cameraPosition || scene.cameraPosition,
     characterBlocking: calibration.characterBlocking || scene.characterBlocking,
     rhythm: calibration.rhythm || scene.rhythm,
-    // Kiểm soát chụp
+    // Kiem soat quay/chup
     lightingStyle: calibration.lightingStyle || scene.lightingStyle,
     lightingDirection: calibration.lightingDirection || scene.lightingDirection,
     colorTemperature: calibration.colorTemperature || scene.colorTemperature,
@@ -147,14 +147,14 @@ export interface RecalibrationResult {
 }
 
 /**
- * Sử dụng Phong c mớiách Hiệu chỉnh lạiTất cảPhân cảnh
- * 
- * @param newStyleId hình ảnh mới Phong cách ID
- * @thông số SplitScenes hiện tại Phân cảnh danh sách
- * @param scriptProjectId dự án lưu trữ tập lệnh tùy chọnId（Mặc định sử dụng active Dự án）
- * @param onProgress Tiến độgọi lại
- * @trả về SplitScene đã hiệu chỉnh[]（Người gọi có trách nhiệm viết thư cho cửa hàng）
- * @ném hiệu chuẩn Thất bạNgoại lệ được ném khi tôi（Người gọi có trách nhiệm thu thập và giữ lại Tr gốcạng thátôi vẫn không thay đổi）
+ * Hieu chinh lai tat ca phan canh bang style moi.
+ *
+ * @param newStyleId ID style moi
+ * @param splitScenes Danh sach phan canh hien tai
+ * @param scriptProjectId ID du an script (mac dinh lay active project)
+ * @param onProgress Callback tien do
+ * @returns Danh sach SplitScene da hieu chinh
+ * @throws Nem loi khi hieu chinh that bai
  */
 export async function recalibrateSplitScenes(
   newStyleId: string,
@@ -180,7 +180,7 @@ export async function recalibrateSplitScenes(
     styleId: newStyleId,
   };
 
-  onProgress?.(0, totalScenes, 'Sử dụng Phong c mớiách hiệu chuẩn Phân cảnh...');
+  onProgress?.(0, totalScenes, 'Dang hieu chinh phan canh theo phong cach moi...');
 
   const calibrations = await calibrateShotsMultiStage(
     shotInputs,
@@ -191,7 +191,7 @@ export async function recalibrateSplitScenes(
     },
   );
 
-  // 4. Ghi kết qu��� hiệu chỉnh lại vào SplitScene
+  // 4. Ghi ket qua hieu chinh lai vao SplitScene
   let calibratedCount = 0;
   const updatedScenes = splitScenes.map(scene => {
     const calibration = calibrations[scene.id.toString()];
@@ -202,7 +202,7 @@ export async function recalibrateSplitScenes(
     return scene;
   });
 
-  onProgress?.(calibratedCount, totalScenes, `đã hiệu chuẩn ${calibratedCount}/${totalScenes} Phân cảnh`);
+  onProgress?.(calibratedCount, totalScenes, `Da hieu chinh ${calibratedCount}/${totalScenes} phan canh`);
 
   return {
     scenes: updatedScenes,
