@@ -326,7 +326,7 @@ export function ScriptView() {
       if (result.success) {
         setStructureCompletionStatus('completed');
         if (result.sceneCount > 0) {
-          toast.success(`\u7ed3\u6784\u8865\u5168Hoàn thành：phân tích ra ${result.sceneCount} Cảnh`);
+          toast.success(`Hoàn tất bổ toàn cấu trúc: phân tích được ${result.sceneCount} cảnh`);
         }
       } else {
         setStructureCompletionStatus('error');
@@ -432,15 +432,15 @@ export function ScriptView() {
     // sử dụng feature router \u83b7\u53d6 API Cấu hình
     const featureConfig = getFeatureConfig('script_analysis');
     
-    console.log('[handleGenerateEpisodeShots] featureConfig:', featureConfig ? 'Đã rồiCấu hình' : 'Chưa được định cấu hình');
+    console.log('[handleGenerateEpisodeShots] featureConfig:', featureConfig ? 'Đã cấu hình' : 'Chưa được cấu hình');
     console.log('[handleGenerateEpisodeShots] allApiKeys:', featureConfig?.allApiKeys?.length || 0);
     
     if (!featureConfig) {
-      toast.warning('Chưa được định cấu hình\u667a\u8c31 API，AI Góc nhìnPhân tích\u5c06bỏ qua');
+      toast.warning('Chưa cấu hình API, AI phân tích góc nhìn sẽ bị bỏ qua');
     }
     
     try {
-      toast.info(`Làm việc trên ${episodeIndex} Đặt TạoPhân cảnh...`);
+      toast.info(`Đang tạo phân cảnh cho tập ${episodeIndex}...`);
       setViewpointAnalysisStatus('analyzing');
       
       const apiKey = featureConfig?.allApiKeys?.join(',') || '';
@@ -470,15 +470,15 @@ export function ScriptView() {
         setViewpointAnalysisStatus('completed');
       } else {
         setViewpointAnalysisStatus('error');
-        toast.error(`AI Góc nhìnPhân tích\u672a\u6267được rồi：${result.viewpointSkippedReason || 'Không rõlý do'}`);
+        toast.error(`AI phân tích góc nhìn chưa chạy: ${result.viewpointSkippedReason || 'Không rõ lý do'}`);
       }
       
-      toast.success(`Không. ${episodeIndex} SetPhân cảnhTạoHoàn thành！tổng cộng ${result.shots.length} Phân cảnh`);
+      toast.success(`Tập ${episodeIndex}: tạo phân cảnh hoàn tất, tổng cộng ${result.shots.length} phân cảnh`);
       return result;
     } catch (error) {
       const err = error as Error;
       console.error("[ScriptView] Episode shot generation failed:", err);
-      toast.error(`Phân cảnhTạoThất bại: ${err.message}`);
+      toast.error(`Tạo phân cảnh thất bại: ${err.message}`);
       setViewpointAnalysisStatus('error');
       return { shots: [], viewpointAnalyzed: false, viewpointSkippedReason: err.message };
     }
@@ -487,7 +487,7 @@ export function ScriptView() {
   // \u5b8c\u6574Kịch bảnNhập
   const handleImportFullScript = useCallback(async (text: string) => {
     if (!text.trim()) {
-      toast.error("Vui lòng nhậpKịch bảnNội dung");
+      toast.error("Vui lòng nhập nội dung kịch bản");
       return;
     }
 
@@ -502,20 +502,20 @@ export function ScriptView() {
       const result = await importFullScript(text, projectId, { styleId, promptLanguage });
       
       if (!result.success) {
-        throw new Error(result.error || "NhậpThất bại");
+        throw new Error(result.error || "Nhập thất bại");
       }
 
       setImportStatus('ready');
       const rawCharacterCount = result.scriptData?.characters.length || 0;
       toast.success(
-        `NhậpThành công: ${result.episodes.length} đặt, ${rawCharacterCount} Nhân vật(\u5f85\u6821\u51c6), ${result.scriptData?.scenes.length || 0} Cảnh`
+        `Nhập thành công: ${result.episodes.length} tập, ${rawCharacterCount} nhân vật (chờ hiệu chuẩn), ${result.scriptData?.scenes.length || 0} cảnh`
       );
       
       // 2. \u6821\u51c6（thiếuTiêu đềcủađặt）
       const missingTitles = getMissingTitleEpisodes(projectId);
       if (missingTitles.length > 0 && hasAI) {
         setMissingTitleCount(missingTitles.length);
-        toast.info(`\u6b63\u5728cho ${missingTitles.length} Đặt Tự động TạoTiêu đề...`);
+        toast.info(`Đang tự động tạo tiêu đề cho ${missingTitles.length} tập...`);
         setCalibrationStatus('calibrating');
         
         try {
@@ -533,7 +533,7 @@ export function ScriptView() {
           if (calibResult.success) {
             setCalibrationStatus('completed');
             setMissingTitleCount(0);
-            toast.success(`Đã rồicho ${calibResult.calibratedCount} Đặt TạoTiêu đề`);
+            toast.success(`Đã tạo tiêu đề cho ${calibResult.calibratedCount} tập`);
           }
         } catch (e) {
           console.error('[ScriptView] Auto calibration failed:', e);
@@ -543,7 +543,7 @@ export function ScriptView() {
       
       // 3. Tạo（Tóm tắt tập phim）
       if (hasAI && result.episodes.length > 0) {
-        toast.info(`\u6b63\u5728cho ${result.episodes.length} Đặt TạoNội dung...`);
+        toast.info(`Đang tạo tóm tắt cho ${result.episodes.length} tập...`);
         setSynopsisStatus('generating');
         
         try {
@@ -561,7 +561,7 @@ export function ScriptView() {
           if (synopsisResult.success) {
             setSynopsisStatus('completed');
             setMissingSynopsisCount(0);
-            toast.success(`Đã rồicho ${synopsisResult.generatedCount} Đặt TạoPhác thảo`);
+            toast.success(`Đã tạo tóm tắt cho ${synopsisResult.generatedCount} tập`);
           }
         } catch (e) {
           console.error('[ScriptView] Auto synopsis generation failed:', e);
@@ -572,7 +572,7 @@ export function ScriptView() {
       // 4. Tạo（Tập 1Phân cảnh）——\u6b64\u65f6\u5143\u6570\u636evớiphác thảoĐã rồi\u5c31\u7eea
       let viewpointResult: { viewpointAnalyzed: boolean; viewpointSkippedReason?: string } | null = null;
       if (result.episodes.length > 0) {
-        toast.info("Là Tự động TạoTập 1Phân cảnh...");
+        toast.info("Đang tự động tạo phân cảnh cho tập 1...");
         await new Promise(resolve => setTimeout(resolve, 500));
         viewpointResult = await handleGenerateEpisodeShots(1);
       }
@@ -581,10 +581,10 @@ export function ScriptView() {
       if (hasAI && rawCharacterCount > 0 && result.scriptData && result.projectBackground) {
         // lực lượng\u5de5\u4f5c\u6d41：AI Góc nhìnPhân tích\u672a\u6267được rồi，\u4e0dnhậpNhân vật\u6821\u51c6
         if (!viewpointResult?.viewpointAnalyzed) {
-          toast.error(`AI Góc nhìnPhân tích\u672a\u6267được rồi，Đã rồi\u963b\u6b62Nhân vật\u6821\u51c6：${viewpointResult?.viewpointSkippedReason || 'Không rõlý do'}`);
+          toast.error(`AI phân tích góc nhìn chưa chạy, tạm dừng hiệu chuẩn nhân vật: ${viewpointResult?.viewpointSkippedReason || 'Không rõ lý do'}`);
           return;
         }
-        toast.info(`\u6b63\u5728 AI \u6821\u51c6 ${rawCharacterCount} Nhân vật...`);
+        toast.info(`Đang AI hiệu chuẩn ${rawCharacterCount} nhân vật...`);
         setCharacterCalibrationStatus('calibrating');
         
         try {
@@ -620,7 +620,7 @@ export function ScriptView() {
           }
           if (resolvedCharacters.source !== 'calibrated') {
             console.warn(`[ScriptView] AI character calibration returned empty result, recovered characters from ${resolvedCharacters.source}.`);
-            toast.warning('AI Nhân vật\u6821\u51c6Quay lại\u7a7akết quả，Đã rồi\u4fdd\u7559\u73b0CóNhân vật，\u907f\u514dKịch bảnChúa ơi\u6570\u636e\u88ab\u6e05\u7a7a');
+            toast.warning('AI hiệu chuẩn nhân vật trả về rỗng, đã giữ lại danh sách nhân vật hiện tại để tránh mất dữ liệu');
           }
           
           setCharacterCalibrationStatus('completed');
@@ -631,7 +631,7 @@ export function ScriptView() {
           });
           
           toast.success(
-            `Nhân vật\u6821\u51c6Hoàn thành: ${newCharacters.length} mộtCó\u6548Nhân vật, Lọc ${calibResult.filteredWords.length} một\u975eNhân vật\u8bcd, \u5408\u5e76 ${calibResult.mergeRecords.length} \u7ec4\u91cd\u590d`
+            `Hiệu chuẩn nhân vật hoàn tất: ${newCharacters.length} nhân vật hợp lệ, lọc ${calibResult.filteredWords.length} từ không phải nhân vật, gộp ${calibResult.mergeRecords.length} nhóm trùng lặp`
           );
           
           console.log('[ScriptView] Nhân vậtKết quả hiệu chuẩn:', calibResult.analysisNotes);
@@ -644,7 +644,7 @@ export function ScriptView() {
         } catch (e) {
           console.error('[ScriptView] Nhân vậtHiệu chỉnh Thất bại:', e);
           setCharacterCalibrationStatus('error');
-          toast.error(`Nhân vậtHiệu chỉnh Thất bại，sử dụngNh gốcân vậdanh sách t`);
+          toast.error("Hiệu chuẩn nhân vật thất bại, giữ nguyên danh sách nhân vật gốc");
         }
       }
       
@@ -653,7 +653,7 @@ export function ScriptView() {
       console.error("[ScriptView] Import failed:", err);
       setImportStatus('error');
       setImportError(err.message);
-      toast.error(`NhậpThất bại: ${err.message}`);
+      toast.error(`Nhập thất bại: ${err.message}`);
     }
   }, [projectId, handleGenerateEpisodeShots, promptLanguage]);
 
@@ -662,12 +662,12 @@ export function ScriptView() {
     const featureConfig = getFeatureConfig('script_analysis');
     
     if (episodeRawScripts.length === 0) {
-      toast.error("Không có gì với Tạtập hợp của o");
+      toast.error("Không có tập nào để tạo phân cảnh");
       return;
     }
     
     try {
-      toast.info(`\u6b63\u5728choTất cả ${episodeRawScripts.length} Đặt TạoPhân cảnh...（\u53ef\u80fd\u9700\u8981\u8f83\u957fThời gian）`);
+      toast.info(`Đang tạo phân cảnh cho toàn bộ ${episodeRawScripts.length} tập... (có thể mất khá lâu)`);
       
       const options = {
         apiKey: featureConfig?.allApiKeys.join(',') || '',
@@ -685,11 +685,11 @@ export function ScriptView() {
         }
       );
       
-      toast.success(`Tất cả ${episodeRawScripts.length} SetPhân cảnhTạoHoàn thành！`);
+      toast.success(`Đã tạo phân cảnh xong cho toàn bộ ${episodeRawScripts.length} tập`);
     } catch (error) {
       const err = error as Error;
       console.error("[ScriptView] All episodes shot generation failed:", err);
-      toast.error(`Phân cảnhTạoThất bại: ${err.message}`);
+      toast.error(`Tạo phân cảnh thất bại: ${err.message}`);
     }
   }, [projectId, styleId, targetDuration, promptLanguage, episodeRawScripts.length]);
 
@@ -714,12 +714,12 @@ export function ScriptView() {
     
     const missing = getMissingTitleEpisodes(projectId);
     if (missing.length === 0) {
-      toast.info("Tất cảđặt\u6570\u90fdĐã rồiCóTiêu đề");
+      toast.info("Tất cả tập đã có tiêu đề");
       return;
     }
     
     setCalibrationStatus('calibrating');
-    toast.info(`\u6b63\u5728cho ${missing.length} Đặt TạoTiêu đề...`);
+    toast.info(`Đang tạo tiêu đề cho ${missing.length} tập...`);
     
     try {
       const result = await calibrateEpisodeTitles(
@@ -738,7 +738,7 @@ export function ScriptView() {
       if (result.success) {
         setCalibrationStatus('completed');
         setMissingTitleCount(result.totalMissing - result.calibratedCount);
-        toast.success(`\u6821\u51c6Hoàn thành！Đã rồicho ${result.calibratedCount} Đặt TạoTiêu đề`);
+        toast.success(`Hiệu chuẩn hoàn tất, đã tạo tiêu đề cho ${result.calibratedCount} tập`);
       } else {
         throw new Error(result.error || 'Hiệu chỉnh Thất bại');
       }
@@ -760,7 +760,7 @@ export function ScriptView() {
     
     addSecondPass('shots');
     setViewpointAnalysisStatus('analyzing');
-    toast.info(`\u6b63\u5728\u6821\u51c6Không. ${episodeIndex} Bộ Phân cảnh...`);
+      toast.info(`Đang hiệu chuẩn phân cảnh của tập ${episodeIndex}...`);
     
     try {
       const result = await calibrateEpisodeShots(
@@ -783,7 +783,7 @@ export function ScriptView() {
       if (result.success) {
         setViewpointAnalysisStatus('completed');
         removeSecondPass('shots');
-        toast.success(`Phân cảnh hiệu chuẩn đã hoàn tất！Đã rồi\u4f18\u5316 ${result.calibratedCount}/${result.totalShots} Phân cảnh`);
+        toast.success(`Hiệu chuẩn phân cảnh hoàn tất, đã tối ưu ${result.calibratedCount}/${result.totalShots} phân cảnh`);
         
         // P2b: Phân cảnh\u6821\u51c6viết lại SeriesMeta
         try {
@@ -833,7 +833,7 @@ export function ScriptView() {
 
     addSecondPass('shots');
     setViewpointAnalysisStatus('analyzing');
-    toast.info(`\u6b63\u5728\u6821\u51c6「${sceneName}」củaPhân cảnh...`);
+      toast.info(`Đang hiệu chuẩn phân cảnh của cảnh "${sceneName}"...`);
 
     try {
       const result = await calibrateEpisodeShots(
@@ -857,7 +857,7 @@ export function ScriptView() {
       if (result.success) {
         setViewpointAnalysisStatus('completed');
         removeSecondPass('shots');
-        toast.success(`「${sceneName}」Phân cảnh hiệu chuẩn đã hoàn tất！Đã rồi\u4f18\u5316 ${result.calibratedCount}/${result.totalShots} Phân cảnh`);
+        toast.success(`Hiệu chuẩn phân cảnh của "${sceneName}" hoàn tất, đã tối ưu ${result.calibratedCount}/${result.totalShots} phân cảnh`);
       } else {
         throw new Error(result.error || 'Phân cảnh hiệu chuẩn Thất bại');
       }
@@ -931,7 +931,7 @@ export function ScriptView() {
     }
     
     setSynopsisStatus('generating');
-    toast.info(`\u6b63\u5728cho ${episodeRawScripts.length} Đặt TạoNội dung...`);
+    toast.info(`Đang tạo tóm tắt cho ${episodeRawScripts.length} tập...`);
     
     try {
       const result = await generateEpisodeSynopses(
@@ -950,15 +950,15 @@ export function ScriptView() {
       if (result.success) {
         setSynopsisStatus('completed');
         setMissingSynopsisCount(0);
-        toast.success(`phác thảo TạoHoàn thành！Đã rồicho ${result.generatedCount} Đặt TạoPhác thảo`);
+        toast.success(`Tạo tóm tắt hoàn tất, đã tạo cho ${result.generatedCount} tập`);
       } else {
-        throw new Error(result.error || 'phác thảo TạoThất bại');
+        throw new Error(result.error || 'Tạo tóm tắt thất bại');
       }
     } catch (error) {
       const err = error as Error;
       console.error("[ScriptView] Synopsis generation failed:", err);
       setSynopsisStatus('error');
-      toast.error(`phác thảo TạoThất bại: ${err.message}`);
+      toast.error(`Tạo tóm tắt thất bại: ${err.message}`);
     }
   }, [projectId, episodeRawScripts.length]);
 
@@ -1063,7 +1063,7 @@ export function ScriptView() {
       console.log('[handleCalibrateCharacters] \u591a\u9636\u6bb5Phát hiệnkết quả:', multiStageHint);
       
       if (multiStageHint.suggestMultiStage) {
-        toast.info('Phát hiệnĐếnNh nhiều giai đoạnân vật\u7ebf\u7d22，\u6b63\u5728Phân tíchnhân vật chính\u9636\u6bb5thay đổi...');
+        toast.info('Đã phát hiện dấu hiệu nhân vật nhiều giai đoạn, đang phân tích thay đổi theo giai đoạn...');
         setStageAnalysisStatus('analyzing');
         
         try {
@@ -1197,7 +1197,7 @@ export function ScriptView() {
         finalCount: newCharacters.length,
       });
       
-      toast.info(`Nhân vật\u6821\u51c6Hoàn thành，tổng cộng ${newCharacters.length} Nhân vật，\u8bf7Xác nhậnkết quả`);
+      toast.info(`Hiệu chuẩn nhân vật hoàn tất, tổng cộng ${newCharacters.length} nhân vật. Vui lòng xác nhận kết quả`);
       
       if (calibResult.filteredWords.length > 0) {
         console.log('[ScriptView] Lọccủa\u975eNhân vật\u8bcd:', calibResult.filteredWords);
@@ -1294,7 +1294,7 @@ export function ScriptView() {
     
     const current = useScriptStore.getState().projects[projectId]?.lastFilteredCharacters || [];
     setLastFilteredCharacters(projectId, current.filter(fc => fc.name !== characterName));
-    toast.success(`Đã rồi\u6062\u590dNhân vật: ${characterName}`);
+    toast.success(`Đã khôi phục nhân vật: ${characterName}`);
   }, [projectId, setScriptData, setLastFilteredCharacters]);
 
   // NhậpKịch bản\u540ePhát hiện\u662f\u5426\u9700\u8981Nh nhiều giai đoạnân vật（\u4ec5để trưng bàyGợi ý）
@@ -1323,7 +1323,7 @@ export function ScriptView() {
   // AIPhân tíchNgười dùngĐầu vào，TạoTiêu chuẩnĐịnh dạngKịch bản，\u7136\u540eđiNhậpquá trình
   const handleGenerateFromIdea = useCallback(async (idea: string) => {
     if (!idea.trim()) {
-      toast.error("Vui lòng nhậpcâu chuyện\u521b\u610f");
+      toast.error("Vui lòng nhập ý tưởng câu chuyện");
       return;
     }
 
@@ -1335,7 +1335,7 @@ export function ScriptView() {
     }
 
     setParseStatus(projectId, "parsing");
-    toast.info("\u6b63\u5728\u6839\u636e\u521b\u610fTạoKịch bản...");
+    toast.info("Đang tạo kịch bản từ ý tưởng...");
 
     try {
       const allKeysString = featureConfig.allApiKeys.join(',');
@@ -1548,7 +1548,7 @@ export function ScriptView() {
         const err = error as Error;
         console.error("[ScriptView] Shot generation failed:", err);
         setShotStatus(projectId, "error", err.message);
-        toast.error(`Phân cảnhTạoThất bại: ${err.message}`);
+        toast.error(`Tạo phân cảnh thất bại: ${err.message}`);
       }
     },
     [
@@ -1570,7 +1570,7 @@ export function ScriptView() {
       const character = scriptData?.characters.find((c) => c.id === characterId);
       if (!character) {
         setActiveTab("characters");
-        toast.info("Đã rồi\u8df3\u8f6cĐếnThư viện nhân vật");
+        toast.info("Đã chuyển đến Thư viện nhân vật");
         return;
       }
 
@@ -1579,7 +1579,7 @@ export function ScriptView() {
         // Đã rồi\u5173\u8054，\u76f4\u63a5\u8df3\u8f6c\u5e76\u9009trong
         selectLibraryCharacter(character.characterLibraryId);
         setActiveTab("characters");
-        toast.info(`Đã rồi\u8df3\u8f6cĐếnThư viện nhân vật，\u9009trong「${character.name}」`);
+        toast.info(`Đã chuyển đến Thư viện nhân vật, đang chọn "${character.name}"`);
         return;
       }
 
@@ -1620,7 +1620,7 @@ export function ScriptView() {
         sourceEpisodeId: activeEpisodeId,
       });
 
-      toast.success(`Đã rồi\u8df3\u8f6cĐếnThư viện nhân vật，Nhân vật「${character.name}」thông tinĐã rồi\u586b\u5145ĐếnTạo\u63a7\u5236\u53f0`);
+      toast.success(`Đã chuyển đến Thư viện nhân vật, thông tin nhân vật "${character.name}" đã được điền sẵn`);
     },
     [scriptData, styleId, setActiveTab, selectLibraryCharacter, goToCharacterWithData, activeEpisodeIndex, activeEpisodeId]
   );
@@ -1637,7 +1637,7 @@ export function ScriptView() {
       const scene = scriptData?.scenes.find((s) => s.id === sceneId);
       if (!scene) {
         setActiveTab("scenes");
-        toast.info("Đã rồi\u8df3\u8f6cĐếnThư viện cảnh");
+        toast.info("Đã chuyển đến Thư viện cảnh");
         return;
       }
 
@@ -1649,7 +1649,7 @@ export function ScriptView() {
         const invalidViewpoints = scene.viewpoints!.filter(vp => !vp.name || !vp.id);
         if (invalidViewpoints.length > 0) {
           console.warn('[handleGoToSceneLibrary] khám phá\u4e0d\u5b8c\u6574của viewpoints:', invalidViewpoints);
-          toast.warning('Góc nhìdữ liệu\u4e0d\u5b8c\u6574，\u8bf7\u91cd\u65b0\u6267được rồi"AI Phân tíchCảnhGóc nhìn"');
+          toast.warning('Dữ liệu góc nhìn chưa đầy đủ, vui lòng chạy lại "AI phân tích góc nhìn cảnh"');
           return;
         }
 
@@ -1696,8 +1696,8 @@ export function ScriptView() {
 
         const viewpointCount = scene.viewpoints!.length;
         toast.success(
-          `Đã rồi\u8df3\u8f6cĐếnThư viện cảnh，Cảnh「${scene.name || scene.location}」Đã rồi\u586b\u5145\n` +
-          `✔ ${viewpointCount} một AI Phân tíchGóc nhìnĐã rồi\u52a0\u8f7d`
+          `Đã chuyển đến Thư viện cảnh, cảnh "${scene.name || scene.location}" đã được điền sẵn\n` +
+          `✔ Đã nạp ${viewpointCount} góc nhìn do AI phân tích`
         );
       } else {
         // 【\u7b80\u5355Đường dẫn】không cóGóc nhìnPhân tích（chế độ sáng tạohoặc\u672a\u6821\u51c6），\u4f20\u9012Cơ bảnCảnh thông tin
@@ -1727,7 +1727,7 @@ export function ScriptView() {
         });
 
         toast.success(
-          `Đã rồi\u8df3\u8f6cĐếnThư viện cảnh，Cảnh「${scene.name || scene.location}」Cơ bảthông tinĐã rồi\u586b\u5145`
+          `Đã chuyển đến Thư viện cảnh, thông tin cơ bản của cảnh "${scene.name || scene.location}" đã được điền sẵn`
         );
       }
     },
@@ -1741,7 +1741,7 @@ export function ScriptView() {
       const shot = shots.find((s) => s.id === shotId);
       if (!shot) {
         setActiveTab("director");
-        toast.info("Đã rồi\u8df3\u8f6cĐếnAIgiám đốc");
+        toast.info("Đã chuyển đến AI đạo diễn");
         return;
       }
 
@@ -1751,15 +1751,15 @@ export function ScriptView() {
       // \u7ec4\u5408câu chuyệnprompt: Cảnh + Hành động + đối thoại
       const promptParts: string[] = [];
       if (scene) {
-        promptParts.push(`Cảnh：${scene.location || scene.name}`);
-        if (scene.time) promptParts.push(`Thời gian：${scene.time}`);
-        if (scene.atmosphere) promptParts.push(`bầu không khí：${scene.atmosphere}`);
+        promptParts.push(`Cảnh: ${scene.location || scene.name}`);
+        if (scene.time) promptParts.push(`Thời gian: ${scene.time}`);
+        if (scene.atmosphere) promptParts.push(`Bầu không khí: ${scene.atmosphere}`);
       }
       if (shot.actionSummary) {
-        promptParts.push(`\nHành động：${shot.actionSummary}`);
+        promptParts.push(`\nHành động: ${shot.actionSummary}`);
       }
       if (shot.dialogue) {
-        promptParts.push(`đối thoại：「${shot.dialogue}」`);
+        promptParts.push(`Đối thoại: "${shot.dialogue}"`);
       }
 
       const storyPrompt = promptParts.join("\n");
@@ -1779,7 +1779,7 @@ export function ScriptView() {
         sourceEpisodeId: activeEpisodeId,
       });
 
-      toast.success("Đã rồi\u8df3\u8f6cĐếnAIgiám đốc，Phân cảnh nội dungĐã rồi\u586b\u5145");
+      toast.success("Đã chuyển đến AI đạo diễn, nội dung phân cảnh đã được điền sẵn");
     },
     [shots, scriptData, styleId, goToDirectorWithData, setActiveTab, activeEpisodeIndex, activeEpisodeId]
   );
@@ -1791,7 +1791,7 @@ export function ScriptView() {
       const scene = scriptData?.scenes.find((s) => s.id === sceneId);
       if (!scene) {
         setActiveTab("director");
-        toast.info("Đã rồi\u8df3\u8f6cĐếnAIgiám đốc");
+        toast.info("Đã chuyển đến AI đạo diễn");
         return;
       }
 
@@ -1801,17 +1801,17 @@ export function ScriptView() {
 
       // \u7ec4\u5408câu chuyệnprompt: Cảnh thông tin + Tất cảPhân cảnh nội dung
       const promptParts: string[] = [];
-      promptParts.push(`Cảnh：${scene.location || scene.name}`);
-      if (scene.time) promptParts.push(`Thời gian：${scene.time}`);
-      if (scene.atmosphere) promptParts.push(`bầu không khí：${scene.atmosphere}`);
+      promptParts.push(`Cảnh: ${scene.location || scene.name}`);
+      if (scene.time) promptParts.push(`Thời gian: ${scene.time}`);
+      if (scene.atmosphere) promptParts.push(`Bầu không khí: ${scene.atmosphere}`);
 
       if (sceneShots.length > 0) {
-        promptParts.push(`\n--- Phân cảnh danh sách (${sceneShots.length}một) ---`);
+        promptParts.push(`\n--- Danh sách phân cảnh (${sceneShots.length}) ---`);
         sceneShots.forEach((shot, idx) => {
           const shotDesc = [
-            `\n[Phân cảnh${idx + 1}]`,
-            shot.actionSummary ? `Hành động：${shot.actionSummary}` : null,
-            shot.dialogue ? `đối thoại：「${shot.dialogue}」` : null,
+            `\n[Phân cảnh ${idx + 1}]`,
+            shot.actionSummary ? `Hành động: ${shot.actionSummary}` : null,
+            shot.dialogue ? `Đối thoại: "${shot.dialogue}"` : null,
           ].filter(Boolean).join(" ");
           promptParts.push(shotDesc);
         });
@@ -1839,7 +1839,7 @@ export function ScriptView() {
         sourceEpisodeId: activeEpisodeId,
       });
 
-      toast.success(`Đã rồi\u8df3\u8f6cĐếnAIgiám đốc，Cảnh「${scene.name || scene.location}」Đã rồi\u586b\u5145 (${shotCount}Phân cảnh)`);
+      toast.success(`Đã chuyển đến AI đạo diễn, cảnh "${scene.name || scene.location}" đã được điền sẵn (${shotCount} phân cảnh)`);
     },
     [shots, scriptData, styleId, goToDirectorWithData, setActiveTab, activeEpisodeIndex, activeEpisodeId]
   );
@@ -2110,7 +2110,7 @@ export function ScriptView() {
       // \u663e\u793aHợp nhất các đề xuất（Không tự động\u6267được rồi）
       if (result.mergeRecords.length > 0) {
         console.log('[handleCalibrateScenes] Hợp nhất các đề xuất:', result.mergeRecords);
-        toast.info(`khám phá ${result.mergeRecords.length} mộtHợp nhất các đề xuất，\u8bf7\u5728\u63a7\u5236\u53f0\u67e5\u770b`);
+        toast.info(`Phát hiện ${result.mergeRecords.length} đề xuất hợp nhất, vui lòng xem trong bảng điều khiển`);
       }
     } catch (error) {
       const err = error as Error;
@@ -2297,7 +2297,7 @@ export function ScriptView() {
           error: result.error,
         });
         
-        toast.success(`Đã rồichọn ${result.selectedShots.length} Phân cảnhsử dụng\u4e8exe kéo，\u53ef\u5728 AI giám đốc\u9762\u677fChỉnh sửa`);
+        toast.success(`Đã chọn ${result.selectedShots.length} phân cảnh cho trailer, bạn có thể chỉnh sửa ở panel AI đạo diễn`);
         if (result.error) {
           toast.warning(result.error);
         }
@@ -2307,9 +2307,9 @@ export function ScriptView() {
           shotIds: [],
           status: 'error',
           generatedAt: undefined,
-          error: result.error || 'chọnThất bại',
+          error: result.error || 'Chọn thất bại',
         });
-        toast.error(result.error || 'xe kéoTạoThất bại');
+        toast.error(result.error || 'Tạo trailer thất bại');
       }
     } catch (error) {
       const err = error as Error;
@@ -2321,14 +2321,14 @@ export function ScriptView() {
         generatedAt: undefined,
         error: err.message,
       });
-      toast.error(`xe kéoTạoThất bại: ${err.message}`);
+      toast.error(`Tạo trailer thất bại: ${err.message}`);
     }
   }, [shots, scriptProject?.projectBackground, setTrailerConfig, addScenesFromScript, directorProject]);
   
   // \u6e05\u9664xe kéo
   const handleClearTrailer = useCallback(() => {
     clearTrailer();
-    toast.success('xe kéoĐã rồi\u6e05\u9664');
+    toast.success('Đã xóa trailer');
   }, [clearTrailer]);
   
   // \u83b7\u53d6xe kéo API Cấu hình

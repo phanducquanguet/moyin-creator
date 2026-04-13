@@ -67,8 +67,8 @@ import type { PendingViewpointData, ContactSheetPromptSet } from "@/stores/media
 // Trạng thái\u5fbdchương
 function StatusBadge({ status }: { status?: CompletionStatus }) {
   const config = {
-    pending: { label: "\u672aBắt đầu", className: "bg-muted text-muted-foreground" },
-    in_progress: { label: "\u8fdbĐang di chuyển", className: "bg-yellow-500/10 text-yellow-600" },
+    pending: { label: "Chưa bắt đầu", className: "bg-muted text-muted-foreground" },
+    in_progress: { label: "Đang thực hiện", className: "bg-yellow-500/10 text-yellow-600" },
     completed: { label: "Đã hoàn thành", className: "bg-green-500/10 text-green-600" },
   };
   const { label, className } = config[status || "pending"];
@@ -157,25 +157,25 @@ export function PropertyPanel({
     if (!scene) return;
     
     const lines: string[] = [];
-    lines.push(`# Cảnhcài đặt：${scene.name || scene.location}`);
+    lines.push(`# Thiết lập cảnh: ${scene.name || scene.location}`);
     lines.push('');
     
     // Cơ bảthông tin
-    lines.push(`## Cơ bảthông tin`);
-    lines.push(`vị trí：${scene.location}`);
-    if (scene.time) lines.push(`Thời gian：${scene.time}`);
-    if (scene.atmosphere) lines.push(`bầu không khí：${scene.atmosphere}`);
+    lines.push(`## Thông tin cơ bản`);
+    lines.push(`Vị trí: ${scene.location}`);
+    if (scene.time) lines.push(`Thời gian: ${scene.time}`);
+    if (scene.atmosphere) lines.push(`Bầu không khí: ${scene.atmosphere}`);
     lines.push('');
     
     // Cảnh thiết kế（Hiệu chuẩn AI\u540e）
     if (scene.architectureStyle || scene.lightingDesign || scene.colorPalette || scene.eraDetails) {
       lines.push(`## Cảnh thiết kế`);
-      if (scene.architectureStyle) lines.push(`Kiến trúcPhong cách：${scene.architectureStyle}`);
-      if (scene.lightingDesign) lines.push(`Ánh sáthiết kế：${scene.lightingDesign}`);
-      if (scene.colorPalette) lines.push(`Màu sắgiai điệu c：${scene.colorPalette}`);
-      if (scene.eraDetails) lines.push(`Đặc điểm của thời đại：${scene.eraDetails}`);
-      if (scene.keyProps && scene.keyProps.length > 0) lines.push(`đạo cụ chính：${scene.keyProps.join('、')}`);
-      if (scene.spatialLayout) lines.push(`bố trí không gian：${scene.spatialLayout}`);
+      if (scene.architectureStyle) lines.push(`Phong cách kiến trúc: ${scene.architectureStyle}`);
+      if (scene.lightingDesign) lines.push(`Thiết kế ánh sáng: ${scene.lightingDesign}`);
+      if (scene.colorPalette) lines.push(`Tông màu: ${scene.colorPalette}`);
+      if (scene.eraDetails) lines.push(`Đặc trưng thời đại: ${scene.eraDetails}`);
+      if (scene.keyProps && scene.keyProps.length > 0) lines.push(`Đạo cụ chính: ${scene.keyProps.join(', ')}`);
+      if (scene.spatialLayout) lines.push(`Bố cục không gian: ${scene.spatialLayout}`);
       lines.push('');
     }
     
@@ -183,39 +183,39 @@ export function PropertyPanel({
     const includeZhScenePrompt = promptLanguage !== 'en';
     const includeEnScenePrompt = promptLanguage !== 'zh';
     if ((includeZhScenePrompt && scene.visualPrompt) || (includeEnScenePrompt && scene.visualPromptEn)) {
-      lines.push(`## Lời nhắc trực quan`);
-      if (includeZhScenePrompt && scene.visualPrompt) lines.push(`Tiếng Trung：${scene.visualPrompt}`);
+      lines.push(`## Prompt hình ảnh`);
+      if (includeZhScenePrompt && scene.visualPrompt) lines.push(`Tiếng Trung: ${scene.visualPrompt}`);
       if (includeEnScenePrompt && scene.visualPromptEn) lines.push(`English: ${scene.visualPromptEn}`);
       lines.push('');
     }
     
     // Nhiều Góc nhìđồ thị chung（AIGóc nhìnPhân tíchcủa\u4ea7\u51fa）
     if (scene.viewpoints && scene.viewpoints.length > 0) {
-      lines.push(`## Nhiều Góc nhìđồ thị chung（AIPhân tích）`);
-      lines.push(`Góc nhìn\u6570\u91cf：${scene.viewpoints.length} một`);
+      lines.push(`## Tổng hợp góc nhìn (AI phân tích)`);
+      lines.push(`Số lượng góc nhìn: ${scene.viewpoints.length}`);
       lines.push('');
       scene.viewpoints.forEach((vp, idx) => {
         lines.push(`### Góc nhìn ${idx + 1}: ${vp.name}`);
         lines.push(`- ID: ${vp.id}`);
         if (vp.nameEn) lines.push(`- tên tiếng anh: ${vp.nameEn}`);
-        if (vp.keyProps && vp.keyProps.length > 0) lines.push(`- đạo cụ chính: ${vp.keyProps.join('、')}`);
-        if (vp.shotIds && vp.shotIds.length > 0) lines.push(`- \u5173\u8054Phân cảnhID: ${vp.shotIds.join(', ')}`);
-        lines.push(`- \u7f51\u683cVị trí: ${vp.gridIndex}`);
+        if (vp.keyProps && vp.keyProps.length > 0) lines.push(`- Đạo cụ chính: ${vp.keyProps.join(', ')}`);
+        if (vp.shotIds && vp.shotIds.length > 0) lines.push(`- Phân cảnh liên quan: ${vp.shotIds.join(', ')}`);
+        lines.push(`- Vị trí lưới: ${vp.gridIndex}`);
         lines.push('');
       });
     }
     
     // Ngoại hìnhống kê
     if (scene.importance || scene.appearanceCount || scene.episodeNumbers?.length) {
-      lines.push(`## Ngoại hìnhống kê`);
+      lines.push(`## Thống kê xuất hiện`);
       if (scene.importance) {
         const importanceLabel = scene.importance === 'main' ? 'Chính Cảnh' : 
                                scene.importance === 'secondary' ? 'Tiểu Cảnh' : 'Chuyển tiếpCảnh';
-        lines.push(`quan trọng\u7a0b\u5ea6：${importanceLabel}`);
+        lines.push(`Mức độ quan trọng: ${importanceLabel}`);
       }
-      if (scene.appearanceCount) lines.push(`Số lần xuất hiện：${scene.appearanceCount} lần`);
+      if (scene.appearanceCount) lines.push(`Số lần xuất hiện: ${scene.appearanceCount} lần`);
       if (scene.episodeNumbers && scene.episodeNumbers.length > 0) {
-        lines.push(`Số tập xuất hiện：Không. ${scene.episodeNumbers.join(', ')} đặt`);
+        lines.push(`Xuất hiện ở tập: ${scene.episodeNumbers.join(', ')}`);
       }
       lines.push('');
     }
@@ -237,15 +237,15 @@ export function PropertyPanel({
     
     // Định dạng\u5316Nhân vật\u6570\u636e
     const lines: string[] = [];
-    lines.push(`# Nhân vậcài đặt t：${character.name}`);
+    lines.push(`# Thiết lập nhân vật: ${character.name}`);
     lines.push('');
     
     // Thông tin cơ bản（Ưu tiên\u663e\u793a）
     if (character.gender || character.age) {
       lines.push(`## Thông tin cơ bản`);
       const basicInfo: string[] = [];
-      if (character.gender) basicInfo.push(`giới tính：${character.gender}`);
-      if (character.age) basicInfo.push(`tuổi tác：${character.age}`);
+      if (character.gender) basicInfo.push(`Giới tính: ${character.gender}`);
+      if (character.age) basicInfo.push(`Tuổi: ${character.age}`);
       lines.push(basicInfo.join(' | '));
       lines.push('');
     }
@@ -310,7 +310,7 @@ export function PropertyPanel({
       if (anchors.jawline) boneFeatures.push(`đường viền hàm: ${anchors.jawline}`);
       if (anchors.cheekbones) boneFeatures.push(`xương gò má: ${anchors.cheekbones}`);
       if (boneFeatures.length > 0) {
-        lines.push(`① \u9aa8\u76f8\u5c42：${boneFeatures.join(', ')}`);
+        lines.push(`① Lớp khung xương: ${boneFeatures.join(', ')}`);
       }
       
       // ② năm\u5b98\u5c42
@@ -320,12 +320,12 @@ export function PropertyPanel({
       if (anchors.noseShape) facialFeatures.push(`Hình dáng mũi: ${anchors.noseShape}`);
       if (anchors.lipShape) facialFeatures.push(`hình môi: ${anchors.lipShape}`);
       if (facialFeatures.length > 0) {
-        lines.push(`② năm\u5b98\u5c42：${facialFeatures.join(', ')}`);
+        lines.push(`② Lớp ngũ quan: ${facialFeatures.join(', ')}`);
       }
       
       // ③ \u8fa8\u8bc6\u6807\u8bb0\u5c42（\u6700\u5f3a\u951a\u70b9）
       if (anchors.uniqueMarks && anchors.uniqueMarks.length > 0) {
-        lines.push(`③ \u8fa8\u8bc6\u6807\u8bb0\u5c42（\u6700\u5f3a\u951a\u70b9）：${anchors.uniqueMarks.join('; ')}`);
+        lines.push(`③ Lớp dấu hiệu nhận diện (neo mạnh nhất): ${anchors.uniqueMarks.join('; ')}`);
       }
       
       // ④ Màu sắc\u951a\u70b9\u5c42
@@ -336,13 +336,13 @@ export function PropertyPanel({
         if (anchors.colorAnchors.skin) colors.push(`màu da: ${anchors.colorAnchors.skin}`);
         if (anchors.colorAnchors.lips) colors.push(`màu môi: ${anchors.colorAnchors.lips}`);
         if (colors.length > 0) {
-          lines.push(`④ Màu sắc\u951a\u70b9\u5c42（Hex）：${colors.join(', ')}`);
+          lines.push(`④ Lớp neo màu sắc (Hex): ${colors.join(', ')}`);
         }
       }
       
       // ⑤ lớp kết cấu da
       if (anchors.skinTexture) {
-        lines.push(`⑤ lớp kết cấu da：${anchors.skinTexture}`);
+        lines.push(`⑤ Lớp kết cấu da: ${anchors.skinTexture}`);
       }
       
       // ⑥ lớp neo kiểu tóc
@@ -350,7 +350,7 @@ export function PropertyPanel({
       if (anchors.hairStyle) hairFeatures.push(`kiểu tóc: ${anchors.hairStyle}`);
       if (anchors.hairlineDetails) hairFeatures.push(`đường chân tóc: ${anchors.hairlineDetails}`);
       if (hairFeatures.length > 0) {
-        lines.push(`⑥ lớp neo kiểu tóc：${hairFeatures.join(', ')}`);
+        lines.push(`⑥ Lớp neo kiểu tóc: ${hairFeatures.join(', ')}`);
       }
       
       lines.push('');
@@ -360,24 +360,24 @@ export function PropertyPanel({
     if (character.negativePrompt) {
       lines.push(`## Lời nhắc tiêu cực`);
       if (character.negativePrompt.avoid && character.negativePrompt.avoid.length > 0) {
-        lines.push(`\u8981\u907f\u514d：${character.negativePrompt.avoid.join(', ')}`);
+        lines.push(`Cần tránh: ${character.negativePrompt.avoid.join(', ')}`);
       }
       if (character.negativePrompt.styleExclusions && character.negativePrompt.styleExclusions.length > 0) {
-        lines.push(`Phong cáloại trừ：${character.negativePrompt.styleExclusions.join(', ')}`);
+        lines.push(`Loại trừ phong cách: ${character.negativePrompt.styleExclusions.join(', ')}`);
       }
       lines.push('');
     }
     
     // Nhân vậthẻ t
     if (character.tags && character.tags.length > 0) {
-      lines.push(`## Nhân vậthẻ t`);
+      lines.push(`## Thẻ nhân vật`);
       lines.push(character.tags.map(t => `#${t}`).join(' '));
       lines.push('');
     }
     
     // Nhân vậtNhận xét
     if (character.notes) {
-      lines.push(`## Nhân vậtNhận xét`);
+      lines.push(`## Ghi chú nhân vật`);
       lines.push(character.notes);
       lines.push('');
     }
@@ -406,14 +406,14 @@ export function PropertyPanel({
     
     // Định dạng\u5316Phân cảnh dữ liệu
     const lines: string[] = [];
-    lines.push(`# Không.${episode.index}đặt：${episode.title.replace(/^Không.\bộ d+[：:]?/, '')}`);
+    lines.push(`# Tập ${episode.index}: ${episode.title.replace(/^Không.\bộ d+[：:]?/, '')}`);
     lines.push('');
     if (episode.synopsis) {
       lines.push(`## Tóm tắt tập phim`);
       lines.push(episode.synopsis);
       lines.push('');
     }
-    lines.push(`## Phân cảnh danh sách (tổng cộng ${episodeShots.length} một)`);
+    lines.push(`## Danh sách phân cảnh (tổng cộng ${episodeShots.length})`);
     lines.push('');
     
     episodeShots.forEach((s, idx) => {
@@ -428,17 +428,17 @@ export function PropertyPanel({
         lines.push(`**Hành động**: ${s.actionSummary}`);
       }
       if (s.dialogue) {
-        lines.push(`**đối thoại**: 「${s.dialogue}」`);
+        lines.push(`**Đối thoại**: "${s.dialogue}"`);
       }
       if (s.characterNames && s.characterNames.length > 0) {
-        lines.push(`**Ngoại hình Nhân vật**: ${s.characterNames.join('、')}`);
+        lines.push(`**Nhân vật xuất hiện**: ${s.characterNames.join(', ')}`);
       }
       if (s.emotionTags && s.emotionTags.length > 0) {
         const tags = s.emotionTags.map(t => emotionLabels[t] || t).join('、');
-        lines.push(`**cảm xúc**: ${tags}`);
+        lines.push(`**Cảm xúc**: ${tags}`);
       }
       if (promptLanguage !== 'zh' && (s as any).visualPrompt) {
-        lines.push(`**Tiếng AnhNhắc**: ${(s as any).visualPrompt}`);
+        lines.push(`**Prompt tiếng Anh**: ${(s as any).visualPrompt}`);
       }
       // Ba lớp NhắcHệ thống
       if (s.imagePromptZh || s.imagePrompt) {
@@ -460,7 +460,7 @@ export function PropertyPanel({
         }
       }
       if (s.needsEndFrame) {
-        lines.push(`**\u9700\u8981\u5c3e\u5e27**: \u662f`);
+        lines.push(`**Cần khung cuối**: Có`);
         if (s.endFramePromptZh || s.endFramePrompt) {
           if (promptLanguage === 'zh') {
             lines.push(`**Lời nhắc khung cuối cùng**: ${s.endFramePromptZh || ''}`);
@@ -516,12 +516,12 @@ export function PropertyPanel({
 
     const lines: string[] = [];
     lines.push('═══════════════════════════════════════');
-    lines.push(`Phân cảnh ${shot.index} - ba\u5c42Prompt\u6570\u636e`);
+    lines.push(`Phân cảnh ${shot.index} - dữ liệu prompt 3 lớp`);
     lines.push('═══════════════════════════════════════');
     lines.push('');
 
     // Cơ bảthông tin
-    lines.push('【Cơ bảthông tin】');
+    lines.push('【Thông tin cơ bản】');
     if (shot.shotSize) {
       lines.push(`Cỡ cảnh: ${shotSizeLabels[shot.shotSize] || shot.shotSize} (${shot.shotSize})`);
     }
@@ -529,18 +529,18 @@ export function PropertyPanel({
       lines.push(`Cảnh quay thể thao: ${cameraLabels(shot.cameraMovement)}`);
     }
     if (shot.specialTechnique && shot.specialTechnique !== 'none') {
-      lines.push(`\u7279\u6b8a\u62cd\u6444: ${specialTechniqueLabel(shot.specialTechnique)}`);
+      lines.push(`Kỹ thuật quay đặc biệt: ${specialTechniqueLabel(shot.specialTechnique)}`);
     }
     if (shot.duration) {
-      lines.push(`Thời lượng: ${shot.duration}giây`);
+      lines.push(`Thời lượng: ${shot.duration} giây`);
     }
     if (shot.characterNames && shot.characterNames.length > 0) {
-      lines.push(`Ngoại hình Nhân vật: ${shot.characterNames.join('、')}`);
+      lines.push(`Nhân vật xuất hiện: ${shot.characterNames.join(', ')}`);
     }
     // đối thoạitừ\u6bb5\u59cb\u7ec8\u663e\u793a，không cóđối thoại\u65f6\u660e\u786e\u6807Lưu ý“không có”，\u9632\u6b62AIVideoMô hình\u5e7b\u89c9
     lines.push(`Đối thoại: ${shot.dialogue ? `「${shot.dialogue}」` : 'không có'}`);
     if (shot.actionSummary) {
-      lines.push(`Hành độngMô tả: ${shot.actionSummary}`);
+      lines.push(`Mô tả hành động: ${shot.actionSummary}`);
     }
     lines.push('');
 
@@ -553,9 +553,9 @@ export function PropertyPanel({
 
     // Âthiết kế m thanh
     if (shot.ambientSound || shot.soundEffect) {
-      lines.push('【Âthiết kế m thanh】');
+      lines.push('【Thiết kế âm thanh】');
       if (shot.ambientSound) {
-        lines.push(`âm thanh xung quanh: ${shot.ambientSound}`);
+        lines.push(`Âm thanh môi trường: ${shot.ambientSound}`);
       }
       if (shot.soundEffect) {
         lines.push(`Hiệu ứng âm thanh: ${shot.soundEffect}`);
@@ -579,7 +579,7 @@ export function PropertyPanel({
         lines.push(`Tập trung thị giác: ${(shot as any).visualFocus}`);
       }
       if ((shot as any).cameraPosition) {
-        lines.push(`Góc máyMô tả: ${(shot as any).cameraPosition}`);
+        lines.push(`Mô tả góc máy: ${(shot as any).cameraPosition}`);
       }
       if ((shot as any).characterBlocking) {
         lines.push(`Bố cục nhân vật: ${(shot as any).characterBlocking}`);
@@ -591,11 +591,11 @@ export function PropertyPanel({
     }
 
     if (!hasTri) {
-      lines.push('⚠️ Phân cảnh\u5c1a\u672aTạoba\u5c42Prompt，\u8bf7đầu tiên\u6267được rồi"AI hiệu chuẩn Phân cảnh"。');
+      lines.push('⚠️ Phân cảnh chưa có prompt 3 lớp, vui lòng chạy "AI hiệu chuẩn phân cảnh" trước.');
     } else {
       // ===== Lời nhắc khung đầu tiên =====
       lines.push('───────────────────────────────────────');
-      lines.push('【Lời nhắc khung đầu tiên】cho Tạo videocủaKhông.một\u5e27Hình ảnh');
+      lines.push('【Prompt khung đầu】Dùng để tạo ảnh khung đầu cho video');
       lines.push('───────────────────────────────────────');
       if (promptLanguage !== 'en' && shot.imagePromptZh) {
         lines.push(`Tiếng Trung: ${shot.imagePromptZh}`);
@@ -608,13 +608,13 @@ export function PropertyPanel({
         (promptLanguage === 'en' && !shot.imagePrompt) ||
         (promptLanguage === 'zh+en' && !shot.imagePrompt && !shot.imagePromptZh)
       ) {
-        lines.push('(\u672aTạo)');
+        lines.push('(chưa tạo)');
       }
       lines.push('');
 
       // ===== VideoPrompt =====
       lines.push('───────────────────────────────────────');
-      lines.push('【VideoPrompt】sử dụng\u4e8e\u56fe\u751fVideo，Mô tảHành độngvàcác môn thể thao');
+      lines.push('【Video Prompt】Dùng để tạo video, mô tả hành động và chuyển động');
       lines.push('───────────────────────────────────────');
       if (promptLanguage !== 'en' && shot.videoPromptZh) {
         lines.push(`Tiếng Trung: ${shot.videoPromptZh}`);
@@ -627,16 +627,16 @@ export function PropertyPanel({
         (promptLanguage === 'en' && !shot.videoPrompt) ||
         (promptLanguage === 'zh+en' && !shot.videoPrompt && !shot.videoPromptZh)
       ) {
-        lines.push('(\u672aTạo)');
+        lines.push('(chưa tạo)');
       }
       lines.push('');
 
       // ===== Lời nhắc khung cuối cùng =====
       lines.push('───────────────────────────────────────');
-      lines.push('【Lời nhắc khung cuối cùng】cho Tạo videocủa\u6700\u540emột\u5e27（Chẳng hạn như\u9700\u8981）');
+      lines.push('【Prompt khung cuối】Dùng để tạo khung cuối cho video (nếu cần)');
       lines.push('───────────────────────────────────────');
       if (shot.needsEndFrame) {
-        lines.push('\u9700\u8981\u5c3e\u5e27: ✓ \u662f');
+        lines.push('Cần khung cuối: ✓ Có');
         if (promptLanguage !== 'en' && shot.endFramePromptZh) {
           lines.push(`Tiếng Trung: ${shot.endFramePromptZh}`);
         }
@@ -648,10 +648,10 @@ export function PropertyPanel({
           (promptLanguage === 'en' && !shot.endFramePrompt) ||
           (promptLanguage === 'zh+en' && !shot.endFramePrompt && !shot.endFramePromptZh)
         ) {
-          lines.push('(\u672aTạo)');
+          lines.push('(chưa tạo)');
         }
       } else {
-        lines.push('\u9700\u8981\u5c3e\u5e27: ✗ \u5426（\u6b64Phân cảnh\u4e0d\u9700\u8981\u5355\u72eccủa\u5c3e\u5e27）');
+        lines.push('Cần khung cuối: ✗ Không (phân cảnh này không cần khung cuối riêng)');
       }
     }
 
@@ -732,9 +732,9 @@ export function PropertyPanel({
   if (!selectedItemId || !selectedItemType) {
     return (
       <div className="h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">
-        \u9009\u62e9đặt、Nhân vật、CảnhhoặcPhân cảnh
+        Chọn tập, nhân vật, cảnh hoặc phân cảnh
         <br />
-        \u67e5\u770bChi tiết
+        để xem chi tiết
       </div>
     );
   }
@@ -768,7 +768,7 @@ export function PropertyPanel({
             </div>
           ) : (
             <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
-              \u672aTạoPhác thảo，\u70b9\u51fb\u4e0b\u65b9\u6309\u94aeTạo
+              Chưa có tóm tắt, hãy nhấn nút bên dưới để tạo
             </div>
           )}
 
@@ -777,7 +777,7 @@ export function PropertyPanel({
             <div>
               <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                 <ListChecks className="h-3 w-3" />
-                Phímự kiện
+                Sự kiện chính
               </div>
               <div className="space-y-1">
                 {episode.keyEvents.map((event, i) => (
@@ -792,13 +792,13 @@ export function PropertyPanel({
 
           {/* CảnhThống kê */}
           <div className="bg-muted/30 p-3 rounded-lg">
-            <div className="text-xs text-muted-foreground mb-2">CảnhThống kê</div>
+            <div className="text-xs text-muted-foreground mb-2">Thống kê cảnh</div>
             <div className="text-sm">
-              \u672cđặttổng cộng <span className="font-medium text-primary">{episode.scenes?.length || 0}</span> Cảnh
+              Tập này có tổng cộng <span className="font-medium text-primary">{episode.scenes?.length || 0}</span> cảnh
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Phân cảnhTrạng thái：{episode.shotGenerationStatus === 'completed' ? '✅ Đã Tạo' : 
-                episode.shotGenerationStatus === 'generating' ? '⏳ Tạotrong...' : '⏹ \u672aTạo'}
+              Trạng thái phân cảnh: {episode.shotGenerationStatus === 'completed' ? '✅ Đã tạo' : 
+                episode.shotGenerationStatus === 'generating' ? '⏳ Đang tạo...' : '⏹ Chưa tạo'}
             </div>
           </div>
 
@@ -813,7 +813,7 @@ export function PropertyPanel({
                 disabled={episode.shotGenerationStatus === 'generating'}
               >
                 <Film className="h-4 w-4 mr-2" />
-                TạoPhân cảnh
+                Tạo phân cảnh
               </Button>
             )}
             {episode.shotGenerationStatus === 'completed' && (
@@ -835,12 +835,12 @@ export function PropertyPanel({
                   {copied ? (
                     <>
                       <Check className="h-4 w-4 mr-2 text-green-500" />
-                      Đã rồi\u590d\u5236
+                      Đã sao chép
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4 mr-2" />
-                      \u590d\u5236Phân cảnh dữ liệu ({episodeShots.length})
+                      Sao chép dữ liệu phân cảnh ({episodeShots.length})
                     </>
                   )}
                 </Button>
@@ -940,14 +940,14 @@ export function PropertyPanel({
               {character.stageInfo && (
                 <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-1">
                   <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    🎭 Giai đoạn Nhân vật：{character.stageInfo.stageName}
+                    🎭 Giai đoạn nhân vật: {character.stageInfo.stageName}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    \u9002sử dụngđặt\u6570：Không.{character.stageInfo.episodeRange[0]}-{character.stageInfo.episodeRange[1]}đặt
+                    Áp dụng cho tập: {character.stageInfo.episodeRange[0]} - {character.stageInfo.episodeRange[1]}
                   </div>
                   {character.stageInfo.ageDescription && (
                     <div className="text-xs text-muted-foreground">
-                      tuổi tác：{character.stageInfo.ageDescription}
+                      Tuổi: {character.stageInfo.ageDescription}
                     </div>
                   )}
                 </div>
@@ -1018,7 +1018,7 @@ export function PropertyPanel({
               )}
               {character.tags && character.tags.length > 0 && (
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Nhân vậthẻ t</div>
+                  <div className="text-xs text-muted-foreground mb-1">Thẻ nhân vật</div>
                   <div className="flex flex-wrap gap-1">
                     {character.tags.map((tag, i) => (
                       <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
@@ -1030,7 +1030,7 @@ export function PropertyPanel({
               )}
               {character.notes && (
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Nhân vậtNhận xét</div>
+                  <div className="text-xs text-muted-foreground mb-1">Ghi chú nhân vật</div>
                   <div className="text-sm text-muted-foreground italic whitespace-pre-wrap">{character.notes}</div>
                 </div>
               )}
@@ -1046,10 +1046,10 @@ export function PropertyPanel({
               <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-2">
                 <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium">
                   <CheckCircle2 className="h-3 w-3" />
-                  Đã Tạo {character.stageCharacterIds.length} một\u9636\u6bb5Phiên bản
+                  Đã tạo {character.stageCharacterIds.length} phiên bản giai đoạn
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  \u8bf7\u5728trong\u680f\u70b9\u51fb\u5404\u9636\u6bb5Phiên bản（Chẳng hạn như「{character.name}（phiên bản trẻ）」），\u7136\u540e\u53bbThư viện nhân vậtTạo\u5f62\u8c61
+                  Vui lòng chọn từng phiên bản giai đoạn (ví dụ: "{character.name} - phiên bản trẻ"), sau đó vào Thư viện nhân vật để tạo hình tượng
                 </div>
               </div>
             ) : (
@@ -1059,7 +1059,7 @@ export function PropertyPanel({
                 onClick={() => onGoToCharacterLibrary?.(character.id)}
               >
                 <ArrowRight className="h-4 w-4 mr-2" />
-                {character.characterLibraryId ? '\u67e5\u770bThư viện nhân vật\u5f62\u8c61' : '\u53bbThư viện nhân vậtTạo\u5f62\u8c61'}
+                {character.characterLibraryId ? 'Xem hình tượng trong Thư viện nhân vật' : 'Đến Thư viện nhân vật tạo hình tượng'}
               </Button>
             )}
             
@@ -1071,12 +1071,12 @@ export function PropertyPanel({
               {copiedCharacter ? (
                 <>
                   <Check className="h-4 w-4 mr-2 text-green-500" />
-                  Đã rồi\u590d\u5236
+                  Đã sao chép
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-2" />
-                  \u590d\u5236Nhân vật\u6570\u636e
+                  Sao chép dữ liệu nhân vật
                 </>
               )}
             </Button>
@@ -1086,7 +1086,7 @@ export function PropertyPanel({
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              XoáNhân vật
+              Xóa nhân vật
             </Button>
           </div>
         </div>
@@ -1094,8 +1094,8 @@ export function PropertyPanel({
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhậnXoá</AlertDialogTitle>
-              <AlertDialogDescription>\u786e\u5b9a\u8981XoáNhân vật「{character.name}」\u5417？</AlertDialogDescription>
+              <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+              <AlertDialogDescription>Bạn có chắc muốn xóa nhân vật "{character.name}" không?</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Huỷ</AlertDialogCancel>
@@ -1151,15 +1151,15 @@ export function PropertyPanel({
           {isEditing ? (
             <div className="space-y-3">
               <div className="space-y-1">
-                <Label className="text-xs">vị trí</Label>
+                <Label className="text-xs">Vị trí</Label>
                 <Input value={editData.location || ""} onChange={(e) => setEditData({ ...editData, location: e.target.value })} className="h-8" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Thời gian</Label>
-                <Input value={editData.time || ""} onChange={(e) => setEditData({ ...editData, time: e.target.value })} className="h-8" placeholder="Chẳng hạn như：Ban ngày、Ban đêm、Hoàng hôn" />
+                <Input value={editData.time || ""} onChange={(e) => setEditData({ ...editData, time: e.target.value })} className="h-8" placeholder="Ví dụ: Ban ngày, Ban đêm, Hoàng hôn" />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">bầu không khí</Label>
+                <Label className="text-xs">Bầu không khí</Label>
                 <Textarea value={editData.atmosphere || ""} onChange={(e) => setEditData({ ...editData, atmosphere: e.target.value })} className="min-h-[60px]" />
               </div>
             </div>
@@ -1256,10 +1256,10 @@ export function PropertyPanel({
                       <Separator className="my-2" />
                       <div className="text-xs font-medium text-primary mb-2">
                         <Grid3X3 className="h-3 w-3 inline mr-1" />
-                        Nhiều Góc nhìđồ thị chung
+                        Tổng hợp nhiều góc nhìn
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        \u672aPhân tíchGóc nhìn（Tùy chọn，AI hiệu chuẩn Phân cảnh\u540eTự động Tạo）
+                        Chưa phân tích góc nhìn (tùy chọn, sẽ được tạo tự động sau khi AI hiệu chuẩn phân cảnh)
                       </div>
                     </>
                   );
@@ -1305,7 +1305,7 @@ export function PropertyPanel({
                       ))}
                       {viewpoints.length > 6 && (
                         <div className="text-xs text-muted-foreground text-center py-1">
-                          \u8fd8Có {viewpoints.length - 6} Góc nhìn...
+                          Còn {viewpoints.length - 6} góc nhìn...
                         </div>
                       )}
                     </div>
@@ -1348,7 +1348,7 @@ export function PropertyPanel({
               onClick={() => onGoToSceneLibrary?.(scene.id)}
             >
               <ArrowRight className="h-4 w-4 mr-2" />
-              \u53bbThư viện cảnhTạoNền
+              Đến Thư viện cảnh tạo bối cảnh
             </Button>
             <Button
               variant="outline"
@@ -1360,7 +1360,7 @@ export function PropertyPanel({
               ) : (
                 <Copy className="h-4 w-4 mr-2" />
               )}
-              {copiedScene ? 'Đã rồi\u590d\u5236' : '\u590d\u5236Cảnh dữ liệu'}
+              {copiedScene ? 'Đã sao chép' : 'Sao chép dữ liệu cảnh'}
             </Button>
             <Button
               variant="secondary"
@@ -1368,7 +1368,7 @@ export function PropertyPanel({
               onClick={() => onGoToDirectorFromScene?.(scene.id)}
             >
               <Film className="h-4 w-4 mr-2" />
-              \u53bbAIgiám đốcTạo video
+              Đến AI đạo diễn tạo video
             </Button>
             <Button
               variant="outline"
@@ -1376,7 +1376,7 @@ export function PropertyPanel({
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              XoáCảnh
+              Xóa cảnh
             </Button>
           </div>
         </div>
@@ -1384,8 +1384,8 @@ export function PropertyPanel({
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhậnXoá</AlertDialogTitle>
-              <AlertDialogDescription>\u786e\u5b9a\u8981XoáCảnh「{scene.name || scene.location}」\u5417？\u5176Hạ Tất cảPhân cảnh\u4e5f\u5c06\u88abXoá。</AlertDialogDescription>
+              <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+              <AlertDialogDescription>Bạn có chắc muốn xóa cảnh "{scene.name || scene.location}" không? Tất cả phân cảnh bên trong cũng sẽ bị xóa.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Huỷ</AlertDialogCancel>
@@ -1447,7 +1447,7 @@ export function PropertyPanel({
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Cỡ cảnh</Label>
-                  <Input value={editData.shotSize || ""} onChange={(e) => setEditData({ ...editData, shotSize: e.target.value })} className="h-8" placeholder="Chẳng hạn như：WS/MS/CU/ECU" />
+                  <Input value={editData.shotSize || ""} onChange={(e) => setEditData({ ...editData, shotSize: e.target.value })} className="h-8" placeholder="Ví dụ: WS/MS/CU/ECU" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Cảnh quay thể thao</Label>
@@ -1633,7 +1633,7 @@ export function PropertyPanel({
               onClick={() => onGoToDirector?.(shot.id)}
             >
               <ArrowRight className="h-4 w-4 mr-2" />
-              \u53bbAIgiám đốcTạo
+              Đến AI đạo diễn để tạo
             </Button>
             <Button
               variant="secondary"
@@ -1643,12 +1643,12 @@ export function PropertyPanel({
               {copiedShotPrompts ? (
                 <>
                   <Check className="h-4 w-4 mr-2 text-green-500" />
-                  Đã rồi\u590d\u5236
+                  Đã sao chép
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-2" />
-                  \u590d\u5236ba\u5c42Prompt\u6570\u636e
+                  Sao chép dữ liệu prompt 3 lớp
                 </>
               )}
             </Button>
@@ -1658,7 +1658,7 @@ export function PropertyPanel({
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              XoáPhân cảnh
+              Xóa phân cảnh
             </Button>
           </div>
         </div>
@@ -1666,8 +1666,8 @@ export function PropertyPanel({
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhậnXoá</AlertDialogTitle>
-              <AlertDialogDescription>\u786e\u5b9a\u8981XoáPhân cảnh {shot.index} \u5417？</AlertDialogDescription>
+              <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+              <AlertDialogDescription>Bạn có chắc muốn xóa phân cảnh {shot.index} không?</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Huỷ</AlertDialogCancel>

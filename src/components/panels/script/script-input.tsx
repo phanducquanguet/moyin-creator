@@ -43,30 +43,30 @@ import { useScriptStore } from "@/stores/script-store";
 import { t } from "@/lib/i18n";
 
 const PROMPT_LANGUAGE_OPTIONS = [
-  { value: "zh", label: "\u4ec5Tiếng Trung" },
-  { value: "en", label: "\u4ec5Tiếng Anh" },
-  { value: "zh+en", label: "trongTiếng Anh" },
+  { value: "zh", label: "Chỉ tiếng Trung" },
+  { value: "en", label: "Chỉ tiếng Anh" },
+  { value: "zh+en", label: "Trung + Anh" },
 ];
 
 const DURATION_OPTIONS = [
-  { value: "auto", label: "\u81ea\u52a8" },
+  { value: "auto", label: "Tự động" },
   { value: "10s", label: "10 giây" },
   { value: "15s", label: "15 giây" },
-  { value: "20s", label: "20giây" },
+  { value: "20s", label: "20 giây" },
   { value: "30s", label: "30 giây" },
   { value: "60s", label: "1 phút" },
-  { value: "90s", label: "1\u520630 giây" },
-  { value: "120s", label: "2\u5206\u949f" },
-  { value: "180s", label: "3\u5206\u949f" },
+  { value: "90s", label: "1 phút 30 giây" },
+  { value: "120s", label: "2 phút" },
+  { value: "180s", label: "3 phút" },
 ];
 
 const SCENE_COUNT_OPTIONS = [
-  { value: "1", label: "1Cảnh" },
-  { value: "2", label: "2Cảnh" },
-  { value: "3", label: "3Cảnh" },
-  { value: "4", label: "4Cảnh" },
-  { value: "5", label: "5Cảnh" },
-  { value: "6", label: "6Cảnh" },
+  { value: "1", label: "1 cảnh" },
+  { value: "2", label: "2 cảnh" },
+  { value: "3", label: "3 cảnh" },
+  { value: "4", label: "4 cảnh" },
+  { value: "5", label: "5 cảnh" },
+  { value: "6", label: "6 cảnh" },
   { value: "8", label: "8Cảnh" },
   { value: "10", label: "10Cảnh" },
 ];
@@ -264,7 +264,7 @@ export function ScriptInput({
                 <p className="text-xs text-green-600">✓ {t("script.input.import.success")}</p>
                 {(missingTitleCount ?? 0) > 0 && (
                   <p className="text-xs text-amber-600">
-                    ⚠ {missingTitleCount} đặtthiếu\u5c11Tiêu đề，\u53efsử dụngHiệu chuẩn AITạo
+                    ⚠ Còn {missingTitleCount} tập thiếu tiêu đề, bạn có thể dùng AI để hiệu chuẩn
                   </p>
                 )}
               </div>
@@ -302,8 +302,8 @@ export function ScriptInput({
                           ) : (
                             <span className="w-5 h-5 rounded-full border-2 border-current" />
                           )}
-                          <span className="text-base">AI \u6821\u51c6Phân cảnh</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Hailần</span>
+                          <span className="text-base">AI hiệu chuẩn phân cảnh</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Lần 2</span>
                         </div>
                       )}
                       
@@ -317,8 +317,8 @@ export function ScriptInput({
                           ) : (
                             <span className="w-5 h-5 rounded-full border-2 border-current" />
                           )}
-                          <span className="text-base">AI Nhân vật\u6821\u51c6</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Hailần</span>
+                          <span className="text-base">AI hiệu chuẩn nhân vật</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Lần 2</span>
                         </div>
                       )}
                       
@@ -332,8 +332,8 @@ export function ScriptInput({
                           ) : (
                             <span className="w-5 h-5 rounded-full border-2 border-current" />
                           )}
-                          <span className="text-base">AI Cảnh\u6821\u51c6</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Hailần</span>
+                        <span className="text-base">AI hiệu chuẩn cảnh</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Lần 2</span>
                         </div>
                       )}
                     </>
@@ -373,7 +373,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI phác thảo Tạo</span>
+                        <span className="text-base">AI tạo tóm tắt</span>
                       </div>
                       
                       {/* Phân cảnh\u6821\u51c6 */}
@@ -385,7 +385,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI Phân cảnh\u6821\u51c6</span>
+                        <span className="text-base">AI hiệu chuẩn phân cảnh</span>
                       </div>
                       
                       {/* Nhân vật\u6821\u51c6 */}
@@ -397,7 +397,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI Nhân vật\u6821\u51c6</span>
+                        <span className="text-base">AI hiệu chuẩn nhân vật</span>
                       </div>
                       
                       {/* Cảnh\u6821\u51c6 */}
@@ -409,7 +409,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI Cảnh\u6821\u51c6</span>
+                        <span className="text-base">AI hiệu chuẩn cảnh</span>
                       </div>
                     </>
                   )}
@@ -427,7 +427,7 @@ export function ScriptInput({
                 Nhập ý tưởng câu chuyện, AI sẽ giúp bạn tạo kịch bản
               </Label>
               <Textarea
-                placeholder="Ví dụ：mộtmộtbên trong\u5411\u7a0b\u5e8f\u5458\u5728\u5496\u5561cửa tiệm\u9082\u9005\u5f00\u6717Nữ\u5b69củaấm ápcâu chuyện..."
+                placeholder="Ví dụ: Một lập trình viên gặp một cô gái lạc quan trong quán cà phê và bắt đầu một câu chuyện ấm áp..."
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 className="min-h-[100px] resize-none text-sm"
@@ -443,7 +443,7 @@ export function ScriptInput({
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Tạotrong...
+                  Đang tạo...
                 </>
               ) : (
                 <>
@@ -475,15 +475,15 @@ export function ScriptInput({
                 <div className="space-y-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
-                    <span>\u5728trong\u680f\u9009\u62e9Cảnh → \u53f3\u680f\u70b9「\u53bbThư viện cảnhTạoNền」</span>
+                    <span>Chọn Cảnh ở cây bên trái → nhấn "Đến Thư viện cảnh tạo bối cảnh" ở panel phải</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
-                    <span>\u9009\u62e9Nhân vật → \u53f3\u680f\u70b9「\u53bbThư viện nhân vậtTạo\u5f62\u8c61」</span>
+                    <span>Chọn Nhân vật → nhấn "Đến Thư viện nhân vật tạo hình tượng" ở panel phải</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">3</span>
-                    <span>\u9009\u62e9Phân cảnh → \u53f3\u680f\u70b9「\u53bbAIgiám đốcTạo video」</span>
+                    <span>Chọn Phân cảnh → nhấn "Đến AI đạo diễn tạo video" ở panel phải</span>
                   </div>
                 </div>
               </div>
@@ -510,7 +510,7 @@ export function ScriptInput({
                 <SelectContent>
                   <SelectItem value="Tiếng Trung">Tiếng Trung</SelectItem>
                   <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="ngày\u672c\u8a9e">ngày\u672c\u8a9e</SelectItem>
+                  <SelectItem value="Tiếng Nhật">Tiếng Nhật</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -547,10 +547,10 @@ export function ScriptInput({
                   disabled={parseStatus === "parsing"}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="\u81ea\u52a8" />
+                    <SelectValue placeholder="Tự động" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">\u81ea\u52a8</SelectItem>
+                    <SelectItem value="auto">Tự động</SelectItem>
                     {SCENE_COUNT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -568,7 +568,7 @@ export function ScriptInput({
                       type="number"
                       min="1"
                       max="100"
-                      placeholder="Đầu vào\u6570\u91cf"
+                      placeholder="Nhập số lượng"
                       value={customShotValue}
                       onChange={(e) => setCustomShotValue(e.target.value)}
                       onBlur={() => {
@@ -610,10 +610,10 @@ export function ScriptInput({
                     disabled={parseStatus === "parsing"}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="\u81ea\u52a8" />
+                      <SelectValue placeholder="Tự động" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">\u81ea\u52a8</SelectItem>
+                      <SelectItem value="auto">Tự động</SelectItem>
                       {SHOT_COUNT_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
@@ -682,7 +682,7 @@ export function ScriptInput({
                   <SelectContent>
                     <SelectItem value="Tiếng Trung">Tiếng Trung</SelectItem>
                     <SelectItem value="English">English</SelectItem>
-                    <SelectItem value="ngày\u672c\u8a9e">ngày\u672c\u8a9e</SelectItem>
+                  <SelectItem value="Tiếng Nhật">Tiếng Nhật</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -726,10 +726,10 @@ export function ScriptInput({
                   disabled={parseStatus === "parsing"}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="\u81ea\u52a8" />
+                    <SelectValue placeholder="Tự động" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">\u81ea\u52a8</SelectItem>
+                    <SelectItem value="auto">Tự động</SelectItem>
                     {SCENE_COUNT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -747,7 +747,7 @@ export function ScriptInput({
                       type="number"
                       min="1"
                       max="100"
-                      placeholder="Đầu vào\u6570\u91cf"
+                      placeholder="Nhập số lượng"
                       value={customShotValue}
                       onChange={(e) => setCustomShotValue(e.target.value)}
                       onBlur={() => {
@@ -789,10 +789,10 @@ export function ScriptInput({
                     disabled={parseStatus === "parsing"}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="\u81ea\u52a8" />
+                      <SelectValue placeholder="Tự động" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">\u81ea\u52a8</SelectItem>
+                      <SelectItem value="auto">Tự động</SelectItem>
                       {SHOT_COUNT_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
@@ -852,12 +852,12 @@ export function ScriptInput({
               {isCalibrating || calibrationStatus === 'calibrating' ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Hiệu chuẩn AItrong...
+                  Đang hiệu chuẩn AI...
                 </>
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Hiệu chuẩn AI（Tạo{missingTitleCount}tiêu đề tập phim）
+                  Hiệu chuẩn AI (tạo {missingTitleCount} tiêu đề tập phim)
                 </>
               )}
             </Button>
@@ -874,14 +874,14 @@ export function ScriptInput({
               {isGeneratingSynopsis || synopsisStatus === 'generating' ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  TạoPhác thảotrong...
+                  Đang tạo tóm tắt...
                 </>
               ) : (
                 <>
                   <BookOpen className="h-4 w-4 mr-2" />
                   {(missingSynopsisCount ?? 0) > 0 
-                    ? `TạoPhác thảo（${missingSynopsisCount}đặtthiếu\u5931）`
-                    : '\u91cd\u65b0TạoPhác thảo'
+                    ? `Tạo tóm tắt (${missingSynopsisCount} tập còn thiếu)`
+                    : 'Tạo lại tóm tắt'
                   }
                 </>
               )}
@@ -899,7 +899,7 @@ export function ScriptInput({
               {parseStatus === "parsing" ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  phân tích cú pháptrong...
+                  Đang phân tích...
                 </>
               ) : (
                 <>

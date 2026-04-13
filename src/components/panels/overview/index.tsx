@@ -50,36 +50,36 @@ import { getStyleName } from "@/lib/constants/visual-styles";
 const OVERVIEW_WORKFLOW_SECTIONS: Array<{ id: number; title: string; steps: string[] }> = [
   {
     id: 1,
-    title: "Kịch bản\u6a21\u5757",
+    title: "Mô-đun Kịch bản",
     steps: [
-      "\u70b9\u51fbKịch bản\u6a21\u5757",
-      "Nhập",
-      "\u7c98\u8d34\u5b8c\u6574Kịch bản",
-      "\u70b9\u51fbNhậhoàn thànhKịch bản",
-      "\u9009\u62e9Tầm nhìn Phong cách",
-      "Hailần\u68c0\u67e5",
-      "AICảnh\u6821\u51c6",
-      "\u70b9\u51fbCảnh，\u53f3\u8fb9\u680f：\u53bbThư viện cảnhTạoCảnh",
-      "\u5728Cảnh\u677f\u5757\u5de6\u8fb9\u680fTạo\u540eTạoLưu",
-      "AI hiệu chuẩn Phân cảnh",
-      "AINhân vật\u6821\u51c6",
-      "\u70b9\u51fbNhân vật，\u53f3\u8fb9\u680f：\u53bbThư viện nhân vậtTạo\u5f62\u8c61",
-      "\u5728Nhân vật\u677f\u5757\u70b9\u51fb“Tạocài đặt\u56fe”",
-      "Tạo\u540eLưu",
+      "Nhấn vào mô-đun Kịch bản",
+      "Nhập nội dung",
+      "Dán toàn bộ kịch bản",
+      "Nhấn hoàn tất nhập kịch bản",
+      "Chọn phong cách hình ảnh",
+      "Kiểm tra lại hai lần",
+      "Hiệu chuẩn cảnh bằng AI",
+      "Mở mục Cảnh, ở thanh bên phải vào Thư viện cảnh để tạo cảnh",
+      "Tại khu vực Cảnh, tạo xong thì lưu ở thanh bên trái",
+      "Hiệu chuẩn phân cảnh bằng AI",
+      "Hiệu chuẩn nhân vật bằng AI",
+      "Mở mục Nhân vật, ở thanh bên phải vào Thư viện nhân vật để tạo hình tượng",
+      "Trong mục Nhân vật, nhấn tạo ảnh thiết lập",
+      "Tạo xong thì lưu",
     ],
   },
   {
     id: 2,
-    title: "giám đốc\u6a21\u5757",
+    title: "Mô-đun Đạo diễn AI",
     steps: [
-      "\u70b9\u51fbgiám đốc\u6a21\u5757",
-      "\u70b9\u51fb\u5de6\u8fb9cây\u5f62\u680f",
-      "\u628a\u9700\u8981Cảnh\u70b9\u51fb“+”\u540e，ThêmĐến\u5de6\u8fb9\u680fPhân cảnhChỉnh sửa\u91cc",
-      "Hình ảnhTạo\u65b9\u5f0f：\u9009\u62e9“\u5408\u5e76Tạo”，Tham sốvà\u56fe\u81eađược rồi\u9009",
-      "\u70b9\u51fb\u6267được rồi\u5408\u5e76Tạo",
-      "Hình ảnhTạo\u5b8c\u6bd5",
-      "không cónhân vật chính\u6848\u4f8b\u65f6：“Tạo\u6210\u56fe”\u6309\u94ae",
-      "Cónhân vật chínhTạo\u6210\u56fe：\u5728Tất cảPhân cảnh\u9875\u4e0b\u65b9“Tạo video”\u6309\u94ae",
+      "Nhấn vào mô-đun Đạo diễn AI",
+      "Mở cây phân cảnh ở thanh bên trái",
+      "Chọn cảnh cần dùng, nhấn dấu + để thêm vào khu vực chỉnh sửa phân cảnh",
+      "Ở chế độ tạo ảnh, chọn Tạo gộp và đặt tham số phù hợp",
+      "Nhấn chạy tạo gộp",
+      "Chờ hoàn tất tạo ảnh",
+      "Nếu không có nhân vật chính, dùng nút Tạo ảnh",
+      "Nếu có nhân vật chính, dùng nút Tạo video ở cuối trang Tất cả phân cảnh",
     ],
   },
 ];
@@ -257,10 +257,10 @@ export function OverviewPanel() {
           <div className="border-b px-5 py-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               <BookOpen className="h-3.5 w-3.5" />
-              \u65b0tay\u5f15\u5bfc
+              Hướng dẫn cho người mới
             </div>
-            <h3 className="mt-2 text-lg font-semibold text-foreground">\u5355\u673a\u7248\u7231\u9605người thật\u5267Cơ bản\u5de5\u4f5c\u6d41</h3>
-            <p className="mt-1 text-sm text-muted-foreground">theo thứ tự\u6267được rồi，\u4e0d\u8981\u8df3\u6b65。</p>
+            <h3 className="mt-2 text-lg font-semibold text-foreground">Quy trình cơ bản</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Làm theo đúng thứ tự, không bỏ qua bước.</p>
           </div>
           <div className="grid gap-4 p-4 md:grid-cols-2">
             {OVERVIEW_WORKFLOW_SECTIONS.map((section) => (

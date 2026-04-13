@@ -360,12 +360,12 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     });
   }
   
-  // \u7b5b\u9009xe kéo\u5206\u955c：\u901a\u8fc7 sceneName chứa "xe kéo" Từ khóa để xác định
+  // Lọc các phân cảnh trailer theo từ khóa trong sceneName
   const trailerScenes = useMemo(() => {
-    // \u901a\u8fc7 sceneName chứa "xe kéo" để lọc
+    // Hỗ trợ cả dữ liệu cũ ('xe kéo') và mới ('trailer')
     const filtered = splitScenes.filter(scene => {
       const sceneName = scene.sceneName || '';
-      return sceneName.includes('xe kéo');
+      return sceneName.includes('trailer') || sceneName.includes('xe kéo');
     });
     console.log('[SplitScenes] Trailer filter by sceneName:', {
       totalScenes: splitScenes.length,
@@ -435,7 +435,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
   // \u5207\u6362\u6444\u5f71gió\u683c\u6863\u6848
   const handleCinProfileChange = useCallback((profileId: string) => {
     setCinematographyProfileId(profileId || undefined);
-    toast.success('\u6444\u5f71gió\u683cĐã rồi\u66f4mới');
+    toast.success('Đã cập nhật phong cách quay phim');
   }, [setCinematographyProfileId]);
 
   // Update style
@@ -444,14 +444,14 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     if (style) {
       // \u76f4\u63a5\u5b58\u50a8gió\u683c ID，\u540c\u65f6\u4fdd\u7559 styleTokens（\u5b8c\u6574 prompt）Tương thích với cũ\u903b\u8f91
       setStoryboardConfig({ visualStyleId: styleId, styleTokens: [style.prompt] });
-      toast.success(`Đã rồi\u5207\u6362cho ${style.name} gió\u683c`);
+      toast.success(`Đã chuyển sang phong cách ${style.name}`);
     }
   }, [setStoryboardConfig]);
 
   // Update aspect ratio
   const handleAspectRatioChange = useCallback((ratio: '16:9' | '9:16') => {
     setStoryboardConfig({ aspectRatio: ratio });
-    toast.success(`Đã rồi\u5207\u6362cho ${ratio === '16:9' ? '\u6a2a\u5c4f' : '\u7ad6\u5c4f'} chế độ`);
+    toast.success(`Đã chuyển sang chế độ ${ratio === '16:9' ? 'màn hình ngang' : 'màn hình dọc'}`);
   }, [setStoryboardConfig]);
 
   const { getApiKey, getProviderByPlatform, concurrency } = useAPIConfigStore();
@@ -467,7 +467,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     
     const mediaId = addMediaFromUrl({
       url: videoUrl,
-      name: `\u5206\u955c ${sceneId + 1} - AI\u89c6\u9891`,
+      name: `Phân cảnh ${sceneId + 1} - AI Video`,
       type: 'video',
       source: 'ai-video',
       thumbnailUrl,
@@ -486,7 +486,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     
     const mediaId = addMediaFromUrl({
       url: imageUrl,
-      name: `\u5206\u955c ${sceneId + 1} - AI\u56fe\u7247`,
+      name: `Phân cảnh ${sceneId + 1} - AI Ảnh`,
       type: 'image',
       source: 'ai-image',
       folderId,
@@ -557,7 +557,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
   // Handle delete scene
   const handleDeleteScene = useCallback((sceneId: number) => {
     deleteSplitScene(sceneId);
-    toast.success(`\u5206\u955c ${sceneId + 1} Đã rồi\u5220\u9664`);
+    toast.success(`Đã xóa phân cảnh ${sceneId + 1}`);
   }, [deleteSplitScene]);
 
   // Handle remove first frame image
@@ -588,14 +588,14 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const sceneIndex = splitScenes.findIndex(s => s.id === sceneId);
     const scene = splitScenes[sceneIndex];
     if (!scene || !scene.videoUrl) {
-      toast.error('\u8bf7đầu tiên\u751f\u6210\u89c6\u9891');
+      toast.error('Vui lòng tạo video trước');
       return;
     }
 
     // \u68c0\u67e5ĐúngKHÔNGCó\u4e0bmộtmột\u5206\u955c
     const nextScene = splitScenes[sceneIndex + 1];
     if (!nextScene) {
-      toast.error('Đây là\u6700\u540emộtmột\u5206\u955c，không có\u6cd5\u63d2\u5165Đến\u4e0bmộtmột\u5206\u955c');
+      toast.error('Đây là phân cảnh cuối, không thể chèn vào phân cảnh tiếp theo');
       return;
     }
 
@@ -605,7 +605,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       // Trích xuất\u6700\u540emột\u5e27
       const lastFrameBase64 = await extractLastFrameFromVideo(scene.videoUrl, 0.1);
       if (!lastFrameBase64) {
-        toast.error('Trích xuất\u5e27\u5931\u8d25');
+        toast.error('Trích xuất khung hình thất bại');
         return;
       }
       
@@ -614,11 +614,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       
       // \u63d2\u5165Đến\u4e0bmộtmột\u5206\u955ccủakhung hình đầu tiên
       updateSplitSceneImage(nextScene.id, persistResult.localPath, nextScene.width, nextScene.height, persistResult.httpUrl || undefined);
-      toast.success(`\u5206\u955c ${sceneId + 1} \u5c3e\u5e27Đã rồi\u63d2\u5165Đến\u5206\u955c ${nextScene.id + 1} khung hình đầu tiên`);
+      toast.success(`Đã chèn khung cuối của phân cảnh ${sceneId + 1} vào khung đầu của phân cảnh ${nextScene.id + 1}`);
       
     } catch (e) {
       console.error('[SplitScenes] Extract last frame error:', e);
-      toast.error('Trích xuất\u5e27\u5931\u8d25');
+      toast.error('Trích xuất khung hình thất bại');
     } finally {
       setIsExtractingFrame(false);
     }
@@ -632,11 +632,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     updateSplitSceneImageStatus(sceneId, {
       imageStatus: 'idle',
       imageProgress: 0,
-      imageError: 'sử dụng\u6237Đã rồi\u53d6\u6d88',
+      imageError: 'Người dùng đã hủy',
     });
     setIsGenerating(false);
     setCurrentGeneratingId(null);
-    toast.info(`\u5206\u955c ${sceneId + 1} khung hình đầu tiên\u751f\u6210Đã rồi\u505c\u6b62`);
+    toast.info(`Đã dừng tạo khung đầu của phân cảnh ${sceneId + 1}`);
   }, [updateSplitSceneImageStatus]);
 
   // \u505c\u6b62\u89c6\u9891\u751f\u6210
@@ -646,11 +646,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     updateSplitSceneVideo(sceneId, {
       videoStatus: 'idle',
       videoProgress: 0,
-      videoError: 'sử dụng\u6237Đã rồi\u53d6\u6d88',
+      videoError: 'Người dùng đã hủy',
     });
     setIsGenerating(false);
     setCurrentGeneratingId(null);
-    toast.info(`\u5206\u955c ${sceneId + 1} \u89c6\u9891\u751f\u6210Đã rồi\u505c\u6b62`);
+    toast.info(`Đã dừng tạo video của phân cảnh ${sceneId + 1}`);
   }, [updateSplitSceneVideo]);
 
   // \u505c\u6b62\u5c3e\u5e27\u56fe\u7247\u751f\u6210
@@ -660,17 +660,17 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     updateSplitSceneEndFrameStatus(sceneId, {
       endFrameStatus: 'idle',
       endFrameProgress: 0,
-      endFrameError: 'sử dụng\u6237Đã rồi\u53d6\u6d88',
+      endFrameError: 'Người dùng đã hủy',
     });
     setIsGenerating(false);
-    toast.info(`\u5206\u955c ${sceneId + 1} \u5c3e\u5e27\u751f\u6210Đã rồi\u505c\u6b62`);
+    toast.info(`Đã dừng tạo khung cuối của phân cảnh ${sceneId + 1}`);
   }, [updateSplitSceneEndFrameStatus]);
 
   // \u505c\u6b62\u5408\u5e76\u751f\u6210
   const handleStopMergedGeneration = useCallback(() => {
     mergedAbortRef.current = true;
     setIsMergedRunning(false);
-    toast.info('\u5408\u5e76\u751f\u6210Đã rồi\u505c\u6b62');
+    toast.info('Đã dừng tạo gộp');
   }, []);
 
   // Handle angle switch click
@@ -682,7 +682,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       ? (scene.imageDataUrl || scene.imageHttpUrl) 
       : (scene.endFrameImageUrl || scene.endFrameHttpUrl);
     if (!imageUrl) {
-      toast.error(`\u8bf7đầu tiên\u751f\u6210${type === "start" ? "khung hình đầu tiên" : "\u5c3e\u5e27"}`);
+      toast.error(`Vui lòng tạo ${type === "start" ? "khung đầu" : "khung cuối"} trước`);
       return;
     }
 
@@ -709,7 +709,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const runninghubBaseUrl = runninghubProvider?.baseUrl?.trim();
     const runninghubAppId = runninghubProvider?.model?.[0];
     if (!runninghubKey || !runninghubBaseUrl || !runninghubAppId) {
-      toast.error("\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình RunningHub（API Key / Base URL / \u6a21\u578bAppId）");
+      toast.error("Vui lòng cấu hình RunningHub trong Cài đặt trước (API Key / Base URL / AppId)");
       setAngleSwitchOpen(false);
       return;
     }
@@ -769,9 +769,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       setAngleSwitchOpen(false);
       setAngleSwitchResultOpen(true);
 
-      toast.success("\u89c6\u89d2\u5207\u6362\u751f\u6210Hoàn thành");
+      toast.success("Đã tạo chuyển góc thành công");
     } catch (error) {
-      toast.error(`\u89c6\u89d2\u5207\u6362\u5931\u8d25: ${(error as Error).message}`);
+      toast.error(`Chuyển góc thất bại: ${(error as Error).message}`);
     } finally {
       setIsAngleSwitching(false);
     }
@@ -937,7 +937,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       ? (scene.imageDataUrl || scene.imageHttpUrl)
       : (scene.endFrameImageUrl || scene.endFrameHttpUrl);
     if (!imageUrl) {
-      toast.error(`\u8bf7đầu tiên\u751f\u6210${type === "start" ? "khung hình đầu tiên" : "\u5c3e\u5e27"}`);
+      toast.error(`Vui lòng tạo ${type === "start" ? "khung đầu" : "khung cuối"} trước`);
       return;
     }
 
@@ -963,7 +963,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // Get API key - sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210 API');
+      toast.error('Vui lòng cấu hình API tạo ảnh trong Cài đặt trước');
       setQuadGridOpen(false);
       return;
     }
@@ -971,20 +971,20 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       setQuadGridOpen(false);
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u6a21\u578b');
+      toast.error('Vui lòng cấu hình model tạo ảnh trong Cài đặt trước');
       setQuadGridOpen(false);
       return;
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       setQuadGridOpen(false);
       return;
     }
@@ -998,10 +998,10 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     try {
       // Build variation labels based on type
       const variationLabels = variationType === 'angle'
-        ? ['phía trước\u504f\u5de6', 'phía trước\u504f\u53f3', '\u4fa7\u9762\u7279\u5199', '\u5168\u666fnhìn ra']
+        ? ['chính diện lệch trái', 'chính diện lệch phải', 'cận cảnh nghiêng', 'toàn cảnh từ xa']
         : variationType === 'composition'
-          ? ['\u5168\u8eabxa\u666f', '\u534a\u8eabtrong\u666f', 'đối mặt\u7279\u5199', 'môi trường\u4ea4\u4ee3']
-          : ['\u52a8\u4f5c\u8d77\u59cb', '\u52a8\u4f5c\u8fc7\u7a0b', '\u52a8\u4f5cđỉnh điểm', '\u52a8\u4f5c\u7ed3\u675f'];
+          ? ['toàn thân xa', 'bán thân trung', 'cận mặt', 'toàn cảnh môi trường']
+          : ['bắt đầu hành động', 'diễn tiến hành động', 'cao trào hành động', 'kết thúc hành động'];
 
       const variationPrompts = variationType === 'angle'
         ? ['slight left angle view', 'slight right angle view', 'side profile close-up', 'wide aerial overview']
@@ -1171,7 +1171,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           }
           
           if (status === 'failed' || status === 'error') {
-            throw new Error(statusData.error || '\u56fe\u7247\u751f\u6210\u5931\u8d25');
+            throw new Error(statusData.error || 'Tạo ảnh thất bại');
           }
           
           await new Promise(r => setTimeout(r, pollInterval));
@@ -1179,7 +1179,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       }
 
       if (!gridImageUrl) {
-        throw new Error('\u672a\u83b7\u53d6Đếnbốncung điện\u683c\u56fe\u7247 URL');
+        throw new Error('Không lấy được URL ảnh lưới 2x2');
       }
 
       console.log('[QuadGrid] Grid image URL:', gridImageUrl.substring(0, 80));
@@ -1205,7 +1205,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           }
           resolve(results);
         };
-        img.onerror = () => reject(new Error('\u52a0\u8f7dbốncung điện\u683c\u56fe\u7247\u5931\u8d25'));
+        img.onerror = () => reject(new Error('Tải ảnh lưới 2x2 thất bại'));
         img.src = gridImageUrl!;
       });
 
@@ -1215,13 +1215,13 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       setQuadGridResult({
         originalImage: sourceImage,
         images: slicedImages,
-        variationType: variationType === 'angle' ? '\u89c6\u89d2thay đổi\u4f53' : variationType === 'composition' ? 'thành phầnthay đổi\u4f53' : '\u65f6\u523bthay đổi\u4f53',
+        variationType: variationType === 'angle' ? 'biến thể góc máy' : variationType === 'composition' ? 'biến thể bố cục' : 'biến thể khoảnh khắc',
         variationLabels,
       });
       
       // \u81ea\u52a8\u4fdd\u5b58\u6240Cóbốncung điện\u683c\u56fe\u7247ĐếnChất liệu\u5e93
       const folderId = getImageFolderId();
-      const variationTypeLabel = variationType === 'angle' ? '\u89c6\u89d2thay đổi\u4f53' : variationType === 'composition' ? 'thành phầnthay đổi\u4f53' : '\u65f6\u523bthay đổi\u4f53';
+      const variationTypeLabel = variationType === 'angle' ? 'biến thể góc máy' : variationType === 'composition' ? 'biến thể bố cục' : 'biến thể khoảnh khắc';
       slicedImages.forEach((img, idx) => {
         addMediaFromUrl({
           url: img,
@@ -1236,12 +1236,12 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       // \u751f\u6210\u6210\u529f\u540e\u624d\u5173\u95ed\u9009\u62e9\u5bf9\u8bdd\u6846，\u6253\u5f00kết quả\u5bf9\u8bdd\u6846
       setQuadGridOpen(false);
       setQuadGridResultOpen(true);
-      toast.success('bốncung điện\u683c\u751f\u6210Hoàn thành，Đã rồi\u81ea\u52a8\u4fdd\u5b58ĐếnChất liệu\u5e93');
+      toast.success('Đã tạo lưới 2x2 thành công và tự động lưu vào thư viện');
 
     } catch (error) {
       const err = error as Error;
       console.error('[QuadGrid] Failed:', err);
-      toast.error(`bốncung điện\u683c\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.error(`Tạo lưới 2x2 thất bại: ${err.message}`);
     } finally {
       setIsQuadGridGenerating(false);
     }
@@ -1278,7 +1278,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     setQuadGridResultOpen(false);
     setQuadGridResult(null);
     setQuadGridTarget(null);
-    toast.success(`Đã rồi\u5e94sử dụngĐến${quadGridTarget.type === "start" ? "khung hình đầu tiên" : "\u5c3e\u5e27"}`);
+    toast.success(`Đã áp dụng vào ${quadGridTarget.type === "start" ? "khung đầu" : "khung cuối"}`);
   }, [quadGridResult, quadGridTarget, updateSplitSceneImage, updateSplitSceneEndFrame]);
 
   // Copy quad grid image to another scene
@@ -1297,7 +1297,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       updateSplitSceneEndFrame(targetSceneId, localPath, undefined, httpUrl || undefined);
     }
 
-    toast.success(`Đã sao chépĐến\u5206\u955c ${targetSceneId + 1} của${targetFrameType === "start" ? "khung hình đầu tiên" : "\u5c3e\u5e27"}`);
+    toast.success(`Đã sao chép vào phân cảnh ${targetSceneId + 1} (${targetFrameType === "start" ? "khung đầu" : "khung cuối"})`);
   }, [quadGridResult, updateSplitSceneImage, updateSplitSceneEndFrame]);
 
   // Save quad grid image to library
@@ -1317,7 +1317,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       projectId: mediaProjectId,
     });
 
-    toast.success('Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93');
+    toast.success('Đã lưu vào thư viện');
   }, [quadGridResult, quadGridTarget, getImageFolderId, addMediaFromUrl]);
 
   // Save all quad grid images to library
@@ -1336,7 +1336,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       });
     });
 
-    toast.success(`Đã rồi\u4fdd\u5b58 ${quadGridResult.images.length} \u5f20\u56fe\u7247ĐếnChất liệu\u5e93`);
+    toast.success(`Đã lưu ${quadGridResult.images.length} ảnh vào thư viện`);
   }, [quadGridResult, getImageFolderId, addMediaFromUrl]);
 
   // Apply angle switch result
@@ -1367,13 +1367,13 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     setAngleSwitchResult(null);
     setAngleSwitchTarget(null);
     setSelectedHistoryIndex(-1);
-    toast.success("\u89c6\u89d2Đã rồi\u5e94sử dụng");
+    toast.success("Đã áp dụng góc quay");
   }, [angleSwitchResult, angleSwitchTarget, splitScenes, selectedHistoryIndex, updateSplitSceneImage, updateSplitSceneEndFrame]);
 
   // Handle auto-generate prompts using Gemini Vision
   const handleAutoGeneratePrompts = useCallback(async () => {
     if (!storyboardImage || splitScenes.length === 0) {
-      toast.error("không có\u6cd5\u751f\u6210\u63d0\u793a\u8bcd：thiếu\u5931câu chuyện\u677fhoặc\u5206\u955c");
+      toast.error("Không thể tạo prompt: thiếu storyboard hoặc phân cảnh");
       return;
     }
 
@@ -1386,11 +1386,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // Note: API config is optional - if scenes have text descriptions, no API is needed
 
     setIsGeneratingPrompts(true);
-    toast.info("\u6b63\u5728\u6839\u636e\u5206\u955cbên trong\u5bb9\u751f\u6210\u63d0\u793a\u8bcd...");
+    toast.info("Đang tạo prompt dựa trên nội dung phân cảnh...");
 
     try {
       // Get story prompt from storyboard config
-      const storyPrompt = storyboardConfig.storyPrompt || "\u89c6\u9891\u5206\u955c";
+      const storyPrompt = storyboardConfig.storyPrompt || "video phân cảnh";
 
       const prompts = await generateScenePrompts({
         storyboardImage,
@@ -1436,11 +1436,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         }
       });
 
-      toast.success(`\u6210\u529f\u751f\u6210 ${updatedCount} một\u5206\u955ccủa\u63d0\u793a\u8bcd（${endFrameCount} cần khung hình cuối cùng）`);
+      toast.success(`Đã tạo prompt cho ${updatedCount} phân cảnh (${endFrameCount} cảnh cần khung cuối)`);
     } catch (error) {
       const err = error as Error;
       console.error("[SplitScenes] Prompt generation failed:", err);
-      toast.error(`\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.error(`Tạo thất bại: ${err.message}`);
     } finally {
       setIsGeneratingPrompts(false);
     }
@@ -1483,12 +1483,12 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u89c6\u9891\u751f\u6210\u6a21\u578b');
+      toast.error('Vui lòng cấu hình model tạo video trong Cài đặt trước');
       return;
     }
     const videoBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!videoBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u89c6\u9891\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo video trong Cài đặt trước');
       return;
     }
     
@@ -1500,7 +1500,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error(`\u8bf7đầu tiênCấu hình ${platform} API Key`);
+      toast.error(`Vui lòng cấu hình API Key cho ${platform}`);
       return;
     }
     
@@ -1556,7 +1556,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       }
       
       if (!firstFrameUrl) {
-        toast.error(`\u5206\u955c ${sceneId + 1} \u6ca1Cókhung hình đầu tiêđồ thị n\u7247，\u8bf7đầu tiên\u751f\u6210\u56fe\u7247`);
+        toast.error(`Phân cảnh ${sceneId + 1} chưa có khung đầu, vui lòng tạo ảnh trước`);
         setIsGenerating(false);
         setCurrentGeneratingId(null);
         return;
@@ -1669,7 +1669,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           // Check if image host is configured
           if (!isImageHostConfigured()) {
             console.warn('[SplitScenes] Image host not configured. Please configure an image host in settings.');
-            throw new Error('\u56fegiườngChưa được định cấu hình，\u8bf7đầu tiên\u5728\u8bbe\u7f6etrong\u542fsử dụng Catbox hoặc\u5176\u4ed6Có sẵn\u56fegiường');
+            throw new Error('Image host chưa được cấu hình, vui lòng thiết lập Catbox hoặc dịch vụ tương đương trong Cài đặt');
           }
           
           let imageData = url;
@@ -1696,7 +1696,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             return uploadResult.url;
           } else {
             console.warn('[SplitScenes] Image upload failed:', uploadResult.error);
-            throw new Error(uploadResult.error || '\u56fe\u7247\u4e0a\u4f20\u5931\u8d25');
+            throw new Error(uploadResult.error || 'Tải ảnh lên thất bại');
           }
         } catch (e) {
           console.warn('[SplitScenes] Failed to upload image:', e);
@@ -1784,7 +1784,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         videoUrl: finalVideoUrl,
         videoMediaId: mediaId,
       });
-      toast.success(`\u5206\u955c ${sceneId + 1} \u89c6\u9891\u751f\u6210Hoàn thành，Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+      toast.success(`Phân cảnh ${sceneId + 1} tạo video thành công và đã lưu vào thư viện`);
       
       // tính liên tục về mặt thị giác：\u4ec5\u5f53\u5206\u955c\u9700\u8981\u5c3e\u5e27\u65f6，Trích xuất\u89c6\u9891\u6700\u540emột\u5e27
       const currentScene = splitScenes.find(s => s.id === sceneId);
@@ -1818,7 +1818,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       const err = error as Error;
 
       // sử dụng\u6237Chúa ơi\u52a8\u53d6\u6d88：abort() \u89e6\u53d1của AbortError hoặc\u81ea\u5b9a\u4e49 'sử dụng\u6237Đã rồi\u53d6\u6d88'
-      if (err.name === 'AbortError' || err.message === 'sử dụng\u6237Đã rồi\u53d6\u6d88') {
+      if (err.name === 'AbortError' || err.message === 'Người dùng đã hủy') {
         console.log(`[SplitScenes] Scene ${sceneId} video generation cancelled by user`);
         setIsGenerating(false);
         setCurrentGeneratingId(null);
@@ -1837,7 +1837,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           videoProgress: 0,
           videoError: `MODERATION_SKIPPED:${err.message}`,
         });
-        toast.warning(`\u5206\u955c ${sceneId + 1} \u56e0bên trong\u5bb9\u5ba1\u6838bỏ qua`);
+        toast.warning(`Phân cảnh ${sceneId + 1} bị bỏ qua do kiểm duyệt nội dung`);
         console.log(`[SplitScenes] Scene ${sceneId} skipped due to content moderation`);
       } else {
         // bình thường\u9519\u8bef
@@ -1846,7 +1846,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           videoProgress: 0,
           videoError: err.message,
         });
-        toast.error(`\u5206\u955c ${sceneId + 1} \u751f\u6210\u5931\u8d25: ${err.message}`);
+        toast.error(`Phân cảnh ${sceneId + 1} tạo thất bại: ${err.message}`);
       }
     }
 
@@ -1858,7 +1858,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
   // \u590dsử dụng handleGenerateSingleVideo của\u7edfmột API \u8c03sử dụng\u903b\u8f91，\u907f\u514dsử dụng\u4e0d\u5b58\u5728của /api/ai/video \u7aef\u70b9
   const handleGenerateVideos = useCallback(async () => {
     if (splitScenes.length === 0) {
-      toast.error("\u6ca1Có\u53ef\u751f\u6210của\u5206\u955c");
+      toast.error("Không có phân cảnh nào để tạo");
       return;
     }
 
@@ -1873,7 +1873,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       s => !(s.videoPromptZh?.trim() || s.videoPrompt?.trim())
     );
     if (scenesWithoutPrompts.length > 0) {
-      toast.warning(`\u8fd8Có ${scenesWithoutPrompts.length} một\u5206\u955c\u6ca1Có\u63d0\u793a\u8bcd，\u5c06sử dụng\u9ed8\u8ba4\u63d0\u793a\u8bcd`);
+      toast.warning(`Còn ${scenesWithoutPrompts.length} phân cảnh chưa có prompt, hệ thống sẽ dùng prompt mặc định`);
     }
 
     // Filter scenes that need generation (idle or failed)
@@ -1882,12 +1882,12 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     );
 
     if (scenesToGenerate.length === 0) {
-      toast.info("\u6240Có\u5206\u955cĐã rồi\u751f\u6210hoặc\u6b63\u5728\u751f\u6210trong");
+      toast.info("Tất cả phân cảnh đã tạo xong hoặc đang được tạo");
       return;
     }
 
     setIsGenerating(true);
-    toast.info(`\u5f00\u59cb\u4e32được rồi\u751f\u6210 ${scenesToGenerate.length} một\u89c6\u9891...\u6bcflần\u5904\u7406 ${concurrency} một`);
+    toast.info(`Bắt đầu tạo hàng loạt ${scenesToGenerate.length} video... mỗi lần xử lý ${concurrency} cảnh`);
 
     let successCount = 0;
     const totalCount = scenesToGenerate.length;
@@ -1912,9 +1912,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     setCurrentGeneratingId(null);
     
     if (successCount === totalCount) {
-      toast.success("\u6240Có\u89c6\u9891\u751f\u6210Hoàn thành！");
+      toast.success("Tất cả video đã tạo thành công!");
     } else if (successCount > 0) {
-      toast.info(`${successCount}/${totalCount} một\u89c6\u9891\u751f\u6210Hoàn thành，${totalCount - successCount} một\u5931\u8d25`);
+      toast.info(`${successCount}/${totalCount} video đã tạo thành công, ${totalCount - successCount} video thất bại`);
     }
   }, [splitScenes, concurrency, handleGenerateSingleVideo]);
 
@@ -1926,26 +1926,26 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // sử dụng\u670d\u52a1\u6620\u5c04Cấu hình - \u4e0dMột lần nữa fallback Đến\u786c\u7f16\u7801
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u6a21\u578b');
+      toast.error('Vui lòng cấu hình model tạo ảnh trong Cài đặt trước');
       return;
     }
     
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     
@@ -1955,7 +1955,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const promptToUse = scene.imagePromptZh?.trim() || scene.imagePrompt?.trim() 
       || scene.videoPromptZh?.trim() || scene.videoPrompt?.trim() || '';
     if (!promptToUse) {
-      toast.warning("\u8bf7đầu tiên\u586b\u5199khung hình đầu tiên\u63d0\u793a\u8bcd\u540eMột lần nữa\u751f\u6210\u56fe\u7247");
+      toast.warning("Vui lòng nhập prompt khung đầu trước rồi tạo lại ảnh");
       return;
     }
 
@@ -2073,7 +2073,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         const persistResult = await persistSceneImage(apiResult.imageUrl, sceneId, 'first');
         updateSplitSceneImage(sceneId, persistResult.localPath, scene.width, scene.height, persistResult.httpUrl || undefined);
         autoSaveImageToLibrary(sceneId, persistResult.localPath);
-        toast.success(`\u5206\u955c ${sceneId + 1} \u56fe\u7247\u751f\u6210Hoàn thành，Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+        toast.success(`Phân cảnh ${sceneId + 1} tạo ảnh thành công và đã lưu vào thư viện`);
         setIsGenerating(false);
         return;
       }
@@ -2105,7 +2105,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
           if (!statusResponse.ok) {
             if (statusResponse.status === 404) {
-              throw new Error('Nhiệm vụ\u4e0d\u5b58\u5728');
+              throw new Error('Nhiệm vụ không tồn tại');
             }
             throw new Error(`Failed to check task status: ${statusResponse.status}`);
           }
@@ -2123,29 +2123,29 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             }
             imageUrl = imageUrl || normalizeUrlValue(statusData.output_url) || normalizeUrlValue(statusData.result_url) || normalizeUrlValue(statusData.url);
 
-            if (!imageUrl) throw new Error('Nhiệm vụHoàn thành\u4f46\u6ca1Có\u56fe\u7247 URL');
+            if (!imageUrl) throw new Error('Nhiệm vụ hoàn thành nhưng không có URL ảnh');
             
             // \u6301\u4e45\u5316Đến\u672c\u5730 + \u56fegiường
             const persistResult = await persistSceneImage(imageUrl, sceneId, 'first');
             updateSplitSceneImage(sceneId, persistResult.localPath, scene.width, scene.height, persistResult.httpUrl || undefined);
             autoSaveImageToLibrary(sceneId, persistResult.localPath);
-            toast.success(`\u5206\u955c ${sceneId + 1} \u56fe\u7247\u751f\u6210Hoàn thành，Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+            toast.success(`Phân cảnh ${sceneId + 1} tạo ảnh thành công và đã lưu vào thư viện`);
             setIsGenerating(false);
             return;
           }
 
           if (status === 'failed' || status === 'error') {
-            const errorMsg = statusData.error || statusData.message || statusData.data?.error || '\u56fe\u7247\u751f\u6210\u5931\u8d25';
+            const errorMsg = statusData.error || statusData.message || statusData.data?.error || 'Tạo ảnh thất bại';
             console.error('[SplitScenes] Task failed:', statusData);
             throw new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
           }
 
           await new Promise<void>((resolve, reject) => {
             const tid = setTimeout(resolve, pollInterval);
-            imageSignal.addEventListener('abort', () => { clearTimeout(tid); reject(new Error('sử dụng\u6237Đã rồi\u53d6\u6d88')); }, { once: true });
+            imageSignal.addEventListener('abort', () => { clearTimeout(tid); reject(new Error('Người dùng đã hủy')); }, { once: true });
           });
         }
-        throw new Error('\u56fe\u7247\u751f\u6210\u8d85\u65f6');
+        throw new Error('Tạo ảnh quá thời gian chờ');
       }
 
       throw new Error('Invalid API response: no image URL or task ID');
@@ -2153,7 +2153,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       const err = error as Error;
 
       // sử dụng\u6237Chúa ơi\u52a8\u53d6\u6d88：abort() \u89e6\u53d1của AbortError hoặc\u81ea\u5b9a\u4e49 'sử dụng\u6237Đã rồi\u53d6\u6d88'
-      if (err.name === 'AbortError' || err.message === 'sử dụng\u6237Đã rồi\u53d6\u6d88') {
+      if (err.name === 'AbortError' || err.message === 'Người dùng đã hủy') {
         console.log(`[SplitScenes] Scene ${sceneId} image generation cancelled by user`);
         setIsGenerating(false);
         return;
@@ -2165,7 +2165,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         imageProgress: 0,
         imageError: err.message,
       });
-      toast.error(`\u5206\u955c ${sceneId + 1} \u56fe\u7247\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.error(`Phân cảnh ${sceneId + 1} tạo ảnh thất bại: ${err.message}`);
     }
 
     setIsGenerating(false);
@@ -2275,32 +2275,32 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
   const handleMergedGenerate = useCallback(async (mode: 'first'|'last'|'both', strategy: 'cluster'|'minimal'|'none' = 'cluster', exemplar: boolean = true) => {
     if (splitScenes.length === 0) {
-      toast.error('\u6ca1Có\u53ef\u751f\u6210của\u5206\u955c');
+      toast.error('Không có phân cảnh nào để tạo');
       return;
     }
 
     // \u83b7\u53d6\u56fe\u50cf\u751f\u6210khả năng - sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u6a21\u578b');
+      toast.error('Vui lòng cấu hình model tạo ảnh trong Cài đặt trước');
       return;
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     
@@ -2342,7 +2342,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
     // \u68c0\u67e5ĐúngKHÔNGCó\u9700\u8981\u751f\u6210của
     if (tasks.length === 0) {
-      toast.info('\u6240Có\u5206\u955cĐã rồi\u751f\u6210Hoàn thành，không có\u9700\u91cd\u590d\u751f\u6210');
+      toast.info('Tất cả phân cảnh đã tạo xong, không cần tạo lại');
       setIsMergedRunning(false);
       return;
     }
@@ -2351,11 +2351,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const firstCount = tasks.filter(t => t.type === 'first').length;
     const endCount = tasks.filter(t => t.type === 'end').length;
     const parts: string[] = [];
-    if (firstCount > 0) parts.push(`${firstCount}mộtkhung hình đầu tiên`);
-    if (endCount > 0) parts.push(`${endCount}một\u5c3e\u5e27`);
+    if (firstCount > 0) parts.push(`${firstCount} khung đầu`);
+    if (endCount > 0) parts.push(`${endCount} khung cuối`);
     const completedCount = splitScenes.filter(isSceneCompleted).length;
-    const skipInfo = completedCount > 0 ? `（bỏ qua${completedCount}mộtĐã rồiHoàn thành\u89c6\u9891）` : '';
-    toast.info(`\u5f00\u59cbchíncung điện\u683c\u5408\u5e76\u751f\u6210：${parts.join('、')}${skipInfo}`);
+    const skipInfo = completedCount > 0 ? ` (bỏ qua ${completedCount} cảnh đã có video)` : '';
+    toast.info(`Bắt đầu tạo gộp lưới 3x3: ${parts.join(', ')}${skipInfo}`);
 
     // Nhiệm vụPhân trang（\u6bcf9mộtNhiệm vụmột\u9875，\u6df7\u5408khung hình đầu tiênvà\u5c3e\u5e27）
     const taskPages: GridTask[][] = [];
@@ -2522,7 +2522,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           }
           resolve(results);
         };
-        img.onerror = (e) => reject(new Error('\u52a0\u8f7dchíncung điện\u683c\u56fe\u7247\u5931\u8d25'));
+        img.onerror = (e) => reject(new Error('Tải ảnh lưới 3x3 thất bại'));
         img.src = gridImageUrl;
       });
     };
@@ -2750,7 +2750,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           }
           
           if (status === 'failed' || status === 'error') {
-            const errMsg = statusData.error || statusData.message || statusData.data?.error || '\u56fe\u7247\u751f\u6210\u5931\u8d25';
+            const errMsg = statusData.error || statusData.message || statusData.data?.error || 'Tạo ảnh thất bại';
             throw new Error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
           }
           
@@ -2761,9 +2761,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       if (!gridImageUrl) {
         console.error('[MergedGen] không có\u6cd5\u83b7\u53d6\u56fe\u7247 URL, apiResult:', apiResult);
         if (taskId) {
-          throw new Error(`chíncung điện\u683c\u751f\u6210\u8d85\u65f6（Nhiệm vụ ${taskId} \u5728 3 \u5206\u949fbên trong\u672aHoàn thành），API \u670d\u52a1\u53ef\u80fdtruyền thống\u5fd9，\u8bf7\u7a0d\u540e\u91cd\u8bd5`);
+          throw new Error(`Tạo lưới 3x3 quá thời gian chờ (nhiệm vụ ${taskId} chưa hoàn thành trong 3 phút), vui lòng thử lại sau`);
         }
-        throw new Error('\u672a\u83b7\u53d6Đếnchíncung điện\u683c\u56fe\u7247 URL，\u8bf7\u68c0\u67e5 API phản ứng');
+        throw new Error('Không lấy được URL ảnh lưới 3x3, vui lòng kiểm tra phản hồi API');
       }
       
       console.log('[MergedGen] Grid image URL:', gridImageUrl.substring(0, 80));
@@ -2791,7 +2791,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           const localPath = persistResultLoop.localPath;
           
           if (httpUrl) {
-            console.log(`[MergedGen] \u5206\u955c ${s.id + 1} ${task.type === 'end' ? '\u5c3e\u5e27' : 'khung hình đầu tiên'} Đã rồi\u4e0a\u4f20Đến\u56fegiường:`, httpUrl.substring(0, 60));
+            console.log(`[MergedGen] Phân cảnh ${s.id + 1} ${task.type === 'end' ? 'khung cuối' : 'khung đầu'} đã upload lên image host:`, httpUrl.substring(0, 60));
           }
           
           if (task.type === 'end') {
@@ -2799,7 +2799,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             // \u81ea\u52a8\u4fdd\u5b58\u5c3e\u5e27ĐếnChất liệu\u5e93
             addMediaFromUrl({
               url: localPath,
-              name: `\u5206\u955c ${s.id + 1} - \u5c3e\u5e27`,
+              name: `Phân cảnh ${s.id + 1} - khung cuối`,
               type: 'image',
               source: 'ai-image',
               folderId,
@@ -2811,7 +2811,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             // \u81ea\u52a8\u4fdd\u5b58khung hình đầu tiênĐếnChất liệu\u5e93
             addMediaFromUrl({
               url: localPath,
-              name: `\u5206\u955c ${s.id + 1} - khung hình đầu tiên`,
+              name: `Phân cảnh ${s.id + 1} - khung đầu`,
               type: 'image',
               source: 'ai-image',
               folderId,
@@ -2842,7 +2842,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     for (let p = 0; p < taskPages.length; p++) {
       if (mergedAbortRef.current) {
         console.log('[MergedGen] sử dụng\u6237\u505c\u6b62\u5408\u5e76\u751f\u6210');
-        toast.info('\u5408\u5e76\u751f\u6210Đã rồi\u505c\u6b62');
+        toast.info('Đã dừng tạo gộp');
         setIsMergedRunning(false);
         return;
       }
@@ -2861,7 +2861,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         await generateGridAndSlice(pageTasks, refs);
         succeededCount++;
         if (!mergedAbortRef.current) {
-          toast.success(`Không. ${p + 1}/${taskPages.length} \u9875Hoàn thành（${pageInfo}）`);
+          toast.success(`Trang ${p + 1}/${taskPages.length} hoàn thành (${pageInfo})`);
         }
       } catch (e: any) {
         const errorMsg = e.message || String(e);
@@ -2869,7 +2869,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         // \u91cd\u7f6e\u8be5\u9875\u5206\u955c\u72b6\u6001cho error，\u4e0d\u8ba9\u5b83\u4eec\u5361\u5728 'generating'
         resetPageTasksToError(pageTasks, errorMsg);
         failedPages.push({ index: p, pageTasks, refs, error: errorMsg });
-        toast.warning(`Không. ${p + 1}/${taskPages.length} \u9875\u5931\u8d25，\u5c06\u81ea\u52a8\u91cd\u8bd5：${errorMsg.substring(0, 60)}`);
+        toast.warning(`Trang ${p + 1}/${taskPages.length} thất bại, sẽ tự động thử lại: ${errorMsg.substring(0, 60)}`);
         // tiếp tục\u4e0bmột\u9875，\u4e0dtrong\u65ad
       }
     }
@@ -2877,7 +2877,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // Không.Hai\u8f6e：\u81ea\u52a8\u91cd\u8bd5\u5931\u8d25của\u9875\u9762（\u5ef6\u8fdf 5 giây\u540e\u91cd\u8bd5，\u7ed9 API \u6062\u590d\u65f6\u95f4）
     if (failedPages.length > 0 && !mergedAbortRef.current) {
       console.log(`[MergedGen] ${failedPages.length} \u9875\u5931\u8d25，5 giây\u540e\u81ea\u52a8\u91cd\u8bd5...`);
-      toast.info(`${failedPages.length} \u9875\u751f\u6210\u5931\u8d25，5 giây\u540e\u81ea\u52a8\u91cd\u8bd5...`);
+      toast.info(`${failedPages.length} trang tạo thất bại, sẽ tự động thử lại sau 5 giây...`);
       await new Promise(r => setTimeout(r, 5000));
 
       for (const fp of failedPages) {
@@ -2893,13 +2893,13 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           const freshRefs = collectOptimizedRefsFromTasks(fp.pageTasks);
           await generateGridAndSlice(fp.pageTasks, freshRefs);
           succeededCount++;
-          toast.success(`Không. ${fp.index + 1} \u9875\u91cd\u8bd5\u6210\u529f（${pageInfo}）`);
+          toast.success(`Trang ${fp.index + 1} thử lại thành công (${pageInfo})`);
         } catch (retryErr: any) {
           const retryMsg = retryErr.message || String(retryErr);
           console.error(`[MergedGen] Không. ${fp.index + 1} \u9875\u91cd\u8bd5\u4ecd\u7136\u5931\u8d25:`, retryMsg);
           // Một lần nữalần\u91cd\u7f6echo error \u72b6\u6001
-          resetPageTasksToError(fp.pageTasks, `\u91cd\u8bd5\u5931\u8d25: ${retryMsg}`);
-          toast.error(`Không. ${fp.index + 1} \u9875\u91cd\u8bd5\u5931\u8d25: ${retryMsg.substring(0, 80)}`);
+          resetPageTasksToError(fp.pageTasks, `Thử lại thất bại: ${retryMsg}`);
+          toast.error(`Trang ${fp.index + 1} thử lại thất bại: ${retryMsg.substring(0, 80)}`);
         }
       }
     }
@@ -2908,11 +2908,11 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     const totalPages = taskPages.length;
     if (!mergedAbortRef.current) {
       if (succeededCount === totalPages) {
-        toast.success('chíncung điện\u683c\u5408\u5e76\u751f\u6210Tất cảHoàn thành！');
+        toast.success('Tạo gộp lưới 3x3 hoàn thành tất cả!');
       } else if (succeededCount > 0) {
-        toast.warning(`\u5408\u5e76\u751f\u6210một phầnHoàn thành：${succeededCount}/${totalPages} \u9875\u6210\u529f，${totalPages - succeededCount} \u9875\u5931\u8d25`);
+        toast.warning(`Tạo gộp hoàn thành một phần: ${succeededCount}/${totalPages} trang thành công, ${totalPages - succeededCount} trang thất bại`);
       } else {
-        toast.error(`\u5408\u5e76\u751f\u6210Tất cả\u5931\u8d25（${totalPages} \u9875），\u8bf7\u68c0\u67e5 API \u670d\u52a1\u540e\u91cd\u8bd5`);
+        toast.error(`Tạo gộp thất bại toàn bộ (${totalPages} trang), vui lòng kiểm tra dịch vụ API và thử lại`);
       }
     }
     setIsMergedRunning(false);
@@ -2952,20 +2952,20 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      throw new Error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u6a21\u578b');
+      throw new Error('Vui lòng cấu hình model tạo ảnh trong Cài đặt trước');
     }
     const apiKeyToUse = apiKey || featureConfig.keyManager.getCurrentKey() || '';
     if (!apiKeyToUse) {
-      throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      throw new Error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      throw new Error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      throw new Error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
     }
 
     // Call image generation API with smart routing
@@ -3053,31 +3053,31 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // Must have end frame prompt
     const promptToUse = scene.endFramePromptZh?.trim() || scene.endFramePrompt?.trim() || '';
     if (!promptToUse) {
-      toast.warning("\u8bf7đầu tiên\u586b\u5199\u5c3e\u5e27\u63d0\u793a\u8bcd\u540eMột lần nữa\u751f\u6210");
+      toast.warning("Vui lòng nhập prompt khung cuối trước rồi tạo lại");
       return;
     }
 
     // sử dụng\u670d\u52a1\u6620\u5c04Cấu hình
     const featureConfig = getFeatureConfig('character_generation');
     if (!featureConfig) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     const keyManager = featureConfig.keyManager;
     const apiKey = keyManager.getCurrentKey() || '';
     if (!apiKey) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     const platform = featureConfig.platform;
     const model = featureConfig.models?.[0];
     if (!model) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u6a21\u578b');
+      toast.error('Vui lòng cấu hình model tạo ảnh trong Cài đặt trước');
       return;
     }
     const imageBaseUrl = featureConfig.baseUrl?.replace(/\/+$/, '');
     if (!imageBaseUrl) {
-      toast.error('\u8bf7đầu tiên\u5728\u8bbe\u7f6eTrung bình Cấu hình\u56fe\u7247\u751f\u6210\u670d\u52a1\u6620\u5c04');
+      toast.error('Vui lòng cấu hình ánh xạ dịch vụ tạo ảnh trong Cài đặt trước');
       return;
     }
     
@@ -3196,13 +3196,13 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         const folderId = getImageFolderId();
         addMediaFromUrl({
           url: persistResult.localPath,
-          name: `\u5206\u955c ${sceneId + 1} - \u5c3e\u5e27`,
+          name: `Phân cảnh ${sceneId + 1} - khung cuối`,
           type: 'image',
           source: 'ai-image',
           folderId,
           projectId: mediaProjectId,
         });
-        toast.success(`\u5206\u955c ${sceneId + 1} \u5c3e\u5e27\u751f\u6210Hoàn thành，Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+        toast.success(`Phân cảnh ${sceneId + 1} tạo khung cuối thành công và đã lưu vào thư viện`);
         setIsGenerating(false);
         return;
       }
@@ -3231,7 +3231,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           });
 
           if (!statusResponse.ok) {
-            if (statusResponse.status === 404) throw new Error('Nhiệm vụ\u4e0d\u5b58\u5728');
+            if (statusResponse.status === 404) throw new Error('Nhiệm vụ không tồn tại');
             throw new Error(`Failed to check task status: ${statusResponse.status}`);
           }
 
@@ -3247,7 +3247,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             }
             imageUrl = imageUrl || normalizeUrlValue(statusData.output_url) || normalizeUrlValue(statusData.url);
 
-            if (!imageUrl) throw new Error('Nhiệm vụHoàn thành\u4f46\u6ca1Có\u56fe\u7247 URL');
+            if (!imageUrl) throw new Error('Nhiệm vụ hoàn thành nhưng không có URL ảnh');
             
             // \u6301\u4e45\u5316Đến\u672c\u5730 + \u56fegiường
             const persistResult = await persistSceneImage(imageUrl, sceneId, 'end');
@@ -3256,28 +3256,28 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             const folderId = getImageFolderId();
             addMediaFromUrl({
               url: persistResult.localPath,
-              name: `\u5206\u955c ${sceneId + 1} - \u5c3e\u5e27`,
+              name: `Phân cảnh ${sceneId + 1} - khung cuối`,
               type: 'image',
               source: 'ai-image',
               folderId,
               projectId: mediaProjectId,
             });
-            toast.success(`\u5206\u955c ${sceneId + 1} \u5c3e\u5e27\u751f\u6210Hoàn thành，Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+            toast.success(`Phân cảnh ${sceneId + 1} tạo khung cuối thành công và đã lưu vào thư viện`);
             setIsGenerating(false);
             return;
           }
 
           if (status === 'failed' || status === 'error') {
-            const errorMsg = statusData.error || statusData.message || '\u5c3e\u5e27\u751f\u6210\u5931\u8d25';
+            const errorMsg = statusData.error || statusData.message || 'Tạo khung cuối thất bại';
             throw new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
           }
 
           await new Promise<void>((resolve, reject) => {
             const tid = setTimeout(resolve, pollInterval);
-            endFrameSignal.addEventListener('abort', () => { clearTimeout(tid); reject(new Error('sử dụng\u6237Đã rồi\u53d6\u6d88')); }, { once: true });
+            endFrameSignal.addEventListener('abort', () => { clearTimeout(tid); reject(new Error('Người dùng đã hủy')); }, { once: true });
           });
         }
-        throw new Error('\u5c3e\u5e27\u751f\u6210\u8d85\u65f6');
+        throw new Error('Tạo khung cuối quá thời gian chờ');
       }
 
       throw new Error('Invalid API response');
@@ -3285,7 +3285,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       const err = error as Error;
 
       // sử dụng\u6237Chúa ơi\u52a8\u53d6\u6d88：abort() \u89e6\u53d1của AbortError hoặc\u81ea\u5b9a\u4e49 'sử dụng\u6237Đã rồi\u53d6\u6d88'
-      if (err.name === 'AbortError' || err.message === 'sử dụng\u6237Đã rồi\u53d6\u6d88') {
+      if (err.name === 'AbortError' || err.message === 'Người dùng đã hủy') {
         console.log(`[SplitScenes] Scene ${sceneId} end frame generation cancelled by user`);
         setIsGenerating(false);
         return;
@@ -3297,7 +3297,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         endFrameProgress: 0,
         endFrameError: err.message,
       });
-      toast.error(`\u5206\u955c ${sceneId + 1} \u5c3e\u5e27\u751f\u6210\u5931\u8d25: ${err.message}`);
+      toast.error(`Phân cảnh ${sceneId + 1} tạo khung cuối thất bại: ${err.message}`);
     }
 
     setIsGenerating(false);
@@ -3320,13 +3320,13 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     try {
       if (type === 'video') {
         if (!scene.videoUrl) {
-          toast.error("\u6ca1Có\u53ef\u4fdd\u5b58của\u89c6\u9891");
+          toast.error("Không có video để lưu");
           return;
         }
         const folderId = getVideoFolderId();
         addMediaFromUrl({
           url: scene.videoUrl,
-          name: `\u5206\u955c ${scene.id + 1} - AI\u89c6\u9891`,
+          name: `Phân cảnh ${scene.id + 1} - AI Video`,
           type: 'video',
           source: 'ai-video',
           thumbnailUrl: scene.imageDataUrl,
@@ -3334,26 +3334,26 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           folderId,
           projectId: mediaProjectId,
         });
-        toast.success(`\u5206\u955c ${scene.id + 1} \u89c6\u9891Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+        toast.success(`Phân cảnh ${scene.id + 1} đã lưu video vào thư viện`);
       } else {
         if (!scene.imageDataUrl) {
-          toast.error("\u6ca1Có\u53ef\u4fdd\u5b58của\u56fe\u7247");
+          toast.error("Không có ảnh để lưu");
           return;
         }
         const folderId = getImageFolderId();
         addMediaFromUrl({
           url: scene.imageDataUrl,
-          name: `\u5206\u955c ${scene.id + 1} - AI\u56fe\u7247`,
+          name: `Phân cảnh ${scene.id + 1} - AI Ảnh`,
           type: 'image',
           source: 'ai-image',
           folderId,
           projectId: mediaProjectId,
         });
-        toast.success(`\u5206\u955c ${scene.id + 1} \u56fe\u7247Đã rồi\u4fdd\u5b58ĐếnChất liệu\u5e93`);
+        toast.success(`Phân cảnh ${scene.id + 1} đã lưu ảnh vào thư viện`);
       }
     } catch (error) {
       const err = error as Error;
-      toast.error(`\u4fdd\u5b58\u5931\u8d25: ${err.message}`);
+      toast.error(`Lưu thất bại: ${err.message}`);
     }
   }, [addMediaFromUrl, getImageFolderId, getVideoFolderId, mediaProjectId]);
 
@@ -3364,7 +3364,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
           <ImageIcon className="h-8 w-8 text-muted-foreground" />
         </div>
-        <p className="text-sm text-muted-foreground">\u6682không có\u5207\u5272của\u5206\u955c</p>
+        <p className="text-sm text-muted-foreground">Chưa có phân cảnh nào</p>
       </div>
     );
   }
@@ -3380,14 +3380,14 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-9 px-4"
             >
               <Film className="h-3 w-3 mr-1" />
-              \u5206\u955c\u7f16\u8f91
+              Chỉnh sửa phân cảnh
             </TabsTrigger>
             <TabsTrigger 
               value="trailer" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-9 px-4"
             >
               <Clapperboard className="h-3 w-3 mr-1" />
-              xe kéo {trailerScenes.length > 0 ? `(${trailerScenes.length})` : ''}
+              Trailer {trailerScenes.length > 0 ? `(${trailerScenes.length})` : ''}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -3484,7 +3484,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">bức tranh\u6bd4\u4f8b:</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Tỷ lệ khung hình:</span>
                   <div className="flex rounded-md border overflow-hidden">
                     <button
                       onClick={() => handleAspectRatioChange('16:9')}
@@ -3496,7 +3496,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                       )}
                     >
                       <Monitor className="h-3.5 w-3.5" />
-                      \u6a2a\u5c4f
+                      Màn hình ngang
                     </button>
                     <button
                       onClick={() => handleAspectRatioChange('9:16')}
@@ -3508,7 +3508,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                       )}
                     >
                       <Smartphone className="h-3.5 w-3.5" />
-                      \u7ad6\u5c4f
+                      Màn hình dọc
                     </button>
                   </div>
                 </div>
@@ -3517,7 +3517,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   value={storyboardConfig.resolution || '2K'}
                   onValueChange={(v: '1K' | '2K' | '4K') => {
                     setStoryboardConfig({ resolution: v });
-                    toast.success(`\u56fe\u7247\u5206\u8fa8\u7387Đã rồi\u5207\u6362cho ${v}`);
+                    toast.success(`Đã chuyển độ phân giải ảnh sang ${v}`);
                   }}
                 >
                   <SelectTrigger className="w-[130px] h-8 text-xs">
@@ -3525,8 +3525,8 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1K" className="text-xs">Tiêu chuẩn (1K)</SelectItem>
-                    <SelectItem value="2K" className="text-xs">\u9ad8\u6e05 (2K)</SelectItem>
-                    <SelectItem value="4K" className="text-xs">\u8d85\u6e05 (4K)</SelectItem>
+                    <SelectItem value="2K" className="text-xs">HD (2K)</SelectItem>
+                    <SelectItem value="4K" className="text-xs">UHD (4K)</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -3535,7 +3535,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   value={storyboardConfig.videoResolution || '480p'}
                   onValueChange={(v: '480p' | '720p' | '1080p') => {
                     setStoryboardConfig({ videoResolution: v });
-                    toast.success(`\u89c6\u9891\u5206\u8fa8\u7387Đã rồi\u5207\u6362cho ${v}`);
+                    toast.success(`Đã chuyển độ phân giải video sang ${v}`);
                   }}
                 >
                   <SelectTrigger className="w-[140px] h-8 text-xs">
@@ -3543,8 +3543,8 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="480p" className="text-xs">Tiêu chuẩn (480P)</SelectItem>
-                    <SelectItem value="720p" className="text-xs">\u9ad8\u6e05 (720P)</SelectItem>
-                    <SelectItem value="1080p" className="text-xs">\u9ad8\u54c1\u8d28 (1080P)</SelectItem>
+                    <SelectItem value="720p" className="text-xs">HD (720P)</SelectItem>
+                    <SelectItem value="1080p" className="text-xs">Chất lượng cao (1080P)</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -3604,7 +3604,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                       <Button
                         onClick={() => {
                           // \u4ec5choxe kéo\u5206\u955c\u751f\u6210\u89c6\u9891
-                          toast.info(`\u5f00\u59cb\u751f\u6210 ${trailerScenes.length} mộtxe kéo\u89c6\u9891...`);
+                          toast.info(`Bắt đầu tạo ${trailerScenes.length} video trailer...`);
                           // \u5faa\u73af\u8c03sử dụng\u5355một\u751f\u6210
                           trailerScenes.forEach(scene => {
                             if (scene.imageDataUrl && scene.videoStatus !== 'completed') {
@@ -3619,18 +3619,18 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                         {isGenerating ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            \u751f\u6210trong...
+                            Đang tạo...
                           </>
                         ) : (
                           <>
                             <Play className="h-4 w-4 mr-2" />
-                            \u751f\u6210xe kéo\u89c6\u9891 ({trailerScenes.length})
+                            Tạo video trailer ({trailerScenes.length})
                           </>
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>choxe kéo\u5206\u955c\u751f\u6210\u89c6\u9891</p>
+                      <p>Tạo video cho các phân cảnh trailer</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -3638,7 +3638,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
               {/* Tips */}
               <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2">
-                <p>💡 xe kéo\u5206\u955cvớiChúa ơi\u5206\u955ctổng cộng\u4eab\u6570\u636e，\u4fee\u6539\u4f1a\u540c\u6b65。\u70b9\u51fb\u6bcfmột\u5206\u955c\u4e0b\u65b9của\u6587từQuận\u57df\u53ef\u7f16\u8f91\u63d0\u793a\u8bcd。</p>
+                <p>Trailer dùng chung dữ liệu với danh sách phân cảnh chính. Mọi thay đổi sẽ được đồng bộ. Nhấn vào vùng văn bản dưới mỗi cảnh để chỉnh prompt.</p>
               </div>
             </>
           )}
@@ -3651,9 +3651,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">\u5206\u955c\u7f16\u8f91</span>
+          <span className="text-sm font-medium">Chỉnh sửa phân cảnh</span>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {splitScenes.length} một\u5206\u955c
+            {splitScenes.length} phân cảnh
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -3678,7 +3678,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             className="hidden h-7 px-2 text-xs"
           >
             <ArrowLeft className="h-3 w-3 mr-1" />
-            \u91cdmới\u751f\u6210
+            Tạo lại
           </Button>
         </div>
       </div>
@@ -3687,7 +3687,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
       <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-muted/30 border">
         {/* Visual Style Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">\u89c6\u89c9gió\u683c:</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Phong cách hình ảnh:</span>
           <StylePicker
             value={currentStyleId || ''}
             onChange={handleStyleChange}
@@ -3697,7 +3697,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
         {/* Cinematography Profile Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">\u6444\u5f71gió\u683c:</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Phong cách quay phim:</span>
           <CinematographyProfilePicker
             value={currentCinProfileId}
             onChange={handleCinProfileChange}
@@ -3708,7 +3708,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
         {/* Aspect Ratio Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">bức tranh\u6bd4\u4f8b:</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Tỷ lệ khung hình:</span>
           <div className="flex rounded-md border overflow-hidden">
             <button
               onClick={() => handleAspectRatioChange('16:9')}
@@ -3720,7 +3720,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
               )}
             >
               <Monitor className="h-3.5 w-3.5" />
-              \u6a2a\u5c4f
+              Màn hình ngang
             </button>
             <button
               onClick={() => handleAspectRatioChange('9:16')}
@@ -3732,7 +3732,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
               )}
             >
               <Smartphone className="h-3.5 w-3.5" />
-              \u7ad6\u5c4f
+              Màn hình dọc
             </button>
           </div>
         </div>
@@ -3742,7 +3742,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           value={storyboardConfig.resolution || '2K'}
           onValueChange={(v: '1K' | '2K' | '4K') => {
             setStoryboardConfig({ resolution: v });
-            toast.success(`\u56fe\u7247\u5206\u8fa8\u7387Đã rồi\u5207\u6362cho ${v}`);
+            toast.success(`Đã chuyển độ phân giải ảnh sang ${v}`);
           }}
         >
           <SelectTrigger className="w-[130px] h-8 text-xs">
@@ -3750,8 +3750,8 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="1K" className="text-xs">Tiêu chuẩn (1K)</SelectItem>
-            <SelectItem value="2K" className="text-xs">\u9ad8\u6e05 (2K)</SelectItem>
-            <SelectItem value="4K" className="text-xs">\u8d85\u6e05 (4K)</SelectItem>
+            <SelectItem value="2K" className="text-xs">HD (2K)</SelectItem>
+            <SelectItem value="4K" className="text-xs">UHD (4K)</SelectItem>
           </SelectContent>
         </Select>
 
@@ -3760,7 +3760,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           value={storyboardConfig.videoResolution || '480p'}
           onValueChange={(v: '480p' | '720p' | '1080p') => {
             setStoryboardConfig({ videoResolution: v });
-            toast.success(`\u89c6\u9891\u5206\u8fa8\u7387Đã rồi\u5207\u6362cho ${v}`);
+            toast.success(`Đã chuyển độ phân giải video sang ${v}`);
           }}
         >
           <SelectTrigger className="w-[140px] h-8 text-xs">
@@ -3768,14 +3768,14 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="480p" className="text-xs">Tiêu chuẩn (480P)</SelectItem>
-            <SelectItem value="720p" className="text-xs">\u9ad8\u6e05 (720P)</SelectItem>
-            <SelectItem value="1080p" className="text-xs">\u9ad8\u54c1\u8d28 (1080P)</SelectItem>
+            <SelectItem value="720p" className="text-xs">HD (720P)</SelectItem>
+            <SelectItem value="1080p" className="text-xs">Chất lượng cao (1080P)</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Image generation mode toggle */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">\u56fe\u7247\u751f\u6210\u65b9\u5f0f:</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Chế độ tạo ảnh:</span>
           <div className="flex rounded-md border overflow-hidden">
             <button
               onClick={() => setImageGenMode('single')}
@@ -3783,14 +3783,14 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                 "px-3 py-1.5 text-xs",
                 imageGenMode === 'single' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'
               )}
-            >\u5355\u56fe\u751f\u6210</button>
+            >Tạo ảnh đơn</button>
             <button
               onClick={() => setImageGenMode('merged')}
               className={cn(
                 "px-3 py-1.5 text-xs border-l",
                 imageGenMode === 'merged' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'
               )}
-            >\u5408\u5e76\u751f\u6210</button>
+            >Tạo gộp</button>
           </div>
         </div>
 
@@ -3805,7 +3805,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
           {/* \u9996/\u5c3e\u5e27chế độ */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">\u9996/\u5c3e\u5e27:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Khung hình:</span>
             <div className="flex rounded-md border overflow-hidden">
               <button
                 onClick={() => setFrameMode('first')}
@@ -3813,42 +3813,42 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   "px-3 py-1.5 text-xs",
                   frameMode === 'first' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'
                 )}
-              >\u4ec5khung hình đầu tiên</button>
+              >Chỉ khung đầu</button>
               <button
                 onClick={() => setFrameMode('last')}
                 className={cn(
                   "px-3 py-1.5 text-xs border-l",
                   frameMode === 'last' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'
                 )}
-              >\u4ec5\u5c3e\u5e27</button>
+              >Chỉ khung cuối</button>
               <button
                 onClick={() => setFrameMode('both')}
                 className={cn(
                   "px-3 py-1.5 text-xs border-l",
                   frameMode === 'both' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'
                 )}
-              >\u9996+\u5c3e</button>
+              >Khung đầu + cuối</button>
             </div>
           </div>
 
           {/* Hình ảnh tham khảoChiến lược */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">Hình ảnh tham khảoChiến lược:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Chiến lược ảnh tham chiếu:</span>
             <Select value={refStrategy} onValueChange={v => setRefStrategy(v as any)}>
               <SelectTrigger className="w-[120px] h-8 text-xs">
-                <SelectValue placeholder="\u9009\u62e9Chiến lược" />
+                <SelectValue placeholder="Chọn chiến lược" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cluster" className="text-xs">Cluster（\u805a\u7c7b\u53bb\u91cd）</SelectItem>
-                <SelectItem value="minimal" className="text-xs">Minimal（\u5355Tài liệu tham khảo）</SelectItem>
-                <SelectItem value="none" className="text-xs">None（không cóTài liệu tham khảo）</SelectItem>
+                <SelectItem value="cluster" className="text-xs">Cluster (gom cụm, loại trùng)</SelectItem>
+                <SelectItem value="minimal" className="text-xs">Minimal (ít tham chiếu)</SelectItem>
+                <SelectItem value="none" className="text-xs">None (không tham chiếu)</SelectItem>
               </SelectContent>
             </Select>
             <button
               onClick={() => setUseExemplar(!useExemplar)}
               className={cn("px-2 py-1 text-xs rounded border", useExemplar ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted')}
-              title="\u540c\u7ec4\u683c\u5f15sử dụngĐã rồi\u751f\u6210của\u8303\u4f8b\u6210\u7247\u4f5ccho\u951a\u70b9"
-            >\u8303\u4f8b\u951a\u56fe {useExemplar ? '\u5f00' : '\u5173'}</button>
+              title="Dùng ảnh mẫu đã tạo để làm neo tham chiếu trong cùng lưới"
+            >Neo ảnh mẫu {useExemplar ? 'Bật' : 'Tắt'}</button>
           </div>
 
           {/* \u6267được rồi\u5408\u5e76\u751f\u6210 - \u7a81\u51fa\u663e\u793a */}
@@ -3861,7 +3861,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                 handleMergedGenerate(frameMode, refStrategy, useExemplar);
               }}
             >
-              {isMergedRunning ? (<><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />\u5408\u5e76\u751f\u6210trong...</>) : (<><Sparkles className="h-3.5 w-3.5 mr-1.5" />\u6267được rồi\u5408\u5e76\u751f\u6210</>)}
+              {isMergedRunning ? (<><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Đang tạo gộp...</>) : (<><Sparkles className="h-3.5 w-3.5 mr-1.5" />Chạy tạo gộp</>)}
             </Button>
             {isMergedRunning && (
               <Button
@@ -3869,7 +3869,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                 className="h-8 px-3 text-xs"
                 onClick={handleStopMergedGeneration}
               >
-                <Square className="h-3.5 w-3.5 mr-1" />\u505c\u6b62
+                <Square className="h-3.5 w-3.5 mr-1" />Dừng
               </Button>
             )}
           </div>
@@ -3881,7 +3881,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
           <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
           <div className="text-xs text-yellow-600 dark:text-yellow-400">
-            <p>một phần\u5206\u955cthiếu\u5c11\u63d0\u793a\u8bcd，\u70b9\u51fb\u5206\u955c\u4e0b\u65b9của\u6587từQuận\u57df\u53ef\u7f16\u8f91。</p>
+            <p>Một số phân cảnh đang thiếu prompt, hãy nhấn vào vùng văn bản bên dưới để chỉnh sửa.</p>
           </div>
         </div>
       )}
@@ -3942,7 +3942,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
           )}
         >
           <Plus className="h-5 w-5" />
-          <span>\u6dfb\u52a0\u7a7a\u767d\u5206\u955c</span>
+          <span>Thêm phân cảnh trống</span>
         </button>
       </div>
 
@@ -3965,21 +3965,21 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                     {isGenerating ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        \u751f\u6210trong...
+                        Đang tạo...
                       </>
                     ) : (
                       <>
                         <Play className="h-4 w-4 mr-2" />
-                        \u751f\u6210\u89c6\u9891 ({scenesNeedVideo}/{splitScenes.length})
+                        Tạo video ({scenesNeedVideo}/{splitScenes.length})
                       </>
                     )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   {noImages ? (
-                    <p>\u8bf7đầu tiêncho\u5206\u955c\u751f\u6210\u56fe\u7247，Một lần nữa\u751f\u6210\u89c6\u9891</p>
+                    <p>Vui lòng tạo ảnh cho phân cảnh trước, rồi tạo lại video</p>
                   ) : (
-                    <p>{scenesWithImages} một\u5206\u955cĐã rồiCó\u56fe\u7247，{scenesNeedVideo} một\u5f85\u751f\u6210\u89c6\u9891</p>
+                    <p>{scenesWithImages} phân cảnh đã có ảnh, {scenesNeedVideo} phân cảnh chờ tạo video</p>
                   )}
                 </TooltipContent>
               </Tooltip>
@@ -3990,7 +3990,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
       {/* Tips */}
       <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2">
-        <p>💡 \u70b9\u51fb\u6bcfmột\u5206\u955c\u4e0b\u65b9của\u6587từQuận\u57df\u53ef\u7f16\u8f91\u89c6\u9891\u751f\u6210\u63d0\u793a\u8bcd。\u60ac\u505c\u5728\u5206\u955c\u4e0a\u53ef\u4ee5\u5220\u9664\u4e0d\u9700\u8981của\u5206\u955c。</p>
+        <p>Nhấn vào vùng văn bản dưới mỗi phân cảnh để chỉnh prompt tạo video. Di chuột lên phân cảnh để xóa cảnh không cần thiết.</p>
       </div>
       </>
       )}
@@ -4056,7 +4056,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         result={quadGridResult}
         frameType={quadGridTarget?.type || "start"}
         currentSceneId={quadGridTarget?.sceneId ?? 0}
-        availableScenes={splitScenes.map(s => ({ id: s.id, label: `\u5206\u955c ${s.id + 1}` }))}
+        availableScenes={splitScenes.map(s => ({ id: s.id, label: `Phân cảnh ${s.id + 1}` }))}
         onApply={handleApplyQuadGrid}
         onCopyToScene={handleCopyQuadGridToScene}
       />

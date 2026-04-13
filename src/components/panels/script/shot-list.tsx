@@ -314,12 +314,12 @@ export function ShotList({ projectId, shots, styleId }: ShotListProps) {
           {isGenerating ? (
             <>
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              Tạotrong...
+              Đang tạo...
             </>
           ) : (
             <>
               <Play className="h-4 w-4 mr-1" />
-              Lô Tạo hình ảnh
+              Tạo ảnh hàng loạt
             </>
           )}
         </Button>
