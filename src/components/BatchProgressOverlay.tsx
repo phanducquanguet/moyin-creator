@@ -29,7 +29,7 @@ export function BatchProgressOverlay({
   current,
   total,
   message,
-  title = "lô\u91cf\u751f\u6210trong",
+  title = "Đang tạo hàng loạt",
 }: BatchProgressOverlayProps) {
   if (!isVisible) return null;
 
@@ -69,7 +69,7 @@ export function BatchProgressOverlay({
 
         {/* Warning */}
         <p className="mt-6 text-[10px] text-zinc-600 text-center">
-          \u8bf7\u52ff\u5173\u95edcửa sổ\u53e3hoặc\u5237mới\u9875\u9762
+          Vui lòng không đóng cửa sổ hoặc tải lại trang
         </p>
       </div>
     </div>

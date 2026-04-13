@@ -247,14 +247,14 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) {
-      toast.error("Vui lòng nhậpThư mụcTên");
+      toast.error("Vui lòng nhập tên thư mục");
       return;
     }
     const projectId = resourceSharing.shareScenes ? undefined : activeProjectId || undefined;
     addFolder(newFolderName.trim(), currentFolderId, projectId);
     setNewFolderName("");
     setShowNewFolderDialog(false);
-    toast.success("Thư mụcĐã Tạo");
+    toast.success("Thư mục đã được tạo");
   };
 
   const handleRenameFolder = () => {
@@ -262,23 +262,23 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
     renameFolder(renamingFolder.id, renameValue.trim());
     setRenamingFolder(null);
     setRenameValue("");
-    toast.success("Thư mụcĐã rồi\u91cd\u547dtên");
+    toast.success("Thư mục đã được đổi tên");
   };
 
   const handleDeleteFolder = (id: string) => {
-    if (confirm("\u786e\u5b9a\u8981Xoá\u6b64Thư mục\u5417？Thư mụcbên trongCảnh\u5c06\u79fb\u52a8Đến\u4e0a\u7ea7Thư mục。")) {
+    if (confirm("Bạn có chắc muốn xoá thư mục này? Cảnh bên trong sẽ được chuyển lên thư mục cha.")) {
       deleteFolder(id);
-      toast.success("Thư mụcĐã rồiXoá");
+      toast.success("Thư mục đã được xoá");
     }
   };
 
   const handleDeleteScene = (scene: Scene) => {
-    if (confirm(`\u786e\u5b9a\u8981XoáCảnh "${scene.name}" \u5417？`)) {
+    if (confirm(`Bạn có chắc muốn xoá Cảnh "${scene.name}"?`)) {
       deleteScene(scene.id);
       if (selectedSceneId === scene.id) {
         onSceneSelect(null);
       }
-      toast.success("CảnhĐã rồiXoá");
+      toast.success("Cảnh đã được xoá");
     }
   };
 
@@ -329,7 +329,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếmCảnh..."
+              placeholder="Tìm kiếm Cảnh..."
               className="h-8 pl-7 text-sm"
             />
           </div>
@@ -342,7 +342,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                 className="h-8 px-2 rounded-r-none text-xs"
                 onClick={() => setEpisodeViewScope('episode')}
               >
-                \u672cđặt
+                Tập hiện tại
               </Button>
               <Button
                 variant={episodeViewScope === 'all' ? 'secondary' : 'ghost'}
@@ -350,7 +350,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                 className="h-8 px-2 rounded-l-none text-xs"
                 onClick={() => setEpisodeViewScope('all')}
               >
-                \u5168\u5267
+                Toàn bộ
               </Button>
             </div>
           )}
@@ -454,7 +454,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                     onDelete={() => handleDeleteScene(scene)}
                     onMove={(folderId) => {
                       moveToFolder(scene.id, folderId);
-                      toast.success("CảnhĐã rồi\u79fb\u52a8");
+                      toast.success("Cảnh đã được di chuyển");
                     }}
                   >
                     <SceneCard
@@ -482,10 +482,10 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
                 <MapPin className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground">
-                {searchQuery ? "\u6ca1Cótìm thấytrận đấuCảnh" : "\u8fd8Không Cảnh"}
+                {searchQuery ? "Không tìm thấy Cảnh phù hợp" : "Chưa có Cảnh"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                sử dụng\u5de6\u4fa7\u63a7\u5236\u53f0TạoCảnh
+                Dùng bảng điều khiển bên trái để Tạo Cảnh
               </p>
             </div>
           )
@@ -505,7 +505,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tạo mớiThư mục</DialogTitle>
+            <DialogTitle>Tạo mới Thư mục</DialogTitle>
           </DialogHeader>
           <Input
             value={newFolderName}
@@ -527,7 +527,7 @@ export function SceneGallery({ onSceneSelect, selectedSceneId }: SceneGalleryPro
       <Dialog open={!!renamingFolder} onOpenChange={(open) => !open && setRenamingFolder(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>\u91cd\u547dtênThư mục</DialogTitle>
+            <DialogTitle>Đổi tên Thư mục</DialogTitle>
           </DialogHeader>
           <Input
             value={renameValue}
@@ -607,7 +607,7 @@ function SceneCard({
             "aspect-video rounded bg-muted flex items-center justify-center overflow-hidden mb-2 relative",
             hasChildren ? "cursor-pointer" : "cursor-zoom-in"
           )}
-          title={hasChildren ? (isExpanded ? "\u53cc\u51fbThu gọn\u5b50Cảnh" : "\u53cc\u51fbMở rộng\u5b50Cảnh") : "\u53cc\u51fb\u67e5\u770b\u5927\u56fe"}
+          title={hasChildren ? (isExpanded ? "Nhấp đúp để thu gọn cảnh con" : "Nhấp đúp để mở rộng cảnh con") : "Nhấp đúp để xem ảnh lớn"}
           onDoubleClick={(e) => {
             e.stopPropagation();
             if (hasChildren) {
@@ -635,7 +635,7 @@ function SceneCard({
               ) : (
                 <>
                   <Loader2 className="h-6 w-6 text-white animate-spin" />
-                  <span className="text-white text-[10px]">{generatingTask.message || 'Tạotrong...'}</span>
+                  <span className="text-white text-[10px]">{generatingTask.message || 'Đang tạo...'}</span>
                   <div className="w-3/4 h-1 bg-white/30 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary rounded-full transition-all duration-300"
@@ -663,21 +663,21 @@ function SceneCard({
                 e.stopPropagation();
                 onToggleExpand?.();
               }}
-              title={isExpanded ? "Thu gọn\u5b50Cảnh" : "Mở rộng\u5b50Cảnh"}
+              title={isExpanded ? "Thu gọn cảnh con" : "Mở rộng cảnh con"}
             >
               {isExpanded ? (
                 <ChevronDown className="h-2.5 w-2.5" />
               ) : (
                 <ChevronRight className="h-2.5 w-2.5" />
               )}
-              {childCount} một
+              {childCount} con
             </div>
           )}
           {/* Phụ huynh CảnhXem trước\u6309\u94ae（Có\u5b50Cảnh thời gian\u53cc\u51fbMở rộng，Xem trướcChấp nhận\u6b64\u6309\u94ae） */}
           {hasChildren && resolvedImage && (
             <div
               className="absolute bottom-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded p-0.5 cursor-pointer transition-colors"
-              title="Xem trước\u5927\u56fe"
+              title="Xem trước ảnh lớn"
               onClick={(e) => {
                 e.stopPropagation();
                 onImagePreview?.(resolvedImage);
@@ -813,12 +813,12 @@ function FolderContextMenu({
       <ContextMenuContent>
         <ContextMenuItem onClick={onRename}>
           <Pencil className="h-4 w-4 mr-2" />
-          \u91cd\u547dtên
+          Đổi tên
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem className="text-destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4 mr-2" />
-          XoáThư mục
+          Xoá Thư mục
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -846,7 +846,7 @@ function SceneContextMenu({
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <FolderInput className="h-4 w-4 mr-2" />
-            \u79fb\u52a8Đến
+            Di chuyển đến
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onClick={() => onMove(null)}>

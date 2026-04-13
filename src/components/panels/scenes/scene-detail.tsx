@@ -70,7 +70,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
           <MapPin className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          \u9009\u62e9mộtCảnh\u67e5\u770bChi tiết
+          Chọn một Cảnh để xem chi tiết
         </p>
       </div>
     );
@@ -79,29 +79,29 @@ export function SceneDetail({ scene }: SceneDetailProps) {
   const handleSaveName = () => {
     if (editName.trim() && editName.trim() !== scene.name) {
       updateScene(scene.id, { name: editName.trim() });
-      toast.success("TênĐã rồiCập nhật");
+      toast.success("Tên đã được cập nhật");
     }
     setIsEditingName(false);
   };
 
   const handleDelete = () => {
-    if (confirm(`\u786e\u5b9a\u8981XoáCảnh "${scene.name}" \u5417？`)) {
+    if (confirm(`Bạn có chắc muốn xoá Cảnh "${scene.name}"?`)) {
       deleteScene(scene.id);
       selectScene(null);
-      toast.success("CảnhĐã rồiXoá");
+      toast.success("Cảnh đã được xoá");
     }
   };
 
   const handleSaveNotes = () => {
     updateScene(scene.id, { notes: editNotes.trim() || undefined });
     setIsEditingNotes(false);
-    toast.success("Bình luậnĐã rồiCập nhật");
+    toast.success("Bình luận đã được cập nhật");
   };
 
   const handleSaveLocation = () => {
     if (editLocation.trim()) {
       updateScene(scene.id, { location: editLocation.trim() });
-      toast.success("Vị trí Mô tảĐã rồiCập nhật");
+      toast.success("Vị trí mô tả đã được cập nhật");
     }
     setIsEditingLocation(false);
   };
@@ -109,7 +109,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
   const handleSaveVisualPrompt = () => {
     updateScene(scene.id, { visualPrompt: editVisualPrompt.trim() || undefined });
     setIsEditingVisualPrompt(false);
-    toast.success("Lời nhắc trực quanĐã rồiCập nhật");
+    toast.success("Lời nhắc trực quan đã được cập nhật");
   };
 
   const handleAddTag = () => {
@@ -118,7 +118,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
     const currentTags = scene.tags || [];
     if (!currentTags.includes(tag)) {
       updateScene(scene.id, { tags: [...currentTags, tag] });
-      toast.success("nhãnĐã Thêm");
+      toast.success("Đã thêm nhãn");
     }
     setNewTag("");
   };
@@ -136,7 +136,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
       if (href.startsWith('local-image://')) {
         const base64 = await readImageAsBase64(href);
         if (!base64) {
-          toast.error("Không thể đọc H cục bộình ảnh");
+          toast.error("Không thể đọc hình ảnh cục bộ");
           return;
         }
         href = base64;
@@ -147,7 +147,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
       link.click();
     } catch (error) {
       console.error('Export failed:', error);
-      toast.error("XuấtThất bại");
+      toast.error("Xuất thất bại");
     }
   };
 
@@ -201,7 +201,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
           <div className="space-y-2">
             <div 
               className="aspect-video rounded-lg bg-muted overflow-hidden border relative cursor-zoom-in"
-              title="\u53cc\u51fb\u67e5\u770b\u5b8c\u6574Hình ảnh"
+              title="Nhấp đúp để xem hình ảnh đầy đủ"
               draggable={!!scene.referenceImage}
               onDoubleClick={() => {
                 if (resolvedImage) setPreviewImageUrl(resolvedImage);
@@ -280,7 +280,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                   <Textarea
                     value={editLocation}
                     onChange={(e) => setEditLocation(e.target.value)}
-                    placeholder="Đầu vàoVị trí Mô tả..."
+                    placeholder="Nhập vị trí mô tả..."
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
@@ -295,7 +295,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 </div>
               ) : (
                 <p className="text-xs whitespace-pre-wrap bg-muted rounded p-2 max-h-[100px] overflow-y-auto">
-                  {scene.location || '\u70b9\u51fbChỉnh sửaThêmVị trí Mô tả...'}
+                  {scene.location || 'Nhấp để chỉnh sửa hoặc thêm vị trí mô tả...'}
                 </p>
               )}
             </div>
@@ -323,7 +323,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                   <Textarea
                     value={editVisualPrompt}
                     onChange={(e) => setEditVisualPrompt(e.target.value)}
-                    placeholder="Đầu vàoCảnh visual Mô tả，sử dụng\u4e8e AI TạoHình ảnh tham khảo..."
+                    placeholder="Nhập mô tả visual cảnh, dùng cho AI tạo hình ảnh tham khảo..."
                     className="text-xs min-h-[80px]"
                     autoFocus
                   />
@@ -338,7 +338,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground bg-muted rounded p-2 max-h-[80px] overflow-y-auto">
-                  {scene.visualPrompt || '\u70b9\u51fbChỉnh sửaThêLời nhắc mVisual...'}
+                  {scene.visualPrompt || 'Nhấp để chỉnh sửa hoặc thêm lời nhắc visual...'}
                 </p>
               )}
             </div>
@@ -369,7 +369,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
-                    placeholder="Thêm\u5267\u60c5\u76f8\u5173củaBình luận..."
+                    placeholder="Thêm bình luận liên quan đến cốt truyện..."
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
@@ -384,7 +384,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 </div>
               ) : (
                 <p className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded p-2 text-amber-800 dark:text-amber-200">
-                  {scene.notes || '\u70b9\u51fbChỉnh sửaThêmBình luận...'}
+                  {scene.notes || 'Nhấp để chỉnh sửa hoặc thêm bình luận...'}
                 </p>
               )}
             </div>
@@ -395,7 +395,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Tag className="h-3 w-3" />
-                Cảthẻ nh
+                Thẻ Cảnh
               </Label>
               <div className="flex flex-wrap gap-1">
                 {(scene.tags || []).map((tag) => (
@@ -414,7 +414,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 <Input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Thêthẻ m..."
+                  placeholder="Thêm thẻ..."
                   className="h-7 text-xs"
                   onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
                 />
@@ -438,7 +438,7 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 onClick={handleExportImage}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Xuấtkhái niệm\u56fe
+                Xuất hình khái niệm
               </Button>
             )}
             
@@ -450,11 +450,11 @@ export function SceneDetail({ scene }: SceneDetailProps) {
                 size="sm"
                 onClick={() => {
                   selectScene(scene.id);
-                  toast.info("\u8bf7\u5728\u5de6\u4fa7Tạo\u63a7\u5236\u53f0\u9009\u62e9「bốn\u89c6\u56fe」chế độ，\u7136\u540e\u70b9\u51fbTạo");
+                  toast.info("Hãy chọn chế độ 「Bốn góc nhìn」 ở bảng điều khiển bên trái, rồi nhấp Tạo");
                 }}
               >
                 <Box className="h-4 w-4 mr-2" />
-                Tạobốn\u89c6\u56fe
+                Tạo bốn góc nhìn
               </Button>
             )}
 
@@ -465,14 +465,14 @@ export function SceneDetail({ scene }: SceneDetailProps) {
               onClick={handleDelete}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              XoáCảnh
+              Xoá Cảnh
             </Button>
           </div>
 
           {/* Tips */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>💡 Cảbản đồ khái niệm nh\u53ef\u62d6\u62fdĐến AI giám đốc\u9762\u677fsử dụng</p>
-            <p>💡 giữ\u540cmộtCảnhÁnh sángmột\u81f4\u6027</p>
+            <p>💡 Bản đồ khái niệm Cảnh có thể kéo vào bảng AI giám đốc để sử dụng</p>
+            <p>💡 Giữ ánh sáng nhất quán trong cùng một Cảnh</p>
           </div>
         </div>
       </ScrollArea>

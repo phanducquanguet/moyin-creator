@@ -44,7 +44,7 @@ export function LocalImage({ src, fallback, className, alt, ...props }: LocalIma
         )}
         style={props.style}
       >
-        Hình ảnh\u52a0\u8f7dThất bại
+        Hình ảnh tải thất bại
       </div>
     );
   }
